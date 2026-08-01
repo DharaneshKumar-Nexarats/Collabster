@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../model/startup_models.dart';
 import 'join_startup_status_screen.dart';
 
 class JoinStartupVerificationScreen extends StatelessWidget {
-  const JoinStartupVerificationScreen({super.key, required this.startupName});
+  const JoinStartupVerificationScreen({super.key, required this.startup});
 
-  final String startupName;
+  final SuggestedStartup startup;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +38,11 @@ class JoinStartupVerificationScreen extends StatelessWidget {
               const SizedBox(height: 6),
               const Text(
                 'Please verify your identity before joining this startup.',
-                style: TextStyle(fontSize: 14.5, height: 1.45, color: Color(0xFF5D6472)),
+                style: TextStyle(
+                  fontSize: 14.5,
+                  height: 1.45,
+                  color: Color(0xFF5D6472),
+                ),
               ),
               const SizedBox(height: 18),
               _verificationCard(
@@ -88,7 +93,9 @@ class JoinStartupVerificationScreen extends StatelessWidget {
               const SizedBox(height: 4),
               TextButton(
                 onPressed: () {},
-                child: const Text('By submitting, you agree to our Security Policies.'),
+                child: const Text(
+                  'By submitting, you agree to our Security Policies.',
+                ),
               ),
             ],
           ),
@@ -115,7 +122,10 @@ class JoinStartupVerificationScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text('Back', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Text(
+                    'Back',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -126,7 +136,8 @@ class JoinStartupVerificationScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => JoinStartupStatusScreen(startupName: startupName),
+                        builder: (context) =>
+                            JoinStartupStatusScreen(startup: startup),
                       ),
                     );
                   },
@@ -139,7 +150,10 @@ class JoinStartupVerificationScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text('Submit Verification', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Text(
+                    'Submit Verification',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
             ],
@@ -200,7 +214,10 @@ class JoinStartupVerificationScreen extends StatelessWidget {
                         ),
                         if (statusLabel != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFE6F7ED),
                               borderRadius: BorderRadius.circular(999),
@@ -219,7 +236,10 @@ class JoinStartupVerificationScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: const TextStyle(fontSize: 12.5, color: Color(0xFF5D6472)),
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFF5D6472),
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -227,7 +247,9 @@ class JoinStartupVerificationScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: optional ? const Color(0xFF8C8FA0) : const Color(0xFF5B21B6),
+                        color: optional
+                            ? const Color(0xFF8C8FA0)
+                            : const Color(0xFF5B21B6),
                       ),
                     ),
                   ],
@@ -242,9 +264,14 @@ class JoinStartupVerificationScreen extends StatelessWidget {
               minimumSize: const Size.fromHeight(46),
               foregroundColor: const Color(0xFF5B21B6),
               side: const BorderSide(color: Color(0xFF5B21B6)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
-            child: Text(buttonLabel, style: const TextStyle(fontWeight: FontWeight.w700)),
+            child: Text(
+              buttonLabel,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),

@@ -1,23 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../model/startup_models.dart';
+import '../../../auth/viewmodel/auth_viewmodel.dart';
 import 'startup_success_screen.dart';
 
-class StartupRegistrationFlowScreen extends StatefulWidget {
-  const StartupRegistrationFlowScreen({super.key, this.selectedRole = 'Founder'});
+class StartupRegistrationFlowScreen extends ConsumerStatefulWidget {
+  const StartupRegistrationFlowScreen({
+    super.key,
+    this.selectedRole = 'Founder',
+  });
 
   final String selectedRole;
 
   @override
-  State<StartupRegistrationFlowScreen> createState() => _StartupRegistrationFlowScreenState();
+  ConsumerState<StartupRegistrationFlowScreen> createState() =>
+      _StartupRegistrationFlowScreenState();
 }
 
-class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowScreen> {
+class _StartupRegistrationFlowScreenState
+    extends ConsumerState<StartupRegistrationFlowScreen> {
   static const int _totalSteps = 8;
 
   final PageController _pageController = PageController();
   final TextEditingController _startupNameController = TextEditingController();
   final TextEditingController _taglineController = TextEditingController();
   final TextEditingController _industryController = TextEditingController();
-  final TextEditingController _countryController = TextEditingController(text: 'United States');
+  final TextEditingController _countryController = TextEditingController(
+    text: 'United States',
+  );
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _founderNameController = TextEditingController();
   final TextEditingController _designationController = TextEditingController();
@@ -25,16 +35,25 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _linkedinController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
-  final TextEditingController _websiteController = TextEditingController(text: 'https://yourstartup.com');
-  final TextEditingController _incorporationController = TextEditingController();
-  final TextEditingController _shortDescriptionController = TextEditingController();
+  final TextEditingController _websiteController = TextEditingController(
+    text: 'https://yourstartup.com',
+  );
+  final TextEditingController _incorporationController =
+      TextEditingController();
+  final TextEditingController _shortDescriptionController =
+      TextEditingController();
   final TextEditingController _problemController = TextEditingController();
   final TextEditingController _solutionController = TextEditingController();
   final TextEditingController _missionController = TextEditingController();
   final TextEditingController _visionController = TextEditingController();
-  final TextEditingController _socialWebsiteController = TextEditingController(text: 'https://acme.ai');
-  final TextEditingController _socialLinkedInController = TextEditingController(text: 'linkedin.com/acme');
-  final TextEditingController _socialProductHuntController = TextEditingController(text: 'producthunt.com/acme');
+  final TextEditingController _socialWebsiteController = TextEditingController(
+    text: 'https://acme.ai',
+  );
+  final TextEditingController _socialLinkedInController = TextEditingController(
+    text: 'linkedin.com/acme',
+  );
+  final TextEditingController _socialProductHuntController =
+      TextEditingController(text: 'producthunt.com/acme');
   final TextEditingController _inviteEmailController = TextEditingController();
   final TextEditingController _useOfFundsController = TextEditingController();
 
@@ -61,9 +80,19 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
 
   final Set<String> _selectedSkills = {'Leadership', 'AI', 'Product'};
 
-  final List<_StartupMember> _members = [
-    _StartupMember(name: 'Sarah Jenkins', role: 'CEO & Co-founder', status: 'Active', initials: 'SJ'),
-    _StartupMember(name: 'Marcus Zhao', role: 'Lead Developer', status: 'Invite Sent', initials: 'MZ'),
+  final List<StartupMember> _members = [
+    StartupMember(
+      name: 'Sarah Jenkins',
+      role: 'CEO & Co-founder',
+      status: 'Active',
+      initials: 'SJ',
+    ),
+    StartupMember(
+      name: 'Marcus Zhao',
+      role: 'Lead Developer',
+      status: 'Invite Sent',
+      initials: 'MZ',
+    ),
   ];
 
   final List<String> _fundingStages = const [
@@ -75,7 +104,11 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
     'Series B',
   ];
 
-  final List<String> _visibilityOptions = const ['Public', 'Private', 'Invite Only'];
+  final List<String> _visibilityOptions = const [
+    'Public',
+    'Private',
+    'Invite Only',
+  ];
 
   @override
   void dispose() {
@@ -130,10 +163,90 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
     Navigator.pop(context);
   }
 
-  void _publishStartup() {
-    final startupName = _startupNameController.text.trim().isEmpty
-        ? 'Acme Innovations Ltd.'
-        : _startupNameController.text.trim();
+  void _showCountryPicker() {
+    final countries = [
+      'United States',
+      'United Kingdom',
+      'Canada',
+      'Australia',
+      'India',
+      'Germany',
+      'France',
+      'Singapore',
+      'Japan',
+      'Brazil',
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.only(top: 24, bottom: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Select Country',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF12233D),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: countries.length,
+                  itemBuilder: (context, index) {
+                    final country = countries[index];
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                      ),
+                      title: Text(
+                        country,
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          _countryController.text = country;
+                        });
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _publishStartup() async {
+    final startupName = _startupNameController.text.trim();
+    if (startupName.isEmpty) {
+      _showComingSoon('Enter your startup name before publishing');
+      return;
+    }
+
+    // Save the profile before showing the confirmation screen so it survives
+    // an app restart or an interrupted completion screen.
+    await ref.read(authViewModelProvider.notifier).updateStartupData(
+      startupName: startupName,
+      industry: _industryController.text.trim(),
+      stage: _selectedStage,
+      tagline: _taglineController.text.trim(),
+      country: _countryController.text.trim(),
+      city: _cityController.text.trim(),
+    );
+
+    if (!mounted) return;
 
     Navigator.pushReplacement(
       context,
@@ -142,15 +255,20 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
           startupName: startupName,
           selectedRole: widget.selectedRole,
           completion: 65,
+          industry: _industryController.text.trim(),
+          stage: _selectedStage,
+          tagline: _taglineController.text.trim(),
+          country: _countryController.text.trim(),
+          city: _cityController.text.trim(),
         ),
       ),
     );
   }
 
   void _showComingSoon(String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature is coming soon.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$feature is coming soon.')));
   }
 
   void _inviteTeamMember() {
@@ -163,7 +281,7 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
     setState(() {
       _members.insert(
         0,
-        _StartupMember(
+        StartupMember(
           name: email.split('@').first,
           role: _selectedInviteRole,
           status: 'Invite Sent',
@@ -173,9 +291,9 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
       _inviteEmailController.clear();
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Invitation sent to $email')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Invitation sent to $email')));
   }
 
   @override
@@ -227,7 +345,9 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
                   value: progress,
                   minHeight: 8,
                   backgroundColor: const Color(0xFFE9DCF9),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF5B21B6)),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFF5B21B6),
+                  ),
                 ),
               ),
             ),
@@ -370,6 +490,7 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
     Widget? suffixIcon,
     int maxLines = 1,
     bool readOnly = false,
+    VoidCallback? onTap,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,10 +509,8 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
           keyboardType: keyboardType,
           maxLines: maxLines,
           readOnly: readOnly,
-          decoration: InputDecoration(
-            hintText: hint,
-            suffixIcon: suffixIcon,
-          ),
+          onTap: onTap,
+          decoration: InputDecoration(hintText: hint, suffixIcon: suffixIcon),
         ),
       ],
     );
@@ -408,7 +527,9 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
         color: selected ? const Color(0xFF5B21B6) : const Color(0xFF3C4251),
         fontWeight: FontWeight.w600,
       ),
-      side: BorderSide(color: selected ? const Color(0xFF5B21B6) : const Color(0xFFD4D6E2)),
+      side: BorderSide(
+        color: selected ? const Color(0xFF5B21B6) : const Color(0xFFD4D6E2),
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
     );
   }
@@ -427,7 +548,10 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
         decoration: BoxDecoration(
           color: selected ? const Color(0xFFE4DAFF) : Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: selected ? const Color(0xFF5B21B6) : const Color(0xFFD4D6E2), width: selected ? 1.8 : 1),
+          border: Border.all(
+            color: selected ? const Color(0xFF5B21B6) : const Color(0xFFD4D6E2),
+            width: selected ? 1.8 : 1,
+          ),
         ),
         child: Text(
           label,
@@ -473,7 +597,12 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
                     label: 'Country',
                     hint: 'United States',
                     controller: _countryController,
-                    suffixIcon: const Icon(Icons.public, color: Color(0xFF5B21B6)),
+                    readOnly: true,
+                    onTap: _showCountryPicker,
+                    suffixIcon: const Icon(
+                      Icons.public,
+                      color: Color(0xFF5B21B6),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -558,7 +687,11 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
                       CircleAvatar(
                         radius: 36,
                         backgroundColor: const Color(0xFFE8DBFF),
-                        child: const Icon(Icons.person_outline, size: 38, color: Color(0xFF5B21B6)),
+                        child: const Icon(
+                          Icons.person_outline,
+                          size: 38,
+                          color: Color(0xFF5B21B6),
+                        ),
                       ),
                       CircleAvatar(
                         radius: 13,
@@ -567,7 +700,10 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
                           padding: EdgeInsets.zero,
                           iconSize: 12,
                           splashRadius: 14,
-                          icon: const Icon(Icons.camera_alt_outlined, color: Colors.white),
+                          icon: const Icon(
+                            Icons.camera_alt_outlined,
+                            color: Colors.white,
+                          ),
                           onPressed: () => _showComingSoon('Photo upload'),
                         ),
                       ),
@@ -635,9 +771,9 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
               ],
             ),
             SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                activeTrackColor: const Color(0xFF5B21B6),
-              ),
+              data: SliderTheme.of(
+                context,
+              ).copyWith(activeTrackColor: const Color(0xFF5B21B6)),
               child: Slider(
                 value: _yearsOfExperience,
                 min: 0,
@@ -668,19 +804,16 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
               runSpacing: 8,
               children: _skillTags
                   .map(
-                    (skill) => _chip(
-                      skill,
-                      _selectedSkills.contains(skill),
-                      () {
-                        setState(() {
-                          if (_selectedSkills.contains(skill)) {
-                            _selectedSkills.remove(skill);
-                          } else {
-                            _selectedSkills.add(skill);
-                          }
-                        });
-                      },
-                    ),
+                    (skill) =>
+                        _chip(skill, _selectedSkills.contains(skill), () {
+                          setState(() {
+                            if (_selectedSkills.contains(skill)) {
+                              _selectedSkills.remove(skill);
+                            } else {
+                              _selectedSkills.add(skill);
+                            }
+                          });
+                        }),
                   )
                   .toList(),
             ),
@@ -705,7 +838,8 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
   Widget _buildStartupDetailsStep() {
     return _buildStepScaffold(
       title: 'Tell us about your startup',
-      subtitle: 'Help us understand your mission and the problems you are solving.',
+      subtitle:
+          'Help us understand your mission and the problems you are solving.',
       child: _sectionCard(
         child: Column(
           children: [
@@ -795,7 +929,11 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
               subtitle: 'Select PDF or PPTX',
               hint: 'Maximum file size 25MB',
               icon: Icons.picture_as_pdf_outlined,
-              trailing: const Icon(Icons.circle, color: Color(0xFF1284E4), size: 16),
+              trailing: const Icon(
+                Icons.circle,
+                color: Color(0xFF1284E4),
+                size: 16,
+              ),
               onTap: () => _showComingSoon('Pitch deck upload'),
             ),
           ),
@@ -830,7 +968,10 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
         decoration: BoxDecoration(
           color: const Color(0xFFF6F5FF),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFFD5CEE9), style: BorderStyle.solid),
+          border: Border.all(
+            color: const Color(0xFFD5CEE9),
+            style: BorderStyle.solid,
+          ),
         ),
         child: Row(
           children: [
@@ -886,7 +1027,8 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
   Widget _buildSocialLinksStep() {
     return _buildStepScaffold(
       title: 'Connect Your Startup',
-      subtitle: 'Link your online presence so investors, job seekers, and collaborators can discover your startup.',
+      subtitle:
+          'Link your online presence so investors, job seekers, and collaborators can discover your startup.',
       child: _sectionCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -910,15 +1052,16 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
             const SizedBox(height: 12),
             _linkRow('LinkedIn', _socialLinkedInController, Icons.link),
             const SizedBox(height: 12),
-            _linkRow('Product Hunt', _socialProductHuntController, Icons.campaign_outlined),
+            _linkRow(
+              'Product Hunt',
+              _socialProductHuntController,
+              Icons.campaign_outlined,
+            ),
             const SizedBox(height: 14),
             const Center(
               child: Text(
                 '"You can always add more links later."',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF5D6472),
-                ),
+                style: TextStyle(fontSize: 13, color: Color(0xFF5D6472)),
               ),
             ),
           ],
@@ -927,7 +1070,11 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
     );
   }
 
-  Widget _linkRow(String label, TextEditingController controller, IconData icon) {
+  Widget _linkRow(
+    String label,
+    TextEditingController controller,
+    IconData icon,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
@@ -967,7 +1114,10 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
                   ),
-                  style: const TextStyle(fontSize: 14, color: Color(0xFF4B5563)),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF4B5563),
+                  ),
                 ),
               ],
             ),
@@ -984,7 +1134,8 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
   Widget _buildTeamMembersStep() {
     return _buildStepScaffold(
       title: 'Invite Your Team',
-      subtitle: 'Collaborate by inviting founders, developers, designers, advisors, and marketers.',
+      subtitle:
+          'Collaborate by inviting founders, developers, designers, advisors, and marketers.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1003,9 +1154,18 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
                   initialValue: _selectedInviteRole,
                   items: const [
                     DropdownMenuItem(value: 'Founder', child: Text('Founder')),
-                    DropdownMenuItem(value: 'Co-founder', child: Text('Co-founder')),
-                    DropdownMenuItem(value: 'Designer', child: Text('Designer')),
-                    DropdownMenuItem(value: 'Developer', child: Text('Developer')),
+                    DropdownMenuItem(
+                      value: 'Co-founder',
+                      child: Text('Co-founder'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Designer',
+                      child: Text('Designer'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Developer',
+                      child: Text('Developer'),
+                    ),
                     DropdownMenuItem(value: 'Advisor', child: Text('Advisor')),
                   ],
                   onChanged: (value) {
@@ -1052,7 +1212,7 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
     );
   }
 
-  Widget _buildMemberTile(_StartupMember member) {
+  Widget _buildMemberTile(StartupMember member) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -1101,7 +1261,9 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
-              color: member.status == 'Active' ? const Color(0xFFE7F8EA) : const Color(0xFFF1EFFA),
+              color: member.status == 'Active'
+                  ? const Color(0xFFE7F8EA)
+                  : const Color(0xFFF1EFFA),
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
@@ -1109,7 +1271,9 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: member.status == 'Active' ? const Color(0xFF1C8B46) : const Color(0xFF6B7280),
+                color: member.status == 'Active'
+                    ? const Color(0xFF1C8B46)
+                    : const Color(0xFF6B7280),
               ),
             ),
           ),
@@ -1121,7 +1285,8 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
   Widget _buildFundingStep() {
     return _buildStepScaffold(
       title: 'Funding & Investment',
-      subtitle: 'Define your current capital structure and investment roadmap to tailor your dashboard insights.',
+      subtitle:
+          'Define your current capital structure and investment roadmap to tailor your dashboard insights.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1157,10 +1322,14 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
                             alignment: Alignment.centerLeft,
                             padding: const EdgeInsets.symmetric(horizontal: 14),
                             decoration: BoxDecoration(
-                              color: _selectedFundingStage == stage ? const Color(0xFFE4DAFF) : Colors.white,
+                              color: _selectedFundingStage == stage
+                                  ? const Color(0xFFE4DAFF)
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: _selectedFundingStage == stage ? const Color(0xFF5B21B6) : const Color(0xFFD4D6E2),
+                                color: _selectedFundingStage == stage
+                                    ? const Color(0xFF5B21B6)
+                                    : const Color(0xFFD4D6E2),
                                 width: _selectedFundingStage == stage ? 1.8 : 1,
                               ),
                             ),
@@ -1169,7 +1338,9 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: _selectedFundingStage == stage ? const Color(0xFF5B21B6) : const Color(0xFF30384A),
+                                color: _selectedFundingStage == stage
+                                    ? const Color(0xFF5B21B6)
+                                    : const Color(0xFF30384A),
                               ),
                             ),
                           ),
@@ -1196,7 +1367,8 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
                 const SizedBox(height: 16),
                 _field(
                   label: 'Use of Funds',
-                  hint: 'Describe how the investment capital will accelerate your business growth...',
+                  hint:
+                      'Describe how the investment capital will accelerate your business growth...',
                   controller: _useOfFundsController,
                   maxLines: 4,
                 ),
@@ -1211,14 +1383,23 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
   Widget _buildReviewStep() {
     return _buildStepScaffold(
       title: 'Review & Publish',
-      subtitle: 'Check your application one last time before going live on the platform.',
+      subtitle:
+          'Check your application one last time before going live on the platform.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _reviewCard('Startup Information', 'Name, Mission, Industry', 0),
-          _reviewCard('Founder Information', 'Bio, Experience, ID Verification', 1),
+          _reviewCard(
+            'Founder Information',
+            'Bio, Experience, ID Verification',
+            1,
+          ),
           _reviewCard('Brand Assets', 'Logo, Color Palette, Typography', 3),
-          _reviewCard('Team Members', '${_members.length} active members invited', 5),
+          _reviewCard(
+            'Team Members',
+            '${_members.length} active members invited',
+            5,
+          ),
           _reviewCard('Funding', 'Seed stage, capital raised', 6),
           _reviewCard('Social Links', 'LinkedIn, Twitter, Website', 4),
           const SizedBox(height: 8),
@@ -1250,7 +1431,9 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: _selectedVisibility == option ? const Color(0xFF5B21B6) : Colors.transparent,
+                            color: _selectedVisibility == option
+                                ? const Color(0xFF5B21B6)
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -1259,7 +1442,9 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: _selectedVisibility == option ? Colors.white : const Color(0xFF44495A),
+                              color: _selectedVisibility == option
+                                  ? Colors.white
+                                  : const Color(0xFF44495A),
                             ),
                           ),
                         ),
@@ -1331,18 +1516,4 @@ class _StartupRegistrationFlowScreenState extends State<StartupRegistrationFlowS
       ),
     );
   }
-}
-
-class _StartupMember {
-  const _StartupMember({
-    required this.name,
-    required this.role,
-    required this.status,
-    required this.initials,
-  });
-
-  final String name;
-  final String role;
-  final String status;
-  final String initials;
 }

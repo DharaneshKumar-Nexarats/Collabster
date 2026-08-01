@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
-import 'features/onboarding/views/onboarding_screen.dart';
+import 'features/auth/view/app_launch_gate.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(
     // Added ProviderScope since the app uses Riverpod for state management
     const ProviderScope(
@@ -21,8 +22,7 @@ class MyApp extends StatelessWidget {
       title: 'CollabSphere',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      // Set the OnboardingScreen as the initial route
-      home: const OnboardingScreen(),
+      home: const AppLaunchGate(),
     );
   }
 }
