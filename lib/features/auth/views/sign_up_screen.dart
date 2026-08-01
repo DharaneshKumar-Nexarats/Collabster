@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../home/views/home_screen.dart';
+import '../../startup/startup.dart';
 import 'sign_in_screen.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
@@ -14,6 +15,7 @@ class SignUpScreen extends ConsumerStatefulWidget {
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
+  String _selectedRole = 'Founder';
   
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -31,11 +33,25 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
+      _completeRegistration();
     }
+  }
+
+  void _completeRegistration() {
+    final isStartupRole = _selectedRole == 'Founder' || _selectedRole == 'Company';
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          if (isStartupRole) {
+            return StartupLandingScreen(selectedRole: _selectedRole);
+          }
+
+          return const HomeScreen();
+        },
+      ),
+    );
   }
 
   void _prevStep() {
@@ -426,35 +442,46 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               childAspectRatio: 1.1,
             ),
             itemBuilder: (context, index) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: index == 0 ? AppColors.secondary : AppColors.background,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: index == 0 ? AppColors.primary : AppColors.border,
-                    width: index == 0 ? 2 : 1,
+              final role = roles[index];
+              final title = role['title'] as String;
+              final isSelected = _selectedRole == title;
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedRole = title;
+                  });
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.secondary : AppColors.background,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : AppColors.border,
+                      width: isSelected ? 2 : 1,
+                    ),
                   ),
-                ),
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(roles[index]['icon'] as IconData, color: AppColors.primary, size: 32),
-                    const SizedBox(height: 12),
-                    Text(
-                      roles[index]['title'] as String,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      roles[index]['desc'] as String,
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(role['icon'] as IconData, color: AppColors.primary, size: 32),
+                      const SizedBox(height: 12),
+                      Text(
+                        title,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        role['desc'] as String,
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -462,7 +489,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           const SizedBox(height: 32),
           ElevatedButton(
             onPressed: _nextStep,
-            child: const Text('Complete Registration'),
+            child: Text(
+              _selectedRole == 'Founder' || _selectedRole == 'Company'
+                  ? 'Create Startup'
+                  : 'Complete Registration',
+            ),
           ),
         ],
       ),
