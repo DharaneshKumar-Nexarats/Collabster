@@ -1,8 +1,16 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../model/startup_models.dart';
-import '../../../auth/viewmodel/auth_viewmodel.dart';
+import '../../viewmodel/registration_viewmodel.dart';
+import '../../../../core/di/providers.dart';
+import '../../../../shared/utils/app_snackbar.dart';
 import 'startup_success_screen.dart';
+
 
 class StartupRegistrationFlowScreen extends ConsumerStatefulWidget {
   const StartupRegistrationFlowScreen({
@@ -19,9 +27,8 @@ class StartupRegistrationFlowScreen extends ConsumerStatefulWidget {
 
 class _StartupRegistrationFlowScreenState
     extends ConsumerState<StartupRegistrationFlowScreen> {
-  static const int _totalSteps = 8;
-
   final PageController _pageController = PageController();
+  final RegistrationViewModel _viewModel = RegistrationViewModel();
   final TextEditingController _startupNameController = TextEditingController();
   final TextEditingController _taglineController = TextEditingController();
   final TextEditingController _industryController = TextEditingController();
@@ -57,58 +64,174 @@ class _StartupRegistrationFlowScreenState
   final TextEditingController _inviteEmailController = TextEditingController();
   final TextEditingController _useOfFundsController = TextEditingController();
 
-  int _currentStep = 0;
-  String _selectedStage = 'Seed';
-  String _selectedTeamSize = '1-5';
-  String _selectedFundingStage = 'Seed';
-  String _selectedInviteRole = 'Founder';
-  String _selectedVisibility = 'Public';
-  bool _currentlyRaising = true;
-  double _yearsOfExperience = 5;
+  File? _founderPhoto;
+  File? _logoFile;
+  File? _coverFile;
+  File? _pitchDeckFile;
+  final List<File> _supportingDocs = [];
+  final ImagePicker _imagePicker = ImagePicker();
 
-  final List<String> _skillTags = const [
-    'Leadership',
-    'AI',
-    'Marketing',
-    'Sales',
-    'Engineering',
-    'Finance',
-    'Design',
-    'Operations',
-    'Product',
-  ];
+  Future<void> _pickFounderPhoto() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFFE5E7EB), borderRadius: BorderRadius.circular(999))),
+            const SizedBox(height: 20),
+            const Text('Choose Photo', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 16),
+            _sourceOption(Icons.photo_library_outlined, 'Gallery', ImageSource.gallery),
+            _sourceOption(Icons.camera_alt_outlined, 'Camera', ImageSource.camera),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
 
-  final Set<String> _selectedSkills = {'Leadership', 'AI', 'Product'};
+    if (!kIsWeb) {
+      final status = await _requestPermission(source);
+      if (!status) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Permission required to access photos. Please enable it in Settings.'), behavior: SnackBarBehavior.floating),
+        );
+        return;
+      }
+    }
 
-  final List<StartupMember> _members = [
-    StartupMember(
-      name: 'Sarah Jenkins',
-      role: 'CEO & Co-founder',
-      status: 'Active',
-      initials: 'SJ',
-    ),
-    StartupMember(
-      name: 'Marcus Zhao',
-      role: 'Lead Developer',
-      status: 'Invite Sent',
-      initials: 'MZ',
-    ),
-  ];
+    final picked = await _imagePicker.pickImage(source: source, imageQuality: 85, maxWidth: 1200);
+    if (picked != null) setState(() => _founderPhoto = File(picked.path));
+  }
 
-  final List<String> _fundingStages = const [
-    'Bootstrapped',
-    'Angel',
-    'Pre-Seed',
-    'Seed',
-    'Series A',
-    'Series B',
-  ];
+  Widget _sourceOption(IconData icon, String label, ImageSource source) {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context, source),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF5B21B6).withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: const Color(0xFF5B21B6), size: 22),
+            const SizedBox(width: 14),
+            Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+          ],
+        ),
+      ),
+    );
+  }
 
-  final List<String> _visibilityOptions = const [
-    'Public',
-    'Private',
-    'Invite Only',
-  ];
+  Future<void> _pickImageFile({required String type}) async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFFE5E7EB), borderRadius: BorderRadius.circular(999))),
+            const SizedBox(height: 20),
+            Text('Upload $type', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 16),
+            _sourceOption(Icons.photo_library_outlined, 'Gallery', ImageSource.gallery),
+            _sourceOption(Icons.camera_alt_outlined, 'Camera', ImageSource.camera),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+
+    if (!kIsWeb) {
+      final status = await _requestPermission(source);
+      if (!status) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Permission required to access photos. Please enable it in Settings.'), behavior: SnackBarBehavior.floating),
+        );
+        return;
+      }
+    }
+
+    final picked = await _imagePicker.pickImage(source: source, imageQuality: 85, maxWidth: 1920);
+    if (picked == null || !mounted) return;
+    final file = File(picked.path);
+    setState(() {
+      switch (type) {
+        case 'Logo':
+          _logoFile = file;
+        case 'Cover Image':
+          _coverFile = file;
+      }
+    });
+    if (mounted) {
+      AppSnackBar.showSuccess(context, '$type uploaded');
+    }
+  }
+
+  Future<void> _pickDocument({required String type}) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: type == 'Pitch Deck' ? ['pdf', 'pptx', 'ppt'] : ['pdf', 'doc', 'docx', 'txt', 'png', 'jpg'],
+      allowMultiple: type == 'Supporting Documents',
+    );
+    if (result == null || result.files.isEmpty) return;
+    if (!mounted) return;
+    final files = result.files.map((f) => File(f.path!)).toList();
+    setState(() {
+      switch (type) {
+        case 'Pitch Deck':
+          _pitchDeckFile = files.first;
+        case 'Supporting Documents':
+          _supportingDocs.addAll(files);
+      }
+    });
+    if (mounted) {
+      AppSnackBar.showSuccess(context, '${files.length} file(s) uploaded');
+    }
+  }
+
+  Future<bool> _requestPermission(ImageSource source) async {
+    PermissionStatus status;
+    if (source == ImageSource.camera) {
+      status = await Permission.camera.status;
+      if (status.isDenied || status.isPermanentlyDenied) {
+        status = await Permission.camera.request();
+      }
+    } else {
+      status = await Permission.photos.status;
+      if (status.isDenied || status.isPermanentlyDenied) {
+        status = await Permission.photos.request();
+      }
+      if (status.isPermanentlyDenied || status.isDenied) {
+        status = await Permission.storage.status;
+        if (status.isDenied || status.isPermanentlyDenied) {
+          status = await Permission.storage.request();
+        }
+      }
+    }
+    if (status.isPermanentlyDenied) {
+      if (!mounted) return false;
+      openAppSettings();
+      return false;
+    }
+    return status.isGranted || status.isLimited;
+  }
 
   @override
   void dispose() {
@@ -140,7 +263,8 @@ class _StartupRegistrationFlowScreenState
   }
 
   void _goToNextStep() {
-    if (_currentStep < _totalSteps - 1) {
+    if (_viewModel.currentStep < RegistrationViewModel.totalSteps - 1) {
+      _viewModel.goToNextStep();
       _pageController.nextPage(
         duration: const Duration(milliseconds: 280),
         curve: Curves.easeInOut,
@@ -152,7 +276,8 @@ class _StartupRegistrationFlowScreenState
   }
 
   void _goToPreviousStep() {
-    if (_currentStep > 0) {
+    if (_viewModel.currentStep > 0) {
+      _viewModel.goToPreviousStep();
       _pageController.previousPage(
         duration: const Duration(milliseconds: 280),
         curve: Curves.easeInOut,
@@ -240,11 +365,64 @@ class _StartupRegistrationFlowScreenState
     await ref.read(authViewModelProvider.notifier).updateStartupData(
       startupName: startupName,
       industry: _industryController.text.trim(),
-      stage: _selectedStage,
+      stage: _viewModel.selectedStage,
       tagline: _taglineController.text.trim(),
+      logoPath: _logoFile?.path,
+      coverPath: _coverFile?.path,
       country: _countryController.text.trim(),
       city: _cityController.text.trim(),
+      description: _shortDescriptionController.text.trim(),
+      problem: _problemController.text.trim(),
+      solution: _solutionController.text.trim(),
+      mission: _missionController.text.trim(),
+      vision: _visionController.text.trim(),
+      website: _websiteController.text.trim(),
+      incorporationDate: _incorporationController.text.trim(),
+      founderName: _founderNameController.text.trim(),
+      founderDesignation: _designationController.text.trim(),
+      founderEmail: _emailController.text.trim(),
+      founderPhone: _phoneController.text.trim(),
+      founderLinkedin: _linkedinController.text.trim(),
+      founderBio: _bioController.text.trim(),
+      socialWebsite: _socialWebsiteController.text.trim(),
+      socialLinkedin: _socialLinkedInController.text.trim(),
+      socialProductHunt: _socialProductHuntController.text.trim(),
+      useOfFunds: _useOfFundsController.text.trim(),
+      teamSize: _viewModel.selectedTeamSize,
+      fundingStage: _viewModel.selectedFundingStage,
+      currentlyRaising: _viewModel.currentlyRaising,
+      visibility: _viewModel.selectedVisibility,
+      // Do NOT set originalStartupName/Data here — those are only written
+      // by the join-another-startup flow, never at registration time.
     );
+
+    // --- Frontend registry: publish so Join Startup screen can find it ---
+    final industry = _industryController.text.trim();
+    final teamSizeStr = _viewModel.selectedTeamSize; // e.g. '1-5'
+    final teamCount = int.tryParse(teamSizeStr.split('-').first) ?? 1;
+    ref.read(startupRegistryProvider.notifier).addStartup(
+      SuggestedStartup(
+        name: startupName,
+        industry: industry.isNotEmpty ? industry : 'Other',
+        location: [
+          _cityController.text.trim(),
+          _countryController.text.trim(),
+        ].where((s) => s.isNotEmpty).join(', '),
+        teamMembers: teamCount,
+        stage: _viewModel.selectedStage,
+        tags: industry.isNotEmpty ? [industry] : [],
+        tagline: _taglineController.text.trim(),
+        description: _shortDescriptionController.text.trim(),
+        problem: _problemController.text.trim(),
+        solution: _solutionController.text.trim(),
+        mission: _missionController.text.trim(),
+        vision: _visionController.text.trim(),
+        website: _websiteController.text.trim(),
+        founderName: _founderNameController.text.trim(),
+        incorporationDate: _incorporationController.text.trim(),
+      ),
+    );
+    // -----------------------------------------------------------------------
 
     if (!mounted) return;
 
@@ -256,7 +434,7 @@ class _StartupRegistrationFlowScreenState
           selectedRole: widget.selectedRole,
           completion: 65,
           industry: _industryController.text.trim(),
-          stage: _selectedStage,
+          stage: _viewModel.selectedStage,
           tagline: _taglineController.text.trim(),
           country: _countryController.text.trim(),
           city: _cityController.text.trim(),
@@ -266,9 +444,7 @@ class _StartupRegistrationFlowScreenState
   }
 
   void _showComingSoon(String feature) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$feature is coming soon.')));
+    AppSnackBar.showInfo(context, '$feature is coming soon.');
   }
 
   void _inviteTeamMember() {
@@ -278,89 +454,78 @@ class _StartupRegistrationFlowScreenState
       return;
     }
 
-    setState(() {
-      _members.insert(
-        0,
-        StartupMember(
-          name: email.split('@').first,
-          role: _selectedInviteRole,
-          status: 'Invite Sent',
-          initials: email.isNotEmpty ? email[0].toUpperCase() : 'U',
-        ),
-      );
-      _inviteEmailController.clear();
-    });
+    _viewModel.inviteTeamMember(email);
+    _inviteEmailController.clear();
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Invitation sent to $email')));
+    AppSnackBar.showSuccess(context, 'Invitation sent to $email');
   }
 
   @override
   Widget build(BuildContext context) {
-    final progress = (_currentStep + 1) / _totalSteps;
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, _) {
+        final progress = _viewModel.progress;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F5FF),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F5FF),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF5B21B6)),
-          onPressed: _goToPreviousStep,
-        ),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Step ${_currentStep + 1} of $_totalSteps',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF5B6272),
-                    ),
-                  ),
-                  Text(
-                    '${((progress * 100).round())}% Complete',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF5B21B6),
-                    ),
-                  ),
-                ],
-              ),
+        return Scaffold(
+          backgroundColor: const Color(0xFFF7F5FF),
+          appBar: AppBar(
+            backgroundColor: const Color(0xFFF7F5FF),
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF5B21B6)),
+              onPressed: _goToPreviousStep,
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(99),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 8,
-                  backgroundColor: const Color(0xFFE9DCF9),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    Color(0xFF5B21B6),
+          ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Step ${_viewModel.currentStep + 1} of ${RegistrationViewModel.totalSteps}',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF5B6272),
+                        ),
+                      ),
+                      Text(
+                        '${((progress * 100).round())}% Complete',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF5B21B6),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentStep = index;
-                  });
-                },
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(99),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 8,
+                      backgroundColor: const Color(0xFFE9DCF9),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Color(0xFF5B21B6),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    onPageChanged: (index) {
+                      _viewModel.setCurrentStep(index);
+                    },
                 children: [
                   _buildBasicInformationStep(),
                   _buildFounderInformationStep(),
@@ -397,7 +562,7 @@ class _StartupRegistrationFlowScreenState
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: Text(_currentStep == 0 ? 'Back' : 'Back'),
+                  child: Text(_viewModel.currentStep == 0 ? 'Back' : 'Back'),
                 ),
               ),
               const SizedBox(width: 16),
@@ -415,7 +580,7 @@ class _StartupRegistrationFlowScreenState
                     ),
                   ),
                   child: Text(
-                    _currentStep == _totalSteps - 1 ? 'Publish' : 'Next Step',
+                    _viewModel.currentStep == RegistrationViewModel.totalSteps - 1 ? 'Publish' : 'Next Step',
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -424,6 +589,8 @@ class _StartupRegistrationFlowScreenState
           ),
         ),
       ),
+      );
+      },
     );
   }
 
@@ -535,12 +702,10 @@ class _StartupRegistrationFlowScreenState
   }
 
   Widget _teamSizeChip(String label) {
-    final selected = _selectedTeamSize == label;
+    final selected = _viewModel.selectedTeamSize == label;
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _selectedTeamSize = label;
-        });
+        _viewModel.selectTeamSize(label);
       },
       child: Container(
         height: 46,
@@ -617,7 +782,7 @@ class _StartupRegistrationFlowScreenState
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              initialValue: _selectedStage,
+              initialValue: _viewModel.selectedStage,
               items: const [
                 DropdownMenuItem(value: 'Idea', child: Text('Idea')),
                 DropdownMenuItem(value: 'Prototype', child: Text('Prototype')),
@@ -628,9 +793,7 @@ class _StartupRegistrationFlowScreenState
                 if (value == null) {
                   return;
                 }
-                setState(() {
-                  _selectedStage = value;
-                });
+                _viewModel.selectStage(value);
               },
               decoration: const InputDecoration(
                 labelText: 'Startup Stage',
@@ -687,11 +850,14 @@ class _StartupRegistrationFlowScreenState
                       CircleAvatar(
                         radius: 36,
                         backgroundColor: const Color(0xFFE8DBFF),
-                        child: const Icon(
-                          Icons.person_outline,
-                          size: 38,
-                          color: Color(0xFF5B21B6),
-                        ),
+                        backgroundImage: _founderPhoto != null ? FileImage(_founderPhoto!) : null,
+                        child: _founderPhoto != null
+                            ? null
+                            : const Icon(
+                                Icons.person_outline,
+                                size: 38,
+                                color: Color(0xFF5B21B6),
+                              ),
                       ),
                       CircleAvatar(
                         radius: 13,
@@ -704,15 +870,15 @@ class _StartupRegistrationFlowScreenState
                             Icons.camera_alt_outlined,
                             color: Colors.white,
                           ),
-                          onPressed: () => _showComingSoon('Photo upload'),
+                          onPressed: () => _pickFounderPhoto(),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   TextButton(
-                    onPressed: () => _showComingSoon('Upload photo'),
-                    child: const Text('Upload Photo'),
+                    onPressed: () => _pickFounderPhoto(),
+                    child: Text(_founderPhoto != null ? 'Change Photo' : 'Upload Photo'),
                   ),
                 ],
               ),
@@ -761,7 +927,7 @@ class _StartupRegistrationFlowScreenState
                   ),
                 ),
                 Text(
-                  '${_yearsOfExperience.toInt()} years',
+                  '${_viewModel.yearsOfExperience.toInt()} years',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -775,14 +941,12 @@ class _StartupRegistrationFlowScreenState
                 context,
               ).copyWith(activeTrackColor: const Color(0xFF5B21B6)),
               child: Slider(
-                value: _yearsOfExperience,
+                value: _viewModel.yearsOfExperience,
                 min: 0,
                 max: 30,
                 divisions: 30,
                 onChanged: (value) {
-                  setState(() {
-                    _yearsOfExperience = value;
-                  });
+                  _viewModel.setYearsOfExperience(value);
                 },
               ),
             ),
@@ -802,17 +966,11 @@ class _StartupRegistrationFlowScreenState
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _skillTags
+              children: _viewModel.skillTags
                   .map(
                     (skill) =>
-                        _chip(skill, _selectedSkills.contains(skill), () {
-                          setState(() {
-                            if (_selectedSkills.contains(skill)) {
-                              _selectedSkills.remove(skill);
-                            } else {
-                              _selectedSkills.add(skill);
-                            }
-                          });
+                        _chip(skill, _viewModel.selectedSkills.contains(skill), () {
+                          _viewModel.toggleSkill(skill);
                         }),
                   )
                   .toList(),
@@ -909,7 +1067,8 @@ class _StartupRegistrationFlowScreenState
               subtitle: 'Drag and drop your logo here, or browse',
               hint: 'PNG, SVG up to 5MB',
               icon: Icons.cloud_upload_outlined,
-              onTap: () => _showComingSoon('Logo upload'),
+              statusLabel: _logoFile != null ? 'Uploaded' : null,
+              onTap: () => _pickImageFile(type: 'Logo'),
             ),
           ),
           const SizedBox(height: 16),
@@ -919,7 +1078,8 @@ class _StartupRegistrationFlowScreenState
               subtitle: 'Upload a brand banner',
               hint: '1920x1080 recommended',
               icon: Icons.image_outlined,
-              onTap: () => _showComingSoon('Cover image upload'),
+              statusLabel: _coverFile != null ? 'Uploaded' : null,
+              onTap: () => _pickImageFile(type: 'Cover Image'),
             ),
           ),
           const SizedBox(height: 16),
@@ -929,12 +1089,13 @@ class _StartupRegistrationFlowScreenState
               subtitle: 'Select PDF or PPTX',
               hint: 'Maximum file size 25MB',
               icon: Icons.picture_as_pdf_outlined,
+              statusLabel: _pitchDeckFile != null ? 'Uploaded' : null,
               trailing: const Icon(
                 Icons.circle,
                 color: Color(0xFF1284E4),
                 size: 16,
               ),
-              onTap: () => _showComingSoon('Pitch deck upload'),
+              onTap: () => _pickDocument(type: 'Pitch Deck'),
             ),
           ),
           const SizedBox(height: 16),
@@ -944,7 +1105,8 @@ class _StartupRegistrationFlowScreenState
               subtitle: 'Upload Guidelines or Docs',
               hint: 'Multiple files allowed',
               icon: Icons.description_outlined,
-              onTap: () => _showComingSoon('Supporting documents upload'),
+              statusLabel: _supportingDocs.isNotEmpty ? '${_supportingDocs.length} file(s)' : null,
+              onTap: () => _pickDocument(type: 'Supporting Documents'),
             ),
           ),
         ],
@@ -959,6 +1121,7 @@ class _StartupRegistrationFlowScreenState
     required IconData icon,
     required VoidCallback onTap,
     Widget? trailing,
+    String? statusLabel,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -1018,6 +1181,24 @@ class _StartupRegistrationFlowScreenState
               ),
             ),
             if (trailing != null) trailing,
+            if (statusLabel != null) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE6F7ED),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  statusLabel,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF2F9B54),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -1151,7 +1332,7 @@ class _StartupRegistrationFlowScreenState
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  initialValue: _selectedInviteRole,
+                  initialValue: _viewModel.selectedInviteRole,
                   items: const [
                     DropdownMenuItem(value: 'Founder', child: Text('Founder')),
                     DropdownMenuItem(
@@ -1172,9 +1353,7 @@ class _StartupRegistrationFlowScreenState
                     if (value == null) {
                       return;
                     }
-                    setState(() {
-                      _selectedInviteRole = value;
-                    });
+                    _viewModel.selectInviteRole(value);
                   },
                   decoration: const InputDecoration(labelText: 'Role'),
                 ),
@@ -1206,7 +1385,7 @@ class _StartupRegistrationFlowScreenState
             ),
           ),
           const SizedBox(height: 12),
-          ..._members.map(_buildMemberTile),
+          ..._viewModel.members.map(_buildMemberTile),
         ],
       ),
     );
@@ -1310,27 +1489,25 @@ class _StartupRegistrationFlowScreenState
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   childAspectRatio: 2.1,
-                  children: _fundingStages
+                  children: _viewModel.fundingStages
                       .map(
                         (stage) => GestureDetector(
                           onTap: () {
-                            setState(() {
-                              _selectedFundingStage = stage;
-                            });
+                            _viewModel.selectFundingStage(stage);
                           },
                           child: Container(
                             alignment: Alignment.centerLeft,
                             padding: const EdgeInsets.symmetric(horizontal: 14),
                             decoration: BoxDecoration(
-                              color: _selectedFundingStage == stage
+                              color: _viewModel.selectedFundingStage == stage
                                   ? const Color(0xFFE4DAFF)
                                   : Colors.white,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: _selectedFundingStage == stage
+                                color: _viewModel.selectedFundingStage == stage
                                     ? const Color(0xFF5B21B6)
                                     : const Color(0xFFD4D6E2),
-                                width: _selectedFundingStage == stage ? 1.8 : 1,
+                                width: _viewModel.selectedFundingStage == stage ? 1.8 : 1,
                               ),
                             ),
                             child: Text(
@@ -1338,7 +1515,7 @@ class _StartupRegistrationFlowScreenState
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: _selectedFundingStage == stage
+                                color: _viewModel.selectedFundingStage == stage
                                     ? const Color(0xFF5B21B6)
                                     : const Color(0xFF30384A),
                               ),
@@ -1351,7 +1528,7 @@ class _StartupRegistrationFlowScreenState
                 const SizedBox(height: 16),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  value: _currentlyRaising,
+                  value: _viewModel.currentlyRaising,
                   title: const Text(
                     'Currently Raising?',
                     style: TextStyle(fontWeight: FontWeight.w800),
@@ -1359,9 +1536,7 @@ class _StartupRegistrationFlowScreenState
                   subtitle: const Text('Activate to input round details'),
                   activeThumbColor: const Color(0xFF5B21B6),
                   onChanged: (value) {
-                    setState(() {
-                      _currentlyRaising = value;
-                    });
+                    _viewModel.toggleRaising(value);
                   },
                 ),
                 const SizedBox(height: 16),
@@ -1397,7 +1572,7 @@ class _StartupRegistrationFlowScreenState
           _reviewCard('Brand Assets', 'Logo, Color Palette, Typography', 3),
           _reviewCard(
             'Team Members',
-            '${_members.length} active members invited',
+            '${_viewModel.members.length} active members invited',
             5,
           ),
           _reviewCard('Funding', 'Seed stage, capital raised', 6),
@@ -1419,19 +1594,17 @@ class _StartupRegistrationFlowScreenState
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
-              children: _visibilityOptions
+              children: _viewModel.visibilityOptions
                   .map(
                     (option) => Expanded(
                       child: GestureDetector(
                         onTap: () {
-                          setState(() {
-                            _selectedVisibility = option;
-                          });
+                          _viewModel.selectVisibility(option);
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: _selectedVisibility == option
+                            color: _viewModel.selectedVisibility == option
                                 ? const Color(0xFF5B21B6)
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
@@ -1442,7 +1615,7 @@ class _StartupRegistrationFlowScreenState
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: _selectedVisibility == option
+                              color: _viewModel.selectedVisibility == option
                                   ? Colors.white
                                   : const Color(0xFF44495A),
                             ),

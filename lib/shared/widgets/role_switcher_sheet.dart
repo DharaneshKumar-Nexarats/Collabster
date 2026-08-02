@@ -1,0 +1,360 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../enums/app_enums.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/di/providers.dart';
+import '../utils/dashboard_router.dart';
+
+class RoleSwitcherSheet extends ConsumerWidget {
+  const RoleSwitcherSheet({super.key});
+
+  static void show(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => const RoleSwitcherSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authViewModelProvider);
+    final session = authState.session;
+    if (session == null) return const SizedBox.shrink();
+
+    final currentRole = session.activeUserRole;
+    final userRoles = session.userRoles;
+    final allRoles = UserRole.values;
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.75,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(top: 12),
+              decoration: BoxDecoration(
+                color: Color(0xFFE5E7EB),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Text(
+                  'Switch Role',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF12233D),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Currently active: ${currentRole.label}',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Flexible(
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              children: [
+                if (userRoles.isNotEmpty) ...[
+                  const Text(
+                    'YOUR ROLES',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ...userRoles.map((role) => _RoleTile(
+                        role: role,
+                        isActive: role == currentRole,
+                        onTap: () => _switchAndNavigate(context, ref, role),
+                      )),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 1,
+                    color: Color(0xFFF3F4F6),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                const Text(
+                  'ADD NEW ROLE',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ...allRoles
+                    .where((role) => !userRoles.contains(role))
+                    .map((role) => _RoleAddTile(
+                          role: role,
+                          onTap: () => _addAndNavigate(context, ref, role),
+                        )),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _switchAndNavigate(
+    BuildContext context,
+    WidgetRef ref,
+    UserRole role,
+  ) async {
+    await ref.read(authViewModelProvider.notifier).switchRole(role);
+    if (!context.mounted) return;
+
+    final updatedSession = ref.read(authViewModelProvider).session;
+    if (updatedSession == null) return;
+
+    final nav = Navigator.of(context);
+    nav.pop();
+    nav.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => buildDashboardForRole(updatedSession)),
+      (_) => false,
+    );
+  }
+
+  Future<void> _addAndNavigate(
+    BuildContext context,
+    WidgetRef ref,
+    UserRole role,
+  ) async {
+    await ref.read(authViewModelProvider.notifier).addRole(role);
+    if (!context.mounted) return;
+
+    final updatedSession = ref.read(authViewModelProvider).session;
+    if (updatedSession == null) return;
+
+    final nav = Navigator.of(context);
+    nav.pop();
+    nav.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => buildDashboardForRole(updatedSession)),
+      (_) => false,
+    );
+  }
+}
+
+class _RoleTile extends StatelessWidget {
+  const _RoleTile({
+    required this.role,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  final UserRole role;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: isActive
+                  ? const Color(0xFFEDE9FE)
+                  : const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isActive
+                    ? const Color(0xFF5B21B6)
+                    : const Color(0xFFE5E7EB),
+                width: isActive ? 2 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? const Color(0xFF5B21B6).withValues(alpha: 0.15)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    role.icon,
+                    color: isActive
+                        ? const Color(0xFF5B21B6)
+                        : AppColors.textSecondary,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        role.label,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: isActive
+                              ? const Color(0xFF5B21B6)
+                              : const Color(0xFF12233D),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        role.description,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isActive)
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: Color(0xFF5B21B6),
+                    size: 22,
+                  )
+                else
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: Colors.grey.shade400,
+                    size: 16,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RoleAddTile extends StatelessWidget {
+  const _RoleAddTile({
+    required this.role,
+    required this.onTap,
+  });
+
+  final UserRole role;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    role.icon,
+                    color: AppColors.textSecondary,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        role.label,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF12233D),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        role.description,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF5B21B6).withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.add_rounded,
+                    color: Color(0xFF5B21B6),
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

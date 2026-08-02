@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "collabsphere" "\0"
+            VALUE "FileDescription", "Collabster" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "collabsphere" "\0"
+            VALUE "InternalName", "Collabster" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
             VALUE "OriginalFilename", "collabsphere.exe" "\0"
-            VALUE "ProductName", "collabsphere" "\0"
+            VALUE "ProductName", "Collabster" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -14,7 +14,7 @@ class ForgotPasswordScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('CollabSphere'),
+        title: const Text('Collabster'),
         centerTitle: false,
       ),
       body: SafeArea(

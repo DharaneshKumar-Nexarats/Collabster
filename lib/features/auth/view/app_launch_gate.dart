@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../home/view/home_screen.dart';
-import '../../startup/view/screens/startup_dashboard_screen.dart';
-import '../../startup/view/screens/startup_landing_screen.dart';
+import '../../../shared/utils/dashboard_router.dart';
 import '../../onboarding/view/onboarding_screen.dart';
-import '../viewmodel/auth_viewmodel.dart';
+import '../../../core/di/providers.dart';
 
 class AppLaunchGate extends ConsumerStatefulWidget {
   const AppLaunchGate({super.key});
@@ -20,7 +18,7 @@ class _AppLaunchGateState extends ConsumerState<AppLaunchGate> {
   @override
   void initState() {
     super.initState();
-    _initFuture = _resolveDestination();
+    _initFuture = Future<void>(_resolveDestination);
   }
 
   Future<void> _resolveDestination() async {
@@ -44,15 +42,7 @@ class _AppLaunchGateState extends ConsumerState<AppLaunchGate> {
           return const OnboardingScreen();
         }
 
-        final session = authState.session!;
-        if (session.isStartupRole) {
-          if (session.startupName != null && session.startupName!.isNotEmpty) {
-            return StartupDashboardScreen(startupName: session.startupName!);
-          }
-          return StartupLandingScreen(selectedRole: session.role);
-        }
-
-        return const HomeScreen();
+        return buildDashboardForRole(authState.session!);
       },
     );
   }

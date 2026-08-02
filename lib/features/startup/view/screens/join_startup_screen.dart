@@ -1,53 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/di/providers.dart';
 import '../../model/startup_models.dart';
+import '../../viewmodel/join_startup_viewmodel.dart';
 import 'join_startup_verification_screen.dart';
 
-class JoinStartupScreen extends StatefulWidget {
+
+class JoinStartupScreen extends ConsumerStatefulWidget {
   const JoinStartupScreen({super.key});
 
   @override
-  State<JoinStartupScreen> createState() => _JoinStartupScreenState();
+  ConsumerState<JoinStartupScreen> createState() => _JoinStartupScreenState();
 }
 
-class _JoinStartupScreenState extends State<JoinStartupScreen> {
+class _JoinStartupScreenState extends ConsumerState<JoinStartupScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedMode = 'Startup Name';
-
-  final List<SuggestedStartup> _suggestedStartups = const [
-    SuggestedStartup(
-      name: 'NexusAI',
-      industry: 'Artificial Intelligence',
-      location: 'San Francisco',
-      teamMembers: 48,
-      stage: 'Series A',
-      tags: ['AI', 'SAAS'],
-    ),
-    SuggestedStartup(
-      name: 'FlowPay',
-      industry: 'Fintech',
-      location: 'London',
-      teamMembers: 124,
-      stage: 'Seed',
-      tags: ['FINTECH', 'PAYMENTS'],
-    ),
-    SuggestedStartup(
-      name: 'VitaLife',
-      industry: 'HealthTech',
-      location: 'Berlin',
-      teamMembers: 32,
-      stage: 'Pre-Seed',
-      tags: ['HEALTHTECH', 'AI'],
-    ),
-    SuggestedStartup(
-      name: 'MedVision AI',
-      industry: 'Medical AI',
-      location: 'San Francisco',
-      teamMembers: 48,
-      stage: 'Series A',
-      tags: ['HEALTHTECH', 'SAAS', 'DIAGNOSTICS'],
-    ),
-  ];
+  final JoinStartupViewModel _viewModel = JoinStartupViewModel();
+  bool _showAll = false;
+  SuggestedStartup? _selectedStartup;
 
   @override
   void dispose() {
@@ -55,32 +26,37 @@ class _JoinStartupScreenState extends State<JoinStartupScreen> {
     super.dispose();
   }
 
-  void _openVerification([SuggestedStartup? startup]) {
-    final selected =
-        startup ??
-        (_filteredStartups.isNotEmpty
-            ? _filteredStartups.first
-            : _suggestedStartups.first);
+  void _openVerification(SuggestedStartup startup) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => JoinStartupVerificationScreen(startup: selected),
+        builder: (_) => JoinStartupVerificationScreen(startup: startup),
       ),
     );
   }
 
-  List<SuggestedStartup> get _filteredStartups {
-    final q = _searchController.text.trim().toLowerCase();
-    if (q.isEmpty) return _suggestedStartups;
-    return _suggestedStartups.where((s) {
-      return s.name.toLowerCase().contains(q) ||
-          s.industry.toLowerCase().contains(q) ||
-          s.location.toLowerCase().contains(q);
-    }).toList();
+  String get _searchHint {
+    switch (_viewModel.selectedMode) {
+      case 'Industry':
+        return 'Search by industry (AI, Fintech, HealthTech...)';
+      case 'Location':
+        return 'Search by city or country...';
+      case 'Stage':
+        return 'Search by stage (Seed, Series A...)';
+      default:
+        return 'Search startups...';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Merge user-created startups (from registry) with the hardcoded seeds.
+    final registryStartups = ref.watch(startupRegistryProvider);
+    final allStartups = [...registryStartups, ..._viewModel.suggestedStartups];
+    final filtered = _viewModel.filterStartups(_searchController.text, allStartups);
+    final displayed = _showAll ? filtered : filtered.take(3).toList();
+
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F3FF),
       body: CustomScrollView(
@@ -148,7 +124,7 @@ class _JoinStartupScreenState extends State<JoinStartupScreen> {
                         onChanged: (_) => setState(() {}),
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Search startups...',
+                          hintText: _searchHint,
                           hintStyle: TextStyle(
                             color: Colors.white.withValues(alpha: 0.6),
                           ),
@@ -185,51 +161,80 @@ class _JoinStartupScreenState extends State<JoinStartupScreen> {
 
           // Body content
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Quick Join Options
                 const Text(
-                  'Quick Join Options',
+                  'QUICK JOIN OPTIONS',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 11,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF9CA3AF),
-                    letterSpacing: 1.0,
+                    letterSpacing: 1.2,
                   ),
                 ),
                 const SizedBox(height: 12),
-                GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 2.4,
+                Row(
                   children: [
-                    _quickOption(
-                      Icons.domain_add_outlined,
-                      'Startup Name',
-                      _selectedMode == 'Startup Name',
-                      () => setState(() => _selectedMode = 'Startup Name'),
+                    Expanded(
+                      child: _quickOptionCard(
+                        icon: Icons.domain_add_outlined,
+                        label: 'Startup Name',
+                        subtitle: 'Search by name',
+                        selected: _viewModel.selectedMode == 'Startup Name',
+                        onTap: () {
+                          _viewModel.selectMode('Startup Name');
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                      ),
                     ),
-                    _quickOption(
-                      Icons.key_outlined,
-                      'Invitation Code',
-                      _selectedMode == 'Invitation Code',
-                      () => setState(() => _selectedMode = 'Invitation Code'),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _quickOptionCard(
+                        icon: Icons.category_outlined,
+                        label: 'Industry',
+                        subtitle: 'AI, Fintech, Health...',
+                        selected: _viewModel.selectedMode == 'Industry',
+                        onTap: () {
+                          _viewModel.selectMode('Industry');
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                      ),
                     ),
-                    _quickOption(
-                      Icons.qr_code_scanner_outlined,
-                      'Scan QR Code',
-                      false,
-                      () => _showSnack('QR scanner coming soon'),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _quickOptionCard(
+                        icon: Icons.location_on_outlined,
+                        label: 'Location',
+                        subtitle: 'City or country',
+                        selected: _viewModel.selectedMode == 'Location',
+                        onTap: () {
+                          _viewModel.selectMode('Location');
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                      ),
                     ),
-                    _quickOption(
-                      Icons.alternate_email,
-                      'Org Email',
-                      _selectedMode == 'Org Email',
-                      () => setState(() => _selectedMode = 'Org Email'),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _quickOptionCard(
+                        icon: Icons.trending_up_rounded,
+                        label: 'Stage',
+                        subtitle: 'Seed, Series A...',
+                        selected: _viewModel.selectedMode == 'Stage',
+                        onTap: () {
+                          _viewModel.selectMode('Stage');
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -240,36 +245,42 @@ class _JoinStartupScreenState extends State<JoinStartupScreen> {
                 Row(
                   children: [
                     const Text(
-                      'Suggested Startups',
+                      'SUGGESTED STARTUPS',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 11,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF9CA3AF),
-                        letterSpacing: 1.0,
+                        letterSpacing: 1.2,
                       ),
                     ),
                     const Spacer(),
-                    TextButton(
-                      onPressed: () => _showSnack('View all coming soon'),
-                      child: const Text(
-                        'View All',
-                        style: TextStyle(
-                          color: Color(0xFF5B21B6),
-                          fontWeight: FontWeight.w700,
+                    if (filtered.length > 3)
+                      TextButton(
+                        onPressed: () => setState(() => _showAll = !_showAll),
+                        child: Text(
+                          _showAll ? 'Show Less' : 'View All (${filtered.length})',
+                          style: const TextStyle(
+                            color: Color(0xFF5B21B6),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                ..._filteredStartups.map(
+                ...displayed.map(
                   (startup) => _StartupCard(
                     startup: startup,
+                    isSelected: _selectedStartup?.name == startup.name,
+                    onTap: () => setState(() {
+                      _selectedStartup = startup;
+                    }),
                     onContinue: () => _openVerification(startup),
                   ),
                 ),
 
-                if (_filteredStartups.isEmpty)
+                if (filtered.isEmpty)
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 32),
@@ -329,12 +340,13 @@ class _JoinStartupScreenState extends State<JoinStartupScreen> {
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
-                  onPressed: _openVerification,
+                  onPressed: _selectedStartup != null ? () => _openVerification(_selectedStartup!) : null,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(54),
                     elevation: 0,
                     backgroundColor: const Color(0xFF5B21B6),
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: const Color(0xFF9CA3AF),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -362,237 +374,284 @@ class _JoinStartupScreenState extends State<JoinStartupScreen> {
     );
   }
 
-  Widget _quickOption(
-    IconData icon,
-    String label,
-    bool selected,
-    VoidCallback onTap,
-  ) {
+  Widget _quickOptionCard({
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           color: selected ? const Color(0xFFEDE9FE) : Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selected ? const Color(0xFF5B21B6) : const Color(0xFFE5E7EB),
             width: selected ? 1.5 : 1,
           ),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Color(0x06000000),
+              color: selected
+                  ? const Color(0xFF5B21B6).withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.04),
               blurRadius: 8,
-              offset: Offset(0, 3),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              color: selected
-                  ? const Color(0xFF5B21B6)
-                  : const Color(0xFF9CA3AF),
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: selected
-                      ? const Color(0xFF5B21B6)
-                      : const Color(0xFF374151),
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? const Color(0xFF5B21B6).withValues(alpha: 0.15)
+                        : const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: selected ? const Color(0xFF5B21B6) : const Color(0xFF6B7280),
+                    size: 18,
+                  ),
                 ),
+                const Spacer(),
+                if (selected)
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: Color(0xFF5B21B6),
+                    size: 18,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: selected ? const Color(0xFF5B21B6) : const Color(0xFF12233D),
               ),
             ),
-            if (selected)
-              const Icon(
-                Icons.check_circle_rounded,
-                color: Color(0xFF5B21B6),
-                size: 16,
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 11,
+                color: selected ? const Color(0xFF7C3AED).withValues(alpha: 0.7) : const Color(0xFF9CA3AF),
               ),
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
     );
   }
 }
 
 class _StartupCard extends StatelessWidget {
-  const _StartupCard({required this.startup, required this.onContinue});
+  const _StartupCard({
+    required this.startup,
+    required this.isSelected,
+    required this.onTap,
+    required this.onContinue,
+  });
   final SuggestedStartup startup;
+  final bool isSelected;
+  final VoidCallback onTap;
   final VoidCallback onContinue;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 14,
-            offset: Offset(0, 5),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFEDE9FE) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF5B21B6) : Colors.transparent,
+            width: isSelected ? 1.5 : 0,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6D28D9), Color(0xFF5B21B6)],
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? const Color(0xFF5B21B6).withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.03),
+              blurRadius: 14,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6D28D9), Color(0xFF5B21B6)],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Center(
-                  child: Text(
-                    startup.name[0],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
+                  child: Center(
+                    child: Text(
+                      startup.name[0],
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          startup.name,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF12233D),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            startup.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF12233D),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
+                          const SizedBox(width: 6),
                         const Icon(
                           Icons.verified_rounded,
                           size: 16,
                           color: Color(0xFF5B21B6),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      '${startup.industry} · ${startup.location}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF6B7280),
+                        if (isSelected) ...[
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.check_circle_rounded,
+                            size: 16,
+                            color: Color(0xFF5B21B6),
+                          ),
+                        ],
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEDE9FE),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  startup.stage,
-                  style: const TextStyle(
-                    color: Color(0xFF5B21B6),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                      const SizedBox(height: 3),
+                      Text(
+                        '${startup.industry} · ${startup.location}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 6,
-            children: startup.tags
-                .map(
-                  (tag) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3F4F6),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      tag,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF6B7280),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(
-                Icons.people_outline,
-                size: 14,
-                color: Color(0xFF9CA3AF),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${startup.teamMembers} Team Members',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
-              ),
-              const Spacer(),
-              ElevatedButton(
-                onPressed: onContinue,
-                style: ElevatedButton.styleFrom(
+                Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 10,
+                    horizontal: 10,
+                    vertical: 5,
                   ),
-                  backgroundColor: const Color(0xFF5B21B6),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEDE9FE),
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  minimumSize: Size.zero,
+                  child: Text(
+                    startup.stage,
+                    style: const TextStyle(
+                      color: Color(0xFF5B21B6),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              startup.tagline,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              children: startup.tags
+                  .map(
+                    (tag) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3F4F6),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        tag,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF6B7280),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(
+                  Icons.people_outline,
+                  size: 14,
+                  color: Color(0xFF9CA3AF),
                 ),
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(width: 4),
+                Text(
+                  '${startup.teamMembers} Team Members',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
+                ),
+                const Spacer(),
+                ElevatedButton(
+                  onPressed: onContinue,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
+                    ),
+                    backgroundColor: const Color(0xFF5B21B6),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    minimumSize: Size.zero,
+                  ),
+                  child: const Text(
+                    'Continue',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

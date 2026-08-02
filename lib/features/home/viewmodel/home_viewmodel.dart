@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/di/providers.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 
 final homeViewModelProvider =

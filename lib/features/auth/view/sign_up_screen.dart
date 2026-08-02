@@ -2,11 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../home/view/home_screen.dart';
-import '../../startup/startup.dart';
+import '../../../shared/enums/app_enums.dart';
 import '../model/auth_session.dart';
-import '../viewmodel/auth_viewmodel.dart';
+import '../../../core/di/providers.dart';
+import '../../../shared/utils/app_snackbar.dart';
+import '../viewmodel/sign_up_viewmodel.dart';
+import 'secondary_goal_screen.dart';
 import 'sign_in_screen.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
@@ -18,6 +21,7 @@ class SignUpScreen extends ConsumerStatefulWidget {
 
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final PageController _pageController = PageController();
+  final SignUpViewModel _viewModel = SignUpViewModel();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -31,17 +35,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     text: 'United States',
   );
   final TextEditingController _cityController = TextEditingController();
-  int _currentStep = 0;
-  String _selectedRole = 'Founder';
-  String _selectedGender = 'Male';
-  DateTime? _dateOfBirth;
-  String? _profilePhotoPath;
-  Uint8List? _profilePhotoBytes;
-  bool _photoUploaded = false;
-  String _photoLabel = 'Upload Photo';
-
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -59,8 +52,64 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     super.dispose();
   }
 
+  bool _validateBasicDetails() {
+    final fullName = _fullNameController.text.trim();
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (fullName.isEmpty) {
+      _showMessage('Please enter your full name.');
+      return false;
+    }
+
+    if (email.isEmpty) {
+      _showMessage('Please enter your email address.');
+      return false;
+    }
+
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email)) {
+      _showMessage('Please enter a valid email address.');
+      return false;
+    }
+
+    if (phone.isEmpty) {
+      _showMessage('Please enter your phone number.');
+      return false;
+    }
+
+    if (password.isEmpty) {
+      _showMessage('Please enter a password.');
+      return false;
+    }
+
+    if (password.length < 6) {
+      _showMessage('Password must be at least 6 characters long.');
+      return false;
+    }
+
+    if (confirmPassword.isEmpty) {
+      _showMessage('Please confirm your password.');
+      return false;
+    }
+
+    if (password != confirmPassword) {
+      _showMessage('Passwords do not match.');
+      return false;
+    }
+
+    return true;
+  }
+
   void _nextStep() {
-    if (_currentStep < 2) {
+    if (_viewModel.currentStep == 0) {
+      if (!_validateBasicDetails()) return;
+    }
+
+    if (_viewModel.currentStep < 2) {
+      _viewModel.goToNextStep();
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -71,25 +120,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Future<void> _completeRegistration() async {
+    if (!_validateBasicDetails()) {
+      _viewModel.setCurrentStep(0);
+      _pageController.animateToPage(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+      return;
+    }
+
     final fullName = _fullNameController.text.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
     final password = _passwordController.text;
-    final confirmPassword = _confirmPasswordController.text;
-
-    if (fullName.isEmpty ||
-        email.isEmpty ||
-        phone.isEmpty ||
-        password.isEmpty ||
-        confirmPassword.isEmpty) {
-      _showMessage('Complete the basic details before finishing registration.');
-      return;
-    }
-
-    if (password != confirmPassword) {
-      _showMessage('Passwords do not match.');
-      return;
-    }
 
     await ref.read(authViewModelProvider.notifier).signUp(
       AuthSession(
@@ -97,21 +141,21 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         email: email,
         password: password,
         phone: phone,
-        role: _selectedRole,
+        role: _viewModel.selectedRole.name,
         onboardingComplete: true,
         username: _usernameController.text.trim().isEmpty
             ? null
             : _usernameController.text.trim(),
-        dateOfBirth: _dateOfBirth?.toIso8601String(),
-        gender: _selectedGender,
+        dateOfBirth: _viewModel.dateOfBirth?.toIso8601String(),
+        gender: _viewModel.selectedGender,
         country: _countryController.text.trim().isEmpty
             ? null
             : _countryController.text.trim(),
         city: _cityController.text.trim().isEmpty
             ? null
             : _cityController.text.trim(),
-        profilePhotoLabel: _photoUploaded ? _photoLabel : null,
-        profilePhotoPath: _profilePhotoPath,
+        profilePhotoLabel: _viewModel.photoUploaded ? _viewModel.photoLabel : null,
+        profilePhotoPath: _viewModel.profilePhotoPath,
       ),
     );
 
@@ -119,25 +163,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       return;
     }
 
-    final isStartupRole =
-        _selectedRole == 'Founder' || _selectedRole == 'Company';
-
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) {
-          if (isStartupRole) {
-            return StartupLandingScreen(selectedRole: _selectedRole);
-          }
-
-          return const HomeScreen();
-        },
+        builder: (context) => const SecondaryGoalScreen(),
       ),
     );
   }
 
   void _prevStep() {
-    if (_currentStep > 0) {
+    if (_viewModel.currentStep > 0) {
+      _viewModel.goToPreviousStep();
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -149,36 +185,42 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _prevStep,
-        ),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildProgressBar(),
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentStep = index;
-                  });
-                },
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, _) {
+        return GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: _prevStep,
+              ),
+            ),
+            body: SafeArea(
+              child: Column(
                 children: [
-                  _buildBasicDetailsStep(),
-                  _buildPersonalDetailsStep(),
-                  _buildRoleSelectionStep(),
+                  _buildProgressBar(),
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      onPageChanged: (index) {
+                        _viewModel.setCurrentStep(index);
+                      },
+                      children: [
+                        _buildBasicDetailsStep(),
+                        _buildPersonalDetailsStep(),
+                        _buildRoleSelectionStep(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -193,7 +235,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 4.0),
               height: 4,
               decoration: BoxDecoration(
-                color: index <= _currentStep
+                color: index <= _viewModel.currentStep
                     ? AppColors.primary
                     : Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(2),
@@ -228,6 +270,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           _buildTextFieldLabel('Full Name'),
           TextFormField(
             controller: _fullNameController,
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.name,
+            textCapitalization: TextCapitalization.words,
+            autofillHints: const [AutofillHints.name],
             decoration: const InputDecoration(
               hintText: 'John Doe',
               prefixIcon: Icon(Icons.person_outline),
@@ -237,11 +283,13 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           _buildTextFieldLabel('Email Address'),
           TextFormField(
             controller: _emailController,
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.emailAddress,
+            autofillHints: const [AutofillHints.email],
             decoration: const InputDecoration(
               hintText: 'name@company.com',
               prefixIcon: Icon(Icons.mail_outline),
             ),
-            keyboardType: TextInputType.emailAddress,
           ),
           const SizedBox(height: 16),
           _buildTextFieldLabel('Phone Number'),
@@ -267,8 +315,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               Expanded(
                 child: TextFormField(
                   controller: _phoneController,
-                  decoration: const InputDecoration(hintText: '(555) 000-0000'),
+                  textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.phone,
+                  autofillHints: const [AutofillHints.telephoneNumber],
+                  decoration: const InputDecoration(hintText: '(555) 000-0000'),
                 ),
               ),
             ],
@@ -277,16 +327,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           _buildTextFieldLabel('Password'),
           TextFormField(
             controller: _passwordController,
-            obscureText: _obscurePassword,
+            obscureText: _viewModel.obscurePassword,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.newPassword],
             decoration: InputDecoration(
               hintText: 'Enter your password',
               prefixIcon: const Icon(Icons.lock_outline),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  _viewModel.obscurePassword ? Icons.visibility_off : Icons.visibility,
                 ),
-                onPressed: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
+                onPressed: () => _viewModel.togglePasswordVisibility(),
               ),
             ),
           ),
@@ -294,19 +345,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           _buildTextFieldLabel('Confirm Password'),
           TextFormField(
             controller: _confirmPasswordController,
-            obscureText: _obscureConfirmPassword,
+            obscureText: _viewModel.obscureConfirmPassword,
+            textInputAction: TextInputAction.done,
+            autofillHints: const [AutofillHints.newPassword],
+            onFieldSubmitted: (_) => _nextStep(),
             decoration: InputDecoration(
               hintText: 'Re-enter your password',
               prefixIcon: const Icon(Icons.lock_outline),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscureConfirmPassword
+                  _viewModel.obscureConfirmPassword
                       ? Icons.visibility_off
                       : Icons.visibility,
                 ),
-                onPressed: () => setState(
-                  () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                ),
+                onPressed: () => _viewModel.toggleConfirmPasswordVisibility(),
               ),
             ),
           ),
@@ -388,7 +440,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         width: 84,
                         height: 84,
                         decoration: BoxDecoration(
-                          gradient: _photoUploaded
+                          gradient: _viewModel.photoUploaded
                               ? const LinearGradient(
                                   colors: [
                                     Color(0xFF5B21B6),
@@ -398,20 +450,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                   end: Alignment.bottomRight,
                                 )
                               : null,
-                          color: _photoUploaded ? null : AppColors.secondary,
+                          color: _viewModel.photoUploaded ? null : AppColors.secondary,
                           shape: BoxShape.circle,
                         ),
                         child: Center(
-                          child: _profilePhotoBytes != null
+                          child: _viewModel.profilePhotoBytes != null
                               ? ClipOval(
                                   child: Image.memory(
-                                    _profilePhotoBytes!,
+                                    _viewModel.profilePhotoBytes!,
                                     width: 84,
                                     height: 84,
                                     fit: BoxFit.cover,
                                   ),
                                 )
-                              : _photoUploaded
+                              : _viewModel.photoUploaded
                               ? Text(
                                   _fullNameController.text.trim().isEmpty
                                       ? 'U'
@@ -451,16 +503,16 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _photoLabel,
+                    _viewModel.photoLabel,
                     style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   Text(
-                    _profilePhotoBytes != null
-                        ? '$_photoLabel • Tap to change'
-                        : _photoUploaded
+                    _viewModel.profilePhotoBytes != null
+                        ? '${_viewModel.photoLabel} • Tap to change'
+                        : _viewModel.photoUploaded
                         ? 'Photo ready • Tap to change'
                         : 'Optional • JPG or PNG • Max 5 MB',
                     style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
@@ -473,6 +525,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           _buildTextFieldLabel('Username'),
           TextFormField(
             controller: _usernameController,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.username],
             decoration: const InputDecoration(
               hintText: '@alex_designer',
               suffixIcon: Icon(Icons.check_circle, color: AppColors.success),
@@ -535,7 +589,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     child: _buildGenderOption(
                       Icons.male,
                       'Male',
-                      _selectedGender == 'Male',
+                      _viewModel.selectedGender == 'Male',
                     ),
                   ),
                   SizedBox(
@@ -543,7 +597,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     child: _buildGenderOption(
                       Icons.female,
                       'Female',
-                      _selectedGender == 'Female',
+                      _viewModel.selectedGender == 'Female',
                     ),
                   ),
                   SizedBox(
@@ -551,7 +605,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     child: _buildGenderOption(
                       Icons.transgender,
                       'Non-Binary',
-                      _selectedGender == 'Non-Binary',
+                      _viewModel.selectedGender == 'Non-Binary',
                     ),
                   ),
                   SizedBox(
@@ -559,7 +613,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     child: _buildGenderOption(
                       Icons.visibility_off,
                       'Prefer Not\nTo Say',
-                      _selectedGender == 'Prefer Not To Say',
+                      _viewModel.selectedGender == 'Prefer Not To Say',
                     ),
                   ),
                 ],
@@ -581,6 +635,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           _buildTextFieldLabel('City'),
           TextFormField(
             controller: _cityController,
+            textInputAction: TextInputAction.done,
+            textCapitalization: TextCapitalization.words,
+            autofillHints: const [AutofillHints.addressCity],
+            onFieldSubmitted: (_) => _nextStep(),
             decoration: const InputDecoration(hintText: 'Enter your city'),
           ),
           const SizedBox(height: 32),
@@ -607,54 +665,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Widget _buildRoleSelectionStep() {
-    final roles = [
-      {
-        'title': 'Student',
-        'desc': 'Learning and building skills',
-        'icon': Icons.school,
-      },
-      {
-        'title': 'Professional',
-        'desc': 'Working professional or employee',
-        'icon': Icons.work,
-      },
-      {
-        'title': 'Founder',
-        'desc': 'Building my own startup',
-        'icon': Icons.rocket_launch,
-      },
-      {
-        'title': 'Company',
-        'desc': 'Managing a company',
-        'icon': Icons.business,
-      },
-      {
-        'title': 'Investor',
-        'desc': 'Investing in opportunities',
-        'icon': Icons.attach_money,
-      },
-      {
-        'title': 'Creator',
-        'desc': 'Investing content and value',
-        'icon': Icons.palette,
-      },
-      {
-        'title': 'Mentor',
-        'desc': 'Guiding and mentoring others',
-        'icon': Icons.psychology,
-      },
-      {
-        'title': 'Influencer',
-        'desc': 'Inspiring and influencing people',
-        'icon': Icons.star,
-      },
-      {
-        'title': 'Service Provider',
-        'desc': 'Offering professional services',
-        'icon': Icons.handyman,
-      },
-      {'title': 'Other', 'desc': 'Something else', 'icon': Icons.more_horiz},
-    ];
+    final roles = UserRole.values;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
@@ -689,14 +700,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             ),
             itemBuilder: (context, index) {
               final role = roles[index];
-              final title = role['title'] as String;
-              final isSelected = _selectedRole == title;
+              final isSelected = _viewModel.selectedRole == role;
 
               return GestureDetector(
                 onTap: () {
-                  setState(() {
-                    _selectedRole = title;
-                  });
+                  _viewModel.selectRole(role);
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -714,13 +722,13 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        role['icon'] as IconData,
+                        role.icon,
                         color: AppColors.primary,
                         size: 32,
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        title,
+                        role.label,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -729,7 +737,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        role['desc'] as String,
+                        role.description,
                         style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 10,
@@ -748,9 +756,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           ElevatedButton(
             onPressed: _nextStep,
             child: Text(
-              _selectedRole == 'Founder' || _selectedRole == 'Company'
-                  ? 'Create Startup'
-                  : 'Complete Registration',
+              _viewModel.roleButtonText,
             ),
           ),
         ],
@@ -771,9 +777,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Widget _buildGenderOption(IconData icon, String label, bool isSelected) {
     return InkWell(
       onTap: () {
-        setState(() {
-          _selectedGender = label.replaceAll('\n', ' ');
-        });
+        _viewModel.selectGender(label.replaceAll('\n', ' '));
       },
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -808,15 +812,13 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-    );
+    AppSnackBar.showError(context, message);
   }
 
   Future<void> _pickDateOfBirth() async {
     final now = DateTime.now();
     final initialDate =
-        _dateOfBirth ?? DateTime(now.year - 25, now.month, now.day);
+        _viewModel.dateOfBirth ?? DateTime(now.year - 25, now.month, now.day);
 
     final picked = await showDatePicker(
       context: context,
@@ -829,12 +831,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       return;
     }
 
-    setState(() {
-      _dateOfBirth = picked;
-      _dobController.text =
-          '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
-      _ageController.text = _calculateAge(picked).toString();
-    });
+    _viewModel.setDateOfBirth(picked);
+    _dobController.text =
+        '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+    _ageController.text = _viewModel.calculateAge(picked).toString();
   }
 
   Future<void> _selectCountry() async {
@@ -1038,52 +1038,77 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Future<void> _pickPhoto(ImageSource source) async {
+    if (!kIsWeb) {
+      PermissionStatus status;
+      if (source == ImageSource.camera) {
+        status = await Permission.camera.status;
+        if (status.isDenied || status.isPermanentlyDenied) {
+          status = await Permission.camera.request();
+        }
+      } else {
+        status = await Permission.photos.status;
+        if (status.isDenied || status.isPermanentlyDenied) {
+          status = await Permission.photos.request();
+        }
+        if (status.isPermanentlyDenied || status.isDenied) {
+          status = await Permission.storage.status;
+          if (status.isDenied || status.isPermanentlyDenied) {
+            status = await Permission.storage.request();
+          }
+        }
+      }
+      if (status.isPermanentlyDenied) {
+        if (!mounted) return;
+        _showPermissionDeniedDialog(source == ImageSource.camera ? 'Camera' : 'Photo Library');
+        return;
+      }
+      if (status.isDenied) {
+        if (!mounted) return;
+        _showMessage('Permission is required to access the ${source == ImageSource.camera ? 'camera' : 'photo library'}.');
+        return;
+      }
+    }
+
     try {
-      if (kIsWeb && source == ImageSource.camera) {
+      await _viewModel.pickPhoto(source, onCameraUnsupported: () {
         _showMessage(
           'Camera capture is not supported on web. Please choose from gallery.',
         );
-        return;
-      }
-
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: source,
-        imageQuality: 85,
-        maxWidth: 1200,
-      );
-
-      if (pickedFile == null) {
-        return;
-      }
-
-      final bytes = await pickedFile.readAsBytes();
-
-      setState(() {
-        _profilePhotoPath = pickedFile.path;
-        _profilePhotoBytes = bytes;
-        _photoUploaded = true;
-        _photoLabel = source == ImageSource.camera
-            ? 'Photo captured'
-            : 'Photo selected';
       });
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      _showMessage(
-        'Could not open ${source == ImageSource.camera ? 'camera' : 'gallery'}.',
-      );
+      if (!mounted) return;
+      _showMessage('Failed to process the selected photo. Please try again.');
     }
   }
 
-  int _calculateAge(DateTime birthDate) {
-    final now = DateTime.now();
-    var age = now.year - birthDate.year;
-    if (now.month < birthDate.month ||
-        (now.month == birthDate.month && now.day < birthDate.day)) {
-      age--;
-    }
-    return age;
+  void _showPermissionDeniedDialog(String permissionName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Permission Required'),
+        content: Text(
+          '$permissionName permission is permanently denied. Please enable it in app settings to continue.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              openAppSettings();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF5B21B6),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
   }
+
 }
