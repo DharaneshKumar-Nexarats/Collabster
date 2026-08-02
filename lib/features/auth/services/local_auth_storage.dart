@@ -13,11 +13,14 @@ class LocalAuthStorage {
     final prefs = await _prefs;
     final encoded = prefs.getString(_sessionKey);
     if (encoded == null || encoded.isEmpty) {
+      debugPrint('LocalAuthStorage: readSession – no session found in prefs');
       return null;
     }
 
     try {
-      return AuthSession.fromEncodedJson(encoded);
+      final session = AuthSession.fromEncodedJson(encoded);
+      debugPrint('LocalAuthStorage: readSession – email="${session.email}", password="${session.password}", role="${session.role}"');
+      return session;
     } catch (e) {
       debugPrint('LocalAuthStorage: failed to decode session – $e');
       return null;
@@ -27,9 +30,12 @@ class LocalAuthStorage {
   Future<void> saveSession(AuthSession session) async {
     final prefs = await _prefs;
     final encoded = session.toEncodedJson();
+    debugPrint('LocalAuthStorage: saveSession – email="${session.email}", password="${session.password}", role="${session.role}", activeRole="${session.activeRole}", roles=${session.roles}');
     final success = await prefs.setString(_sessionKey, encoded);
     if (!success) {
       debugPrint('LocalAuthStorage: SharedPreferences.setString returned false');
+    } else {
+      debugPrint('LocalAuthStorage: saveSession – SUCCESS, encoded length=${encoded.length}');
     }
   }
 

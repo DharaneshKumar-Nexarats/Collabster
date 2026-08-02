@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../auth/viewmodel/auth_viewmodel.dart';
+import '../../../../core/di/providers.dart';
+import '../../../../shared/utils/app_snackbar.dart';
 import '../../model/startup_models.dart';
 import 'startup_dashboard_screen.dart';
 
@@ -140,12 +141,63 @@ class JoinStartupStatusScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: () async {
+                    final currentSession = ref.read(authViewModelProvider).session;
+                    final previousStartupName = currentSession?.startupName;
+
+                    // Build a complete snapshot of the joined startup's data
+                    final joinedData = <String, dynamic>{
+                      'startupName': startup.name,
+                      'startupIndustry': startup.industry,
+                      'startupStage': startup.stage,
+                      'startupTagline': 'Member of ${startup.name}',
+                      'startupCity': startup.location,
+                    };
+
+                    // Also snapshot the CURRENT (own) startup data before switching,
+                    // so it can be restored when the user switches back.
+                    final ownData = currentSession?.originalStartupData ??
+                        <String, dynamic>{
+                          'startupName': previousStartupName ?? '',
+                          'startupIndustry': currentSession?.startupIndustry ?? '',
+                          'startupStage': currentSession?.startupStage ?? '',
+                          'startupTagline': currentSession?.startupTagline ?? '',
+                          'startupCountry': currentSession?.startupCountry ?? '',
+                          'startupCity': currentSession?.startupCity ?? '',
+                          'startupDescription': currentSession?.startupDescription ?? '',
+                          'startupProblem': currentSession?.startupProblem ?? '',
+                          'startupSolution': currentSession?.startupSolution ?? '',
+                          'startupMission': currentSession?.startupMission ?? '',
+                          'startupVision': currentSession?.startupVision ?? '',
+                          'startupWebsite': currentSession?.startupWebsite ?? '',
+                          'startupIncorporationDate': currentSession?.startupIncorporationDate ?? '',
+                          'startupFounderName': currentSession?.startupFounderName ?? '',
+                          'startupFounderDesignation': currentSession?.startupFounderDesignation ?? '',
+                          'startupFounderEmail': currentSession?.startupFounderEmail ?? '',
+                          'startupFounderPhone': currentSession?.startupFounderPhone ?? '',
+                          'startupFounderLinkedin': currentSession?.startupFounderLinkedin ?? '',
+                          'startupFounderBio': currentSession?.startupFounderBio ?? '',
+                          'startupSocialWebsite': currentSession?.startupSocialWebsite ?? '',
+                          'startupSocialLinkedin': currentSession?.startupSocialLinkedin ?? '',
+                          'startupSocialProductHunt': currentSession?.startupSocialProductHunt ?? '',
+                          'startupUseOfFunds': currentSession?.startupUseOfFunds ?? '',
+                          'startupTeamSize': currentSession?.startupTeamSize ?? '',
+                          'startupFundingStage': currentSession?.startupFundingStage ?? '',
+                          'startupCurrentlyRaising': currentSession?.startupCurrentlyRaising ?? false,
+                          'startupVisibility': currentSession?.startupVisibility ?? '',
+                        };
+
                     await ref.read(authViewModelProvider.notifier).updateStartupData(
                       startupName: startup.name,
                       industry: startup.industry,
                       stage: startup.stage,
                       tagline: 'Member of ${startup.name}',
                       city: startup.location,
+                      // Keep own startup name & data for "Switch back" button
+                      originalStartupName: previousStartupName,
+                      originalStartupData: ownData,
+                      // Store joined startup data so it can be restored
+                      joinedStartupName: startup.name,
+                      joinedStartupData: joinedData,
                     );
                     if (!context.mounted) return;
                     Navigator.pushReplacement(
@@ -156,6 +208,7 @@ class JoinStartupStatusScreen extends ConsumerWidget {
                       ),
                     );
                   },
+
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(52),
                     foregroundColor: const Color(0xFF5B21B6),
@@ -295,8 +348,6 @@ class JoinStartupStatusScreen extends ConsumerWidget {
   }
 
   void _showSnack(BuildContext context, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    AppSnackBar.showInfo(context, message);
   }
 }

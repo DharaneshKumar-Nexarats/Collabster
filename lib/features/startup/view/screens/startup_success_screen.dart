@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../auth/viewmodel/auth_viewmodel.dart';
 import 'startup_dashboard_screen.dart';
 import 'startup_public_profile_screen.dart';
 
@@ -186,15 +185,6 @@ class StartupSuccessScreen extends ConsumerWidget {
                  child: ElevatedButton(
                   onPressed: () async {
                     final navigator = Navigator.of(context);
-                    await ref.read(authViewModelProvider.notifier).updateStartupData(
-                      startupName: startupName,
-                      industry: industry,
-                      stage: stage,
-                      tagline: tagline,
-                      country: country,
-                      city: city,
-                    );
-
                     navigator.pushReplacement(
                       MaterialPageRoute(
                         builder: (context) => StartupDashboardScreen(startupName: startupName),

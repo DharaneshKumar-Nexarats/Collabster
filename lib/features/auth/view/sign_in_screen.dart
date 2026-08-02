@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../home/view/home_screen.dart';
-import '../../startup/startup.dart';
+import '../../../shared/utils/dashboard_router.dart';
 import '../../onboarding/view/onboarding_screen.dart';
-import '../viewmodel/auth_viewmodel.dart';
+import '../../../core/di/providers.dart';
+import '../../../shared/utils/app_snackbar.dart';
 import 'forgot_password_screen.dart';
 import 'guest_explore_screen.dart';
 import 'sign_up_screen.dart';
@@ -29,45 +29,94 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     super.dispose();
   }
 
+  Future<void> _handleSignIn() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      _showMessage(
+        messenger,
+        'Enter your email and password.',
+      );
+      return;
+    }
+
+    setState(() => _isSigningIn = true);
+
+    try {
+      final authVM = ref.read(authViewModelProvider.notifier);
+      final errorMsg = await authVM.signIn(
+        email: email,
+        password: password,
+      );
+
+      if (errorMsg != null) {
+        if (!mounted) return;
+        _showMessage(messenger, errorMsg);
+        return;
+      }
+
+      if (!mounted) return;
+      final session = ref.read(authViewModelProvider).session;
+      if (session == null) return;
+
+      final destination = buildDashboardForRole(session);
+
+      navigator.pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => destination,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSigningIn = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFF8F5FF),
-              Color(0xFFF3F7FF),
-              Colors.white,
-            ],
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFF8F5FF),
+                Color(0xFFF3F7FF),
+                Colors.white,
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Positioned(
-                top: -26,
-                right: -28,
-                child: _GlowBlob(
-                  color: AppColors.primary.withOpacity(0.12),
-                  size: 170,
+          child: SafeArea(
+            child: Stack(
+              children: [
+                Positioned(
+                  top: -26,
+                  right: -28,
+                  child: _GlowBlob(
+                    color: AppColors.primary.withOpacity(0.12),
+                    size: 170,
+                  ),
                 ),
-              ),
-              Positioned(
-                top: 168,
-                left: -24,
-                child: _GlowBlob(
-                  color: const Color(0xFF2F80ED).withOpacity(0.10),
-                  size: 120,
+                Positioned(
+                  top: 168,
+                  left: -24,
+                  child: _GlowBlob(
+                    color: const Color(0xFF2F80ED).withOpacity(0.10),
+                    size: 120,
+                  ),
                 ),
-              ),
-              SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
+                SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                     Row(
                       children: [
                         IconButton(
@@ -170,6 +219,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                               prefixIcon: Icon(Icons.mail_outline_rounded),
                             ),
                             keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.email],
                           ),
                           const SizedBox(height: 18),
                           const Text(
@@ -183,6 +234,13 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
+                            textInputAction: TextInputAction.done,
+                            autofillHints: const [AutofillHints.password],
+                            onFieldSubmitted: (_) {
+                              if (!_isSigningIn) {
+                                _handleSignIn();
+                              }
+                            },
                             decoration: InputDecoration(
                               hintText: 'Enter your password',
                               prefixIcon: const Icon(Icons.key_rounded),
@@ -221,63 +279,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                            SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: _isSigningIn
-                                  ? null
-                                  : () async {
-                                      final messenger = ScaffoldMessenger.of(context);
-                                      final navigator = Navigator.of(context);
-                                      final email = _emailController.text.trim();
-                                      final password = _passwordController.text;
-
-                                      if (email.isEmpty || password.isEmpty) {
-                                        _showMessage(
-                                          messenger,
-                                          'Enter your email and password.',
-                                        );
-                                        return;
-                                      }
-
-                                      setState(() => _isSigningIn = true);
-
-                                      try {
-                                        final authVM = ref.read(authViewModelProvider.notifier);
-                                        final errorMsg = await authVM.signIn(
-                                          email: email,
-                                          password: password,
-                                        );
-
-                                        if (errorMsg != null) {
-                                          if (!mounted) return;
-                                          _showMessage(messenger, errorMsg);
-                                          return;
-                                        }
-
-                                        if (!mounted) return;
-                                        final session = ref.read(authViewModelProvider).session;
-                                        if (session == null) return;
-
-                                        final destination = session.isStartupRole
-                                            ? (session.startupName != null &&
-                                                      session.startupName!.isNotEmpty
-                                                  ? StartupDashboardScreen(
-                                                      startupName: session.startupName!,
-                                                    )
-                                                  : StartupLandingScreen(
-                                                      selectedRole: session.role,
-                                                    ))
-                                            : const HomeScreen();
-
-                                        navigator.pushReplacement(
-                                          MaterialPageRoute(
-                                            builder: (context) => destination,
-                                          ),
-                                        );
-                                      } finally {
-                                        if (mounted) {
-                                          setState(() => _isSigningIn = false);
-                                        }
-                                      }
-                                    },
+                              onPressed: _isSigningIn ? null : _handleSignIn,
                               child: _isSigningIn
                                   ? const SizedBox(
                                       height: 20,
@@ -343,6 +345,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -363,15 +366,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   void _showUnavailable(BuildContext context, String feature) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$feature is not available yet.')));
+    AppSnackBar.showInfo(context, '$feature is not available yet.');
   }
 
   void _showMessage(ScaffoldMessengerState messenger, String message) {
-    messenger.showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-    );
+    AppSnackBar.showWithMessenger(messenger, message, type: SnackBarType.error);
   }
 }
 

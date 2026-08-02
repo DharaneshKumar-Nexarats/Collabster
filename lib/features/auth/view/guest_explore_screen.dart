@@ -85,7 +85,7 @@ class _GuestExploreScreenState extends State<GuestExploreScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Create an account to fully explore this mode and connect with the CollabSphere community.',
+                'Create an account to fully explore this mode and connect with the Collabster community.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
               ),
@@ -168,7 +168,7 @@ class _GuestExploreScreenState extends State<GuestExploreScreen> {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: Text(
-                'Explore CollabSphere',
+                'Explore Collabster',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,

@@ -1,17 +1,33 @@
 import 'package:flutter/material.dart';
 
 class StartupEventsScreen extends StatefulWidget {
-  const StartupEventsScreen({super.key, required this.startupName});
+  const StartupEventsScreen({
+    super.key,
+    required this.startupName,
+    this.autoOpenCreateEvent = false,
+  });
 
   final String startupName;
+  final bool autoOpenCreateEvent;
 
   @override
   State<StartupEventsScreen> createState() => _StartupEventsScreenState();
 }
 
 class _StartupEventsScreenState extends State<StartupEventsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autoOpenCreateEvent) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        createEvent();
+      });
+    }
+  }
+
   final TextEditingController _searchController = TextEditingController();
   String _filter = 'All';
+  bool _showMyEvents = false;
   final List<_StartupEvent> _events = [
     _StartupEvent(
       title: 'MedTech Startup Summit 2026',
@@ -69,6 +85,188 @@ class _StartupEventsScreenState extends State<StartupEventsScreen> {
     }).toList();
   }
 
+  List<_StartupEvent> get _recommendedEvents => _visibleEvents;
+
+  void _viewAllMyEvents() {
+    setState(() => _showMyEvents = !_showMyEvents);
+  }
+
+  void _editEvent(_StartupEvent event) {
+    final titleCtrl = TextEditingController(text: event.title);
+    final locationCtrl = TextEditingController(text: event.location);
+    final dateCtrl = TextEditingController(text: event.date.replaceAll('\n', ' '));
+    final timeCtrl = TextEditingController(text: event.time);
+    final descCtrl = TextEditingController(text: event.description);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 42, height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE5E7EB),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6D28D9).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.edit_calendar_rounded,
+                            color: Color(0xFF6D28D9), size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text('Edit Event',
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF12233D))),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(ctx),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3F4F6),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: const Icon(Icons.close_rounded,
+                              color: Color(0xFF6B7280), size: 20),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _ComposerField(
+                    controller: titleCtrl, label: 'Event name',
+                    hintText: 'Founder Meetup Night', icon: Icons.title_outlined, autofocus: true,
+                  ),
+                  const SizedBox(height: 12),
+                  _ComposerField(
+                    controller: locationCtrl, label: 'Location',
+                    hintText: 'San Francisco, CA', icon: Icons.location_on_outlined,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ComposerField(
+                          controller: dateCtrl, label: 'Date',
+                          hintText: 'AUG 18', icon: Icons.calendar_month_outlined,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _ComposerField(
+                          controller: timeCtrl, label: 'Time',
+                          hintText: '9:00 AM - 6:00 PM', icon: Icons.schedule_outlined,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _ComposerField(
+                    controller: descCtrl, label: 'Description',
+                    hintText: 'Tell founders why they should attend.',
+                    icon: Icons.notes_outlined, maxLines: 3,
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            if (titleCtrl.text.trim().isEmpty) return;
+                            final rawDate = dateCtrl.text.trim().toUpperCase();
+                            final formatted = rawDate.isEmpty
+                                ? event.date
+                                : rawDate.replaceFirst(RegExp(r'\s+'), '\n');
+                            setState(() {
+                              final idx = _events.indexOf(event);
+                              if (idx != -1) {
+                                _events[idx] = _StartupEvent(
+                                  title: titleCtrl.text.trim(),
+                                  category: event.category,
+                                  date: formatted,
+                                  dateLabel: rawDate.isEmpty ? event.dateLabel : rawDate,
+                                  time: timeCtrl.text.trim().isEmpty ? event.time : timeCtrl.text.trim(),
+                                  location: locationCtrl.text.trim().isEmpty ? event.location : locationCtrl.text.trim(),
+                                  attendees: event.attendees,
+                                  description: descCtrl.text.trim().isEmpty ? event.description : descCtrl.text.trim(),
+                                  color: event.color,
+                                );
+                              }
+                            });
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Event updated successfully!')),
+                            );
+                          },
+                          icon: const Icon(Icons.check_rounded, size: 18),
+                          label: const Text('Save Changes',
+                              style: TextStyle(fontWeight: FontWeight.w700)),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF6D28D9),
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          setState(() => _events.remove(event));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Event removed.')),
+                          );
+                        },
+                        icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                        label: const Text('Delete',
+                            style: TextStyle(fontWeight: FontWeight.w700)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
+                          minimumSize: const Size(0, 48),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _openEvent(_StartupEvent event) async {
     await Navigator.push<void>(
       context,
@@ -79,18 +277,16 @@ class _StartupEventsScreenState extends State<StartupEventsScreen> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _createEvent() async {
+  Future<void> createEvent() async {
     final created = await showModalBottomSheet<_StartupEvent>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetContext) => _CreateEventBottomSheet(startupName: widget.startupName),
+      builder: (sheetContext) =>
+          _CreateEventBottomSheet(startupName: widget.startupName),
     );
-
-    if (created != null) {
-      setState(() {
-        _events.insert(0, created);
-      });
+    if (created != null && mounted) {
+      setState(() => _events.insert(0, created));
     }
   }
 
@@ -98,6 +294,7 @@ class _StartupEventsScreenState extends State<StartupEventsScreen> {
   Widget build(BuildContext context) {
     final events = _visibleEvents;
     final myEvents = _events.where((event) => event.registered).toList();
+    final recommended = _recommendedEvents;
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7FC),
       appBar: AppBar(
@@ -107,21 +304,7 @@ class _StartupEventsScreenState extends State<StartupEventsScreen> {
           'Events',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
-        actions: [
-          IconButton(
-            onPressed: _createEvent,
-            icon: const Icon(Icons.add_circle_outline),
-          ),
-          IconButton(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('You are all caught up.')),
-            ),
-            icon: const Badge(
-              smallSize: 7,
-              child: Icon(Icons.notifications_none),
-            ),
-          ),
-        ],
+        actions: const [],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -178,7 +361,8 @@ class _StartupEventsScreenState extends State<StartupEventsScreen> {
           const SizedBox(height: 24),
           _SectionTitle(
             title: 'Recommended for you',
-            action: '${events.length} events',
+            action: '${recommended.length} events',
+            onActionTap: () => setState(() => _filter = 'All'),
           ),
           const SizedBox(height: 10),
           if (events.isEmpty)
@@ -191,29 +375,28 @@ class _StartupEventsScreenState extends State<StartupEventsScreen> {
                     event: event,
                     onTap: () => _openEvent(event),
                     onSave: () => setState(() => event.saved = !event.saved),
+                    onEdit: () => _editEvent(event),
                   ),
                 ),
           const SizedBox(height: 20),
-          _SectionTitle(title: 'My events', action: 'View all'),
+          _SectionTitle(
+            title: 'My events',
+            action: myEvents.isEmpty ? '' : (_showMyEvents ? 'Show less' : 'View all'),
+            onActionTap: myEvents.isEmpty ? null : _viewAllMyEvents,
+          ),
           const SizedBox(height: 10),
           if (myEvents.isEmpty)
             const _EmptyEvents(message: 'Register for an event to see it here.')
           else
-            ...myEvents.map(
+            ...myEvents.take(_showMyEvents ? myEvents.length : 2).map(
               (event) => _EventListCard(
                 event: event,
                 onTap: () => _openEvent(event),
                 onSave: () => setState(() => event.saved = !event.saved),
+                onEdit: () => _editEvent(event),
               ),
             ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _createEvent,
-        backgroundColor: const Color(0xFF6D28D9),
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Create event'),
       ),
     );
   }
@@ -231,10 +414,212 @@ class _StartupEventDetailsScreen extends StatefulWidget {
 class _StartupEventDetailsScreenState
     extends State<_StartupEventDetailsScreen> {
   void _register() {
-    setState(() => widget.event.registered = true);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('You are registered. We will send event updates here.'),
+    final nameCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final roleCtrl = TextEditingController();
+    final companyCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Drag handle
+                    Center(
+                      child: Container(
+                        width: 40, height: 4,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE5E7EB),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6D28D9).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.how_to_reg_rounded,
+                              color: Color(0xFF6D28D9), size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Register for event',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF12233D))),
+                              Text('Fill in your details to confirm your spot',
+                                  style: TextStyle(
+                                      fontSize: 12, color: Color(0xFF6B7280))),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => Navigator.pop(ctx),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF3F4F6),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: const Icon(Icons.close_rounded,
+                                color: Color(0xFF6B7280), size: 18),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    // Event info chip
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6D28D9).withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.event_rounded,
+                              color: Color(0xFF6D28D9), size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              widget.event.title,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF6D28D9),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    // Full Name
+                    _RegField(
+                      controller: nameCtrl,
+                      label: 'Full Name *',
+                      hint: 'e.g. Arjun Mehta',
+                      icon: Icons.person_outline_rounded,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Please enter your name' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    // Email
+                    _RegField(
+                      controller: emailCtrl,
+                      label: 'Email Address *',
+                      hint: 'e.g. arjun@startup.com',
+                      icon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Please enter your email';
+                        if (!v.contains('@')) return 'Enter a valid email';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    // Role / Title
+                    _RegField(
+                      controller: roleCtrl,
+                      label: 'Your Role / Title',
+                      hint: 'e.g. Co-Founder & CTO',
+                      icon: Icons.badge_outlined,
+                    ),
+                    const SizedBox(height: 12),
+                    // Company / Startup
+                    _RegField(
+                      controller: companyCtrl,
+                      label: 'Startup / Company',
+                      hint: 'e.g. MedVision AI',
+                      icon: Icons.business_outlined,
+                    ),
+                    const SizedBox(height: 20),
+                    // Free badge
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0FDF4),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFBBF7D0)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.check_circle_rounded,
+                              color: Color(0xFF059669), size: 18),
+                          SizedBox(width: 8),
+                          Text('This event is free to attend',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF065F46))),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Confirm button
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          if (!formKey.currentState!.validate()) return;
+                          Navigator.pop(ctx);
+                          setState(() => widget.event.registered = true);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'You\'re registered, ${nameCtrl.text.trim()}! Check ${emailCtrl.text.trim()} for confirmation.'),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              backgroundColor: const Color(0xFF059669),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.check_circle_rounded, size: 18),
+                        label: const Text('Confirm Registration',
+                            style: TextStyle(fontWeight: FontWeight.w700)),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF6D28D9),
+                          minimumSize: const Size.fromHeight(52),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -472,11 +857,13 @@ class _EventListCard extends StatelessWidget {
     required this.event,
     required this.onTap,
     required this.onSave,
+    required this.onEdit,
   });
 
   final _StartupEvent event;
   final VoidCallback onTap;
   final VoidCallback onSave;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -538,6 +925,12 @@ class _EventListCard extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                color: const Color(0xFF9CA3AF),
+                tooltip: 'Edit event',
               ),
               IconButton(
                 onPressed: onSave,
@@ -819,36 +1212,36 @@ class _CreateEventBottomSheetState extends State<_CreateEventBottomSheet> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    DropdownButtonFormField<String>(
-                      value: _category,
-                      decoration: InputDecoration(
-                        hintText: 'Select category',
-                        prefixIcon: const Icon(Icons.category_outlined, color: Color(0xFF6B7280), size: 22),
-                        filled: true,
-                        fillColor: const Color(0xFFF9FAFB),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF6D28D9), width: 1.5),
-                        ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
                       ),
-                      items: const [
-                        DropdownMenuItem(value: 'Networking', child: Text('Networking')),
-                        DropdownMenuItem(value: 'Pitch Events', child: Text('Pitch Events')),
-                        DropdownMenuItem(value: 'Conferences', child: Text('Conferences')),
-                      ],
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() => _category = value);
-                      },
+                      child: Row(
+                        children: [
+                          const Icon(Icons.category_outlined,
+                              color: Color(0xFF6B7280), size: 22),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: DropdownButton<String>(
+                              value: _category,
+                              underline: const SizedBox.shrink(),
+                              isExpanded: true,
+                              items: const [
+                                DropdownMenuItem(value: 'Networking', child: Text('Networking')),
+                                DropdownMenuItem(value: 'Pitch Events', child: Text('Pitch Events')),
+                                DropdownMenuItem(value: 'Conferences', child: Text('Conferences')),
+                              ],
+                              onChanged: (val) {
+                                if (val == null) return;
+                                setState(() => _category = val);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -1049,9 +1442,14 @@ class _ScheduleItem extends StatelessWidget {
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title, required this.action});
+  const _SectionTitle({
+    required this.title,
+    required this.action,
+    this.onActionTap,
+  });
   final String title;
   final String action;
+  final VoidCallback? onActionTap;
   @override
   Widget build(BuildContext context) => Row(
     children: [
@@ -1064,14 +1462,18 @@ class _SectionTitle extends StatelessWidget {
         ),
       ),
       const Spacer(),
-      Text(
-        action,
-        style: const TextStyle(
-          color: Color(0xFF6D28D9),
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
+      if (action.isNotEmpty)
+        GestureDetector(
+          onTap: onActionTap,
+          child: Text(
+            action,
+            style: const TextStyle(
+              color: Color(0xFF6D28D9),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
-      ),
     ],
   );
 }
@@ -1098,4 +1500,71 @@ class _EmptyEvents extends StatelessWidget {
       ],
     ),
   );
+}
+
+class _RegField extends StatelessWidget {
+  const _RegField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    required this.icon,
+    this.keyboardType,
+    this.validator,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final IconData icon;
+  final TextInputType? keyboardType;
+  final String? Function(String?)? validator;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF4B5563),
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          validator: validator,
+          textInputAction: TextInputAction.next,
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: Icon(icon, color: const Color(0xFF6B7280), size: 20),
+            filled: true,
+            fillColor: const Color(0xFFF9FAFB),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF6D28D9), width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

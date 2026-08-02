@@ -32,28 +32,86 @@ class RegistrationViewModel extends ChangeNotifier {
   final Set<String> _selectedSkills = {'Leadership', 'AI', 'Product'};
   Set<String> get selectedSkills => _selectedSkills;
 
-  final List<String> _skillTags = const ['Leadership', 'AI', 'Marketing', 'Sales', 'Engineering', 'Finance', 'Design', 'Operations', 'Product'];
+  final List<String> _skillTags = const [
+    'Leadership',
+    'AI',
+    'Marketing',
+    'Sales',
+    'Engineering',
+    'Finance',
+    'Design',
+    'Operations',
+    'Product',
+  ];
   List<String> get skillTags => _skillTags;
 
   final List<StartupMember> _members = [
-    StartupMember(name: 'Sarah Jenkins', role: 'CEO & Co-founder', status: 'Active', initials: 'SJ'),
-    StartupMember(name: 'Marcus Zhao', role: 'Lead Developer', status: 'Invite Sent', initials: 'MZ'),
+    StartupMember(
+      name: 'Sarah Jenkins',
+      role: 'CEO & Co-founder',
+      status: 'Active',
+      initials: 'SJ',
+    ),
+    StartupMember(
+      name: 'Marcus Zhao',
+      role: 'Lead Developer',
+      status: 'Invite Sent',
+      initials: 'MZ',
+    ),
   ];
   List<StartupMember> get members => _members;
 
-  final List<String> _fundingStages = const ['Bootstrapped', 'Angel', 'Pre-Seed', 'Seed', 'Series A', 'Series B'];
+  final List<String> _fundingStages = const [
+    'Bootstrapped',
+    'Angel',
+    'Pre-Seed',
+    'Seed',
+    'Series A',
+    'Series B',
+  ];
   List<String> get fundingStages => _fundingStages;
 
-  final List<String> _visibilityOptions = const ['Public', 'Private', 'Invite Only'];
+  final List<String> _visibilityOptions = const [
+    'Public',
+    'Private',
+    'Invite Only',
+  ];
   List<String> get visibilityOptions => _visibilityOptions;
 
-  void selectStage(String stage) { _selectedStage = stage; notifyListeners(); }
-  void selectTeamSize(String size) { _selectedTeamSize = size; notifyListeners(); }
-  void selectFundingStage(String stage) { _selectedFundingStage = stage; notifyListeners(); }
-  void selectInviteRole(String role) { _selectedInviteRole = role; notifyListeners(); }
-  void selectVisibility(String visibility) { _selectedVisibility = visibility; notifyListeners(); }
-  void toggleRaising(bool value) { _currentlyRaising = value; notifyListeners(); }
-  void setYearsOfExperience(double years) { _yearsOfExperience = years; notifyListeners(); }
+  void selectStage(String stage) {
+    _selectedStage = stage;
+    notifyListeners();
+  }
+
+  void selectTeamSize(String size) {
+    _selectedTeamSize = size;
+    notifyListeners();
+  }
+
+  void selectFundingStage(String stage) {
+    _selectedFundingStage = stage;
+    notifyListeners();
+  }
+
+  void selectInviteRole(String role) {
+    _selectedInviteRole = role;
+    notifyListeners();
+  }
+
+  void selectVisibility(String visibility) {
+    _selectedVisibility = visibility;
+    notifyListeners();
+  }
+
+  void toggleRaising(bool value) {
+    _currentlyRaising = value;
+    notifyListeners();
+  }
+
+  void setYearsOfExperience(double years) {
+    _yearsOfExperience = years;
+    notifyListeners();
+  }
 
   void toggleSkill(String skill) {
     if (_selectedSkills.contains(skill)) {
@@ -64,13 +122,42 @@ class RegistrationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void inviteMember(String email) {
-    _members.insert(0, StartupMember(
-      name: email.split('@').first,
-      role: _selectedInviteRole,
-      status: 'Invite Sent',
-      initials: email.isNotEmpty ? email[0].toUpperCase() : 'U',
-    ));
+  void setCurrentStep(int step) {
+    _currentStep = step;
     notifyListeners();
+  }
+
+  bool goToNextStep() {
+    if (_currentStep < totalSteps - 1) {
+      _currentStep++;
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  bool goToPreviousStep() {
+    if (_currentStep > 0) {
+      _currentStep--;
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  bool inviteTeamMember(String email, {String? role}) {
+    if (email.isEmpty) return false;
+    final assignedRole = role ?? _selectedInviteRole;
+    _members.insert(
+      0,
+      StartupMember(
+        name: email.split('@').first,
+        role: assignedRole,
+        status: 'Invite Sent',
+        initials: email.isNotEmpty ? email[0].toUpperCase() : 'U',
+      ),
+    );
+    notifyListeners();
+    return true;
   }
 }
