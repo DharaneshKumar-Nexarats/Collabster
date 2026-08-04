@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'live_session_screen.dart';
+
 
 class BookingConfirmationScreen extends StatefulWidget {
   const BookingConfirmationScreen({super.key});
@@ -362,10 +364,16 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                       SizedBox(
                         height: 48,
                         child: ElevatedButton(
-                          onPressed: null, // Disabled
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LiveSessionScreen(),
+                              ),
+                            );
+                          },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE2E8F0),
-                            disabledBackgroundColor: const Color(0xFFE2E8F0),
+                            backgroundColor: const Color(0xFF3B2FCE),
                             elevation: 0,
                             minimumSize: const Size(180, 48),
                             shape: RoundedRectangleBorder(

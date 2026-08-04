@@ -100,7 +100,7 @@ class _JobsScreenState extends State<JobsScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const NotificationsScreen(),
+                      builder: (context) => NotificationsScreen(),
                     ),
                   );
                 },

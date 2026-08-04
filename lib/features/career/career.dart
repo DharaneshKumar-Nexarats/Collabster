@@ -28,6 +28,10 @@ export 'view/screens/peer_booking_screen.dart';
 export 'view/screens/booking_confirmation_screen.dart';
 export 'view/screens/booked_sessions_screen.dart';
 export 'view/screens/notifications_screen.dart';
+export 'view/screens/live_session_screen.dart';
+export 'view/screens/session_feedback_screen.dart';
+
+
 
 
 
