@@ -27,10 +27,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   static const _modes = [
     ('Startup', Icons.rocket_launch_rounded, Color(0xFF7C3AED)),
-    ('Events', Icons.event_rounded, Color(0xFF2563EB)),
+    ('Event', Icons.event_rounded, Color(0xFF2563EB)),
     ('Community', Icons.groups_rounded, Color(0xFF059669)),
     ('Investor', Icons.trending_up_rounded, Color(0xFFD97706)),
-    ('Career', Icons.work_rounded, Color(0xFFDC2626)),
+    ('Carrer', Icons.work_rounded, Color(0xFFDC2626)),
   ];
 
   @override

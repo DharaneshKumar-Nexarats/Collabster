@@ -5,7 +5,7 @@ import '../../features/auth/model/auth_session.dart';
 import '../../features/home/view/home_screen.dart';
 import '../../features/investor/view/screens/investor_home_screen.dart';
 import '../../features/community/view/screens/community_home_screen.dart';
-import '../../features/career/view/screens/career_home_screen.dart';
+import '../../features/career/view/screens/career_dashboard_screen.dart';
 import '../../features/startup/view/screens/startup_dashboard_screen.dart';
 import '../../features/startup/view/screens/startup_landing_screen.dart';
 
@@ -16,7 +16,7 @@ Widget buildDashboardForRole(AuthSession session) {
     if (session.startupName != null && session.startupName!.isNotEmpty) {
       return StartupDashboardScreen(startupName: session.startupName!);
     }
-    return StartupLandingScreen(selectedRole: session.role);
+    return StartupLandingScreen(selectedRole: activeRole.label);
   }
 
   switch (activeRole) {
@@ -25,16 +25,13 @@ Widget buildDashboardForRole(AuthSession session) {
     case UserRole.student:
     case UserRole.professional:
     case UserRole.mentor:
-      return const CareerHomeScreen();
+      return const CareerDashboardScreen();
     case UserRole.creator:
     case UserRole.influencer:
       return const CommunityHomeScreen();
     case UserRole.serviceProvider:
-      return const CareerHomeScreen();
-    case UserRole.founder:
-    case UserRole.company:
-      return const HomeScreen();
-    case UserRole.other:
+      return const CareerDashboardScreen();
+    default:
       return const HomeScreen();
   }
 }

@@ -53,15 +53,15 @@ extension UserRoleIcons on UserRole {
 }
 
 enum UserRole {
-  student('Student', 'Learning and building skills'),
-  professional('Professional', 'Working professional or employee'),
-  founder('Founder', 'Building my own startup'),
-  company('Company', 'Managing a company'),
+  student('Carrer', 'Learning and building skills'),
+  professional('Carrer', 'Working professional or employee'),
+  founder('Startup', 'Building my own startup'),
+  company('Startup', 'Managing a company'),
   investor('Investor', 'Investing in opportunities'),
-  creator('Creator', 'Creating content and value'),
-  mentor('Mentor', 'Guiding and mentoring others'),
-  influencer('Influencer', 'Inspiring and influencing people'),
-  serviceProvider('Service Provider', 'Offering professional services'),
+  creator('Community', 'Creating content and value'),
+  mentor('Carrer', 'Guiding and mentoring others'),
+  influencer('Community', 'Inspiring and influencing people'),
+  serviceProvider('Event', 'Offering professional services'),
   other('Other', 'Something else');
 
   const UserRole(this.label, this.description);
@@ -81,12 +81,12 @@ enum UserRole {
       case UserRole.student:
       case UserRole.professional:
       case UserRole.mentor:
-        return 'Career Hub';
+        return 'Carrer Hub';
       case UserRole.creator:
       case UserRole.influencer:
         return 'Community Hub';
       case UserRole.serviceProvider:
-        return 'Services Hub';
+        return 'Event Hub';
       case UserRole.other:
         return 'Collabster';
     }

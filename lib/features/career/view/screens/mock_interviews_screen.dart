@@ -9,8 +9,8 @@ import 'booked_sessions_screen.dart';
 
 
 class MockInterviewsScreen extends StatefulWidget {
-  final VoidCallback onBack;
-  const MockInterviewsScreen({super.key, required this.onBack});
+  final VoidCallback? onBack;
+  const MockInterviewsScreen({super.key, this.onBack});
 
   @override
   State<MockInterviewsScreen> createState() => _MockInterviewsScreenState();
@@ -22,133 +22,92 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Row
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: widget.onBack,
-                  child: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: AppColors.primary,
-                    size: 22,
-                  ),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.primary),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Mock Interviews',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF111827),
+          ),
+        ),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.primary),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Search Bar
+              Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7F7FB),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
                 ),
-                const Spacer(),
-                SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: Stack(
-                    children: [
-                      const Center(
-                        child: Icon(
-                          Icons.notifications_none_rounded,
-                          color: AppColors.primary,
-                          size: 24,
-                        ),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 16),
+                    Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Search templates...',
+                        style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
                       ),
-                      Positioned(
-                        right: 1,
-                        top: 1,
-                        child: Container(
-                          width: 7,
-                          height: 7,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFBBF24),
-                            shape: BoxShape.circle,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Filter Chips (scrollable)
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: List.generate(_filters.length, (i) {
+                    final selected = _selectedFilter == i;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedFilter = i),
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: selected ? AppColors.primary : const Color(0xFFF0EDFF),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _filters[i],
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: selected ? Colors.white : const Color(0xFF5B4FCF),
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  }),
                 ),
-                const SizedBox(width: 10),
-                const CircleAvatar(
-                  radius: 16,
-                  backgroundImage: NetworkImage(
-                      'https://i.pravatar.cc/150?img=47'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Title
-            const Text(
-              'Mock Interviews',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF111827),
-                letterSpacing: -0.3,
               ),
-            ),
-            const SizedBox(height: 16),
-
-            // Search Bar
-            Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7F7FB),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 16),
-                  Icon(Icons.search_rounded,
-                      color: Colors.grey.shade400, size: 20),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Search templates...',
-                      style: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Filter Chips (scrollable)
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: Row(
-                children: List.generate(_filters.length, (i) {
-                  final selected = _selectedFilter == i;
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedFilter = i),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: selected ? AppColors.primary : const Color(0xFFF0EDFF),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        _filters[i],
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: selected ? Colors.white : const Color(0xFF5B4FCF),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
             // Prep Level Card
             Container(
@@ -488,6 +447,7 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 }

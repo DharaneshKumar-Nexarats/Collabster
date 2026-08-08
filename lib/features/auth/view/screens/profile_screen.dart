@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/di/providers.dart';
 import '../sign_in_screen.dart';
 
@@ -20,7 +19,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(authViewModelProvider).session;
-    final themeProvider = ref.read(themeProviderInstance.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final name = session?.fullName ?? 'User';
@@ -151,14 +149,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               title: 'PREFERENCES',
               isDark: isDark,
               children: [
-                _buildMenuTile(
-                  Icons.dark_mode_outlined,
-                  'Theme',
-                  themeProvider.themeLabel,
-                  isDark,
-                  () => _showThemeSheet(context, themeProvider),
-                ),
-                _divider(isDark),
                 _buildMenuTile(
                   Icons.help_outline_rounded,
                   'Help & Support',
@@ -556,61 +546,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  // ── Theme Sheet ──
-  void _showThemeSheet(BuildContext context, ThemeProvider themeProvider) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFFE5E7EB), borderRadius: BorderRadius.circular(999)))),
-            const SizedBox(height: 20),
-            const Text('Choose Theme', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF12233D))),
-            const SizedBox(height: 16),
-            _themeOption(Icons.light_mode_rounded, 'Light', ThemeMode.light, themeProvider),
-            _themeOption(Icons.dark_mode_rounded, 'Dark', ThemeMode.dark, themeProvider),
-            _themeOption(Icons.brightness_auto_rounded, 'System', ThemeMode.system, themeProvider),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _themeOption(IconData icon, String label, ThemeMode mode, ThemeProvider themeProvider) {
-    final selected = themeProvider.themeMode == mode;
-    return GestureDetector(
-      onTap: () {
-        themeProvider.setThemeMode(mode);
-        Navigator.pop(context);
-      },
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withValues(alpha: 0.1) : const Color(0xFFF9FAFB),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: selected ? AppColors.primary : Colors.transparent, width: 1.5),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: selected ? AppColors.primary : const Color(0xFF6B7280), size: 22),
-            const SizedBox(width: 14),
-            Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: selected ? AppColors.primary : const Color(0xFF12233D))),
-            const Spacer(),
-            if (selected) const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 22),
-          ],
-        ),
-      ),
-    );
-  }
 
   // ── Help Sheet ──
   void _showHelpSheet(BuildContext context, bool isDark) {
