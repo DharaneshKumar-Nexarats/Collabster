@@ -36,11 +36,6 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                     ),
                   ),
                   const Spacer(),
-                  const CircleAvatar(
-                    radius: 16,
-                    backgroundImage: NetworkImage(
-                        'https://i.pravatar.cc/150?img=47'),
-                  ),
                 ],
               ),
             ),

@@ -94,10 +94,6 @@ class _JobsScreenState extends State<JobsScreen> {
                 },
               ),
               const Spacer(),
-              const CircleAvatar(
-                radius: 18,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=47'),
-              ),
             ],
           ),
           const SizedBox(height: 20),

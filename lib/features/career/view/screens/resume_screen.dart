@@ -59,10 +59,6 @@ class _ResumeScreenState extends State<ResumeScreen> {
                 },
               ),
               const Spacer(),
-              const CircleAvatar(
-                radius: 18,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=47'),
-              ),
             ],
           ),
           const SizedBox(height: 20),

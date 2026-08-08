@@ -35,11 +35,6 @@ class ATSScoreScreen extends StatelessWidget {
                             ),
                           ),
                           const Spacer(),
-                          const CircleAvatar(
-                            radius: 16,
-                            backgroundImage: NetworkImage(
-                                'https://i.pravatar.cc/150?img=47'),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 24),

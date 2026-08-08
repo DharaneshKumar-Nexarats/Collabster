@@ -86,7 +86,7 @@ class _LiveSessionScreenState extends State<LiveSessionScreen> {
                         Expanded(
                           child: _buildVideoViewport(
                             name: 'Alex Chen (You)',
-                            imageUrl: 'https://i.pravatar.cc/150?img=47',
+                            imageUrl: 'https://i.pravatar.cc/150?img=68',
                             isActive: false,
                             indicatorIcon: Icons.equalizer_rounded,
                           ),
