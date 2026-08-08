@@ -78,16 +78,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       // Item 1: Limited Time Offer (System & Promos = 3)
                       if (_selectedFilter == 0 || _selectedFilter == 3) ...[
                         _buildNotificationCard(
-                          accentColor: const Color(0xFF8B5CF6),
+                          accentColor: const Color(0xFF0284C7),
                           icon: Icons.local_offer_outlined,
-                          iconColor: const Color(0xFF8B5CF6),
-                          iconBg: const Color(0xFFF5F3FF),
+                          iconColor: const Color(0xFF0284C7),
+                          iconBg: const Color(0xFFF0F9FF),
                           title: 'Limited Time Offer: 50% Off Pro',
                           time: 'Just now',
                           desc: 'Upgrade to ResuAI Pro for just \$9.99/mo. Unlock unlimited mock interviews and advanced resume optimization.',
                           primaryBtnText: 'Upgrade Now',
                           secondaryBtnText: 'Dismiss',
-                          primaryBtnColor: const Color(0xFF5B4FCF),
+                          primaryBtnColor: const Color(0xFF0284C7),
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -95,16 +95,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       // Item 2: Interview Confirmed! (Interviews = 2)
                       if (_selectedFilter == 0 || _selectedFilter == 2) ...[
                         _buildNotificationCard(
-                          accentColor: const Color(0xFF3B82F6),
+                          accentColor: const Color(0xFF0284C7),
                           icon: Icons.calendar_today_outlined,
-                          iconColor: const Color(0xFF3B82F6),
-                          iconBg: const Color(0xFFEFF6FF),
+                          iconColor: const Color(0xFF0284C7),
+                          iconBg: const Color(0xFFE0F2FE),
                           title: 'Interview Confirmed!',
                           time: '2h ago',
                           desc: 'Google scheduled your technical round for Monday, Oct 19 at 10:00 AM.',
                           primaryBtnText: 'Join Lobby',
                           secondaryBtnText: 'View Schedule',
-                          primaryBtnColor: const Color(0xFF3B2FCE),
+                          primaryBtnColor: const Color(0xFF0284C7),
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -129,16 +129,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       // Item 4: New message from David Chen (Interviews = 2)
                       if (_selectedFilter == 0 || _selectedFilter == 2) ...[
                         _buildNotificationCard(
-                          accentColor: const Color(0xFF3B82F6),
+                          accentColor: const Color(0xFF0284C7),
                           icon: Icons.chat_bubble_outline_rounded,
-                          iconColor: const Color(0xFF3B82F6),
-                          iconBg: const Color(0xFFEFF6FF),
+                          iconColor: const Color(0xFF0284C7),
+                          iconBg: const Color(0xFFE0F2FE),
                           title: 'New message from David Chen (Meta)',
                           time: '5h ago',
                           desc: '“Hi Alex, great performance in our mock! I’ve uploaded your full feedback sheet.”',
                           primaryBtnText: 'Reply',
                           secondaryBtnText: 'Open Chat',
-                          primaryBtnColor: const Color(0xFF5B4FCF),
+                          primaryBtnColor: const Color(0xFF0284C7),
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -197,7 +197,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: selected ? const Color(0xFF3B2FCE) : Colors.grey.shade500,
+              color: selected ? const Color(0xFF0284C7) : Colors.grey.shade500,
             ),
           ),
           if (selected) ...[
@@ -206,7 +206,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               width: 16,
               height: 2,
               decoration: BoxDecoration(
-                color: const Color(0xFF3B2FCE),
+                color: const Color(0xFF0284C7),
                 borderRadius: BorderRadius.circular(1),
               ),
             ),
@@ -307,7 +307,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     child: ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryBtnColor ?? const Color(0xFF5B4FCF),
+                        backgroundColor: primaryBtnColor ?? const Color(0xFF0284C7),
                         elevation: 0,
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,

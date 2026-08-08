@@ -32,34 +32,6 @@ class ResumeUpgradeScreen extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: Stack(
-                          children: [
-                            const Center(
-                              child: Icon(
-                                Icons.notifications_none_rounded,
-                                color: AppColors.primary,
-                                size: 24,
-                              ),
-                            ),
-                            Positioned(
-                              right: 1,
-                              top: 1,
-                              child: Container(
-                                width: 7,
-                                height: 7,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFFBBF24),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 10),
                       const CircleAvatar(
                         radius: 16,
                         backgroundImage: NetworkImage(
@@ -74,13 +46,13 @@ class ResumeUpgradeScreen extends StatelessWidget {
                     width: 72,
                     height: 72,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFE5DFFF),
+                      color: Color(0xFFE0F2FE),
                       shape: BoxShape.circle,
                     ),
                     child: const Center(
                       child: CircleAvatar(
                         radius: 28,
-                        backgroundColor: Color(0xFF5B4FCF),
+                        backgroundColor: Color(0xFF0284C7),
                         child: Icon(
                           Icons.check_rounded,
                           color: Colors.white,
@@ -121,7 +93,7 @@ class ResumeUpgradeScreen extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                          color: const Color(0xFFEDE9FF), width: 1.2),
+                          color: const Color(0xFFE0F2FE), width: 1.2),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.01),
@@ -133,9 +105,9 @@ class ResumeUpgradeScreen extends StatelessWidget {
                     child: Column(
                       children: const [
                         _DetailRow(label: 'Plan', value: 'Pro Annual'),
-                        Divider(color: Color(0xFFF3F0FF), height: 24, thickness: 1),
+                        Divider(color: Color(0xFFF0F9FF), height: 24, thickness: 1),
                         _DetailRow(label: 'Price', value: '\$9.99/mo'),
-                        Divider(color: Color(0xFFF3F0FF), height: 24, thickness: 1),
+                        Divider(color: Color(0xFFF0F9FF), height: 24, thickness: 1),
                         _DetailRow(label: 'Billing Cycle', value: 'Monthly'),
                       ],
                     ),
@@ -171,7 +143,7 @@ class ResumeUpgradeScreen extends StatelessWidget {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5B4FCF),
+                        backgroundColor: const Color(0xFF0284C7),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
@@ -260,7 +232,7 @@ class ResumeUpgradeScreen extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: const Color(0xFF5B4FCF).withOpacity(opacity),
+        color: const Color(0xFF0284C7).withOpacity(opacity),
         shape: BoxShape.circle,
       ),
     );
@@ -309,16 +281,16 @@ class _FeatureTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F5FF),
+        color: const Color(0xFFF0F9FF),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFDED9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
       ),
       child: Text(
         label,
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
-          color: Color(0xFF5B4FCF),
+          color: Color(0xFF0284C7),
         ),
       ),
     );

@@ -36,34 +36,6 @@ class SubmissionDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: Stack(
-                      children: [
-                        const Center(
-                          child: Icon(
-                            Icons.notifications_none_rounded,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
-                        ),
-                        Positioned(
-                          right: 1,
-                          top: 1,
-                          child: Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFBBF24),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
                   const CircleAvatar(
                     radius: 16,
                     backgroundImage: NetworkImage(
@@ -90,7 +62,7 @@ class SubmissionDetailsScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+                          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,7 +107,7 @@ class SubmissionDetailsScreen extends StatelessWidget {
                               width: double.infinity,
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEFF6FF),
+                                color: const Color(0xFFE0F2FE),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Column(
@@ -146,7 +118,7 @@ class SubmissionDetailsScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 9,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2563EB),
+                                      color: Color(0xFF0284C7),
                                       letterSpacing: 0.5,
                                     ),
                                   ),
@@ -174,7 +146,7 @@ class SubmissionDetailsScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+                          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +165,7 @@ class SubmissionDetailsScreen extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF8B5CF6),
+                                    color: const Color(0xFF0284C7),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: const Text(
@@ -241,7 +213,7 @@ class SubmissionDetailsScreen extends StatelessWidget {
                                       ],
                                     ),
                                   ),
-                                  const Icon(Icons.download_rounded, color: Color(0xFF5B4FCF), size: 20),
+                                  const Icon(Icons.download_rounded, color: Color(0xFF0284C7), size: 20),
                                 ],
                               ),
                             ),
@@ -340,7 +312,7 @@ class SubmissionDetailsScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+                          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,11 +322,11 @@ class SubmissionDetailsScreen extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(6),
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFFF3F0FF),
+                                    color: Color(0xFFF0F9FF),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(Icons.assignment_turned_in_outlined,
-                                      color: Color(0xFF5B4FCF), size: 16),
+                                      color: Color(0xFF0284C7), size: 16),
                                 ),
                                 const SizedBox(width: 10),
                                 const Text(
@@ -399,7 +371,7 @@ class SubmissionDetailsScreen extends StatelessWidget {
                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF5B4FCF),
+                            backgroundColor: const Color(0xFF0284C7),
                             elevation: 0,
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -486,7 +458,7 @@ class SubmissionDetailsScreen extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         border: Border(
-          left: BorderSide(color: Color(0xFF5B4FCF), width: 3),
+          left: BorderSide(color: Color(0xFF0284C7), width: 3),
         ),
       ),
       padding: const EdgeInsets.only(left: 12, top: 2, bottom: 2),
@@ -506,7 +478,7 @@ class SubmissionDetailsScreen extends StatelessWidget {
           Row(
             children: [
               if (hasCheck) ...[
-                const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF5B4FCF), size: 14),
+                const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF0284C7), size: 14),
                 const SizedBox(width: 6),
               ],
               Text(

@@ -44,34 +44,6 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
                     ),
                   ),
                   const Spacer(),
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: Stack(
-                      children: [
-                        const Center(
-                          child: Icon(
-                            Icons.notifications_none_rounded,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
-                        ),
-                        Positioned(
-                          right: 1,
-                          top: 1,
-                          child: Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFBBF24),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
                   const CircleAvatar(
                     radius: 16,
                     backgroundImage: NetworkImage(
@@ -114,7 +86,7 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
+                          color: const Color(0xFFE0F2FE),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
@@ -130,7 +102,7 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2563EB),
+                                  color: Color(0xFF0284C7),
                                 ),
                               ),
                             ),
@@ -288,7 +260,7 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5B4FCF),
+                        backgroundColor: const Color(0xFF0284C7),
                         elevation: 0,
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -330,7 +302,7 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         margin: const EdgeInsets.only(right: 8),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFF5B4FCF) : const Color(0xFFF3F4F6),
+          color: selected ? const Color(0xFF0284C7) : const Color(0xFFF3F4F6),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -356,7 +328,7 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,10 +338,10 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF3F0FF),
+                  color: Color(0xFFF0F9FF),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: const Color(0xFF5B4FCF), size: 16),
+                child: Icon(icon, color: const Color(0xFF0284C7), size: 16),
               ),
               const SizedBox(width: 10),
               Text(
@@ -408,7 +380,7 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF5B4FCF) : Colors.white,
+          color: isSelected ? const Color(0xFF0284C7) : Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected ? Colors.transparent : Colors.grey.shade200,
@@ -435,7 +407,7 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F6FF),
+        color: const Color(0xFFF0F9FF),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -491,7 +463,7 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
+        color: const Color(0xFFE0F2FE),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
@@ -499,7 +471,7 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
         style: const TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
-          color: Color(0xFF2563EB),
+          color: Color(0xFF0284C7),
         ),
       ),
     );

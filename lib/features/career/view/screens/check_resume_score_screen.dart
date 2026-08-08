@@ -47,34 +47,6 @@ class CheckResumeScoreScreen extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-                    SizedBox(
-                      width: 32,
-                      height: 32,
-                      child: Stack(
-                        children: [
-                          const Center(
-                            child: Icon(
-                              Icons.notifications_none_rounded,
-                              color: AppColors.primary,
-                              size: 24,
-                            ),
-                          ),
-                          Positioned(
-                            right: 1,
-                            top: 1,
-                            child: Container(
-                              width: 7,
-                              height: 7,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFFBBF24),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
                     const CircleAvatar(
                       radius: 16,
                       backgroundImage: NetworkImage(
@@ -120,7 +92,7 @@ class CheckResumeScoreScreen extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                        color: const Color(0xFFD1CBFF), width: 1.5),
+                        color: const Color(0xFFBAE6FD), width: 1.5),
                   ),
                   child: Column(
                     children: [
@@ -128,7 +100,7 @@ class CheckResumeScoreScreen extends StatelessWidget {
                         width: 64,
                         height: 64,
                         decoration: const BoxDecoration(
-                          color: Color(0xFFF0EDFF),
+                          color: Color(0xFFF0F9FF),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -157,7 +129,7 @@ class CheckResumeScoreScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF0EDFF),
+                          color: const Color(0xFFE0F2FE),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(
@@ -192,7 +164,7 @@ class CheckResumeScoreScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.2),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -229,7 +201,7 @@ class CheckResumeScoreScreen extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                        color: const Color(0xFFEDE9FF), width: 1.2),
+                        color: const Color(0xFFE0F2FE), width: 1.2),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.04),
@@ -293,7 +265,7 @@ class CheckResumeScoreScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0EDFF),
+                    color: const Color(0xFFE0F2FE),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Column(
@@ -342,7 +314,7 @@ class _DonutPainter extends CustomPainter {
 
     // Background track
     final bgPaint = Paint()
-      ..color = const Color(0xFFE0DAFF)
+      ..color = const Color(0xFFBAE6FD)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;

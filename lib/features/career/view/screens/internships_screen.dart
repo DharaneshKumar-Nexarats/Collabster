@@ -39,8 +39,8 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
       location: 'Remote',
       tags: ['Figma', 'Design Systems'],
       badge: 'REMOTE',
-      badgeFg: Color(0xFF9333EA),
-      badgeBg: Color(0xFFF3E8FF),
+      badgeFg: Color(0xFF0369A1),
+      badgeBg: Color(0xFFE0F2FE),
     ),
   ];
 
@@ -64,12 +64,6 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
           ),
         ),
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.primary),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -94,9 +88,9 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
           Container(
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFF7F7FB),
+              color: const Color(0xFFF7F9FC),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E0FF), width: 1.2),
+              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
             ),
             child: Row(
               children: [
@@ -115,7 +109,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
                   margin: const EdgeInsets.only(right: 10),
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEDE9FF),
+                    color: const Color(0xFFE0F2FE),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.tune_rounded, color: AppColors.primary, size: 16),
@@ -141,7 +135,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
                       color: selected ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(
-                        color: selected ? AppColors.primary : const Color(0xFFD1CBFF),
+                        color: selected ? AppColors.primary : const Color(0xFFBAE6FD),
                         width: 1.3,
                       ),
                     ),
@@ -150,7 +144,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: selected ? Colors.white : const Color(0xFF5B4FCF),
+                        color: selected ? Colors.white : const Color(0xFF0369A1),
                       ),
                     ),
                   ),
@@ -206,7 +200,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF7C3AED), Color(0xFF5145E0)],
+          colors: [Color(0xFF0284C7), Color(0xFF0EA5E9)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -248,7 +242,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF5145E0),
+                        color: Color(0xFF0284C7),
                       ),
                     ),
                   ],
@@ -334,7 +328,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
               child: const Text(
                 'Apply Now',
                 style: TextStyle(
-                  color: Color(0xFF5145E0),
+                  color: Color(0xFF0284C7),
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
                 ),
@@ -354,7 +348,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -374,7 +368,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3F0FF),
+                  color: const Color(0xFFF0F9FF),
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Icon(item.logo,
@@ -457,7 +451,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0EDFF),
+                  color: const Color(0xFFF0F9FF),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -498,7 +492,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFD8D2FF)),
+                  border: Border.all(color: const Color(0xFFBAE6FD)),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.bookmark_border_rounded,

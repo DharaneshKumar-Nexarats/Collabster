@@ -114,7 +114,7 @@ class ManualRecommendationsScreen extends StatelessWidget {
                     size: 18,
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5B4FCF),
+                    backgroundColor: const Color(0xFF0284C7),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
@@ -149,7 +149,7 @@ class _RecommendationCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,7 +160,7 @@ class _RecommendationCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF5B4FCF),
+              color: Color(0xFF0284C7),
               letterSpacing: 0.8,
             ),
           ),
@@ -181,7 +181,7 @@ class _RecommendationCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF9F9FF),
+              color: const Color(0xFFF0F9FF),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -210,7 +210,7 @@ class _RecommendationCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF3F0FF),
+              color: const Color(0xFFF0F9FF),
               borderRadius: BorderRadius.circular(12),
             ),
             child: RichText(
@@ -238,7 +238,7 @@ class _RecommendationCard extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF5B4FCF),
+                  backgroundColor: const Color(0xFF0284C7),
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                   minimumSize: Size.zero,

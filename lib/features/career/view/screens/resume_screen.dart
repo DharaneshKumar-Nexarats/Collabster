@@ -59,34 +59,6 @@ class _ResumeScreenState extends State<ResumeScreen> {
                 },
               ),
               const Spacer(),
-              SizedBox(
-                width: 36,
-                height: 36,
-                child: Stack(
-                  children: [
-                    const Center(
-                      child: Icon(
-                        Icons.notifications_none_rounded,
-                        color: AppColors.primary,
-                        size: 26,
-                      ),
-                    ),
-                    Positioned(
-                      right: 2,
-                      top: 2,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFBBF24),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
               const CircleAvatar(
                 radius: 18,
                 backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=47'),
@@ -116,9 +88,9 @@ class _ResumeScreenState extends State<ResumeScreen> {
           Container(
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFF7F7FB),
+              color: const Color(0xFFF7F9FC),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E0FF), width: 1.2),
+              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
             ),
             child: Row(
               children: [
@@ -140,7 +112,7 @@ class _ResumeScreenState extends State<ResumeScreen> {
                   margin: const EdgeInsets.only(right: 10),
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEDE9FF),
+                    color: const Color(0xFFE0F2FE),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.tune_rounded, color: AppColors.primary, size: 16),
@@ -166,7 +138,7 @@ class _ResumeScreenState extends State<ResumeScreen> {
                       color: selected ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(
-                        color: selected ? AppColors.primary : const Color(0xFFD1CBFF),
+                        color: selected ? AppColors.primary : const Color(0xFFBAE6FD),
                         width: 1.3,
                       ),
                     ),
@@ -175,7 +147,7 @@ class _ResumeScreenState extends State<ResumeScreen> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: selected ? Colors.white : const Color(0xFF5B4FCF),
+                        color: selected ? Colors.white : const Color(0xFF0369A1),
                       ),
                     ),
                   ),
@@ -274,7 +246,7 @@ class _ResumeScreenState extends State<ResumeScreen> {
                 child: _buildTemplateCard(
                   title: 'Elite Minimalist',
                   badge: 'ATS Professional',
-                  badgeColor: const Color(0xFF5145E0),
+                  badgeColor: const Color(0xFF0284C7),
                   rating: '4.9 (2.1k)',
                   image: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=400&q=80',
                 ),
@@ -440,7 +412,7 @@ class _ResumeScreenState extends State<ResumeScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
         ),
         child: Column(
           children: [
@@ -448,7 +420,7 @@ class _ResumeScreenState extends State<ResumeScreen> {
               width: 44,
               height: 44,
               decoration: const BoxDecoration(
-                color: Color(0xFFF0EDFF),
+                color: Color(0xFFF0F9FF),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: AppColors.primary, size: 22),
@@ -590,7 +562,7 @@ class _ResumeScreenState extends State<ResumeScreen> {
             width: 40,
             height: 40,
             decoration: const BoxDecoration(
-              color: Color(0xFFF0EDFF),
+              color: Color(0xFFF0F9FF),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: AppColors.primary, size: 20),

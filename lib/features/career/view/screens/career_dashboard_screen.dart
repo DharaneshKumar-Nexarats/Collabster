@@ -10,6 +10,7 @@ import 'jobs_screen.dart';
 import 'freelance_screen.dart';
 import 'resume_screen.dart';
 import 'mock_interviews_screen.dart';
+import 'notifications_screen.dart';
 
 class CareerDashboardScreen extends ConsumerStatefulWidget {
   const CareerDashboardScreen({super.key});
@@ -239,7 +240,7 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () => _openNotifications(),
                           child: Container(
                             width: 42,
                             height: 42,
@@ -480,28 +481,28 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
   // ── Quick Actions ──────────────────────────────────────────────────
   Widget _buildQuickActionsGrid() {
     final actions = [
-      _QuickAction(Icons.search_rounded, 'Find Jobs', 'Explore open roles', const Color(0xFF0284C7), () {
+      _QuickAction(Icons.search_rounded, 'Find Jobs', const Color(0xFF0284C7), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const JobsScreen()));
       }),
-      _QuickAction(Icons.school_outlined, 'Internships', 'Student & grad roles', const Color(0xFF0EA5E9), () {
+      _QuickAction(Icons.school_outlined, 'Internships', const Color(0xFF0EA5E9), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => InternshipsScreen(onBack: () => Navigator.pop(context))));
       }),
-      _QuickAction(Icons.laptop_mac_outlined, 'Freelance', 'Gig & contract projects', const Color(0xFF0891B2), () {
+      _QuickAction(Icons.laptop_mac_outlined, 'Freelance', const Color(0xFF0891B2), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const FreelanceScreen()));
       }),
-      _QuickAction(Icons.description_outlined, 'My Resume', 'ATS resume builder', const Color(0xFF0369A1), () {
+      _QuickAction(Icons.description_outlined, 'My Resume', const Color(0xFF0369A1), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const ResumeScreen()));
       }),
-      _QuickAction(Icons.mic_none_rounded, 'Mock Interviews', 'Practice with AI', const Color(0xFF0E7490), () {
+      _QuickAction(Icons.mic_none_rounded, 'Mock Interviews', const Color(0xFF0E7490), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => MockInterviewsScreen(onBack: () => Navigator.pop(context))));
       }),
-      _QuickAction(Icons.bookmark_outline_rounded, 'Saved Jobs', 'Bookmarked roles', const Color(0xFF0284C7), () {
+      _QuickAction(Icons.bookmark_outline_rounded, 'Saved Jobs', const Color(0xFF0284C7), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const JobsScreen()));
       }),
     ];
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -551,41 +552,25 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
           child: Row(
             children: [
               Container(
-                width: 38,
-                height: 38,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
                   color: action.color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(action.icon, color: action.color, size: 20),
+                child: Icon(action.icon, color: action.color, size: 19),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      action.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.grey.shade900,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      action.subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  action.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey.shade900,
+                  ),
                 ),
               ),
             ],
@@ -673,12 +658,6 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
         ),
         title: const Text('Saved Jobs', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Color(0xFF111827)),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: savedJobs.isEmpty
           ? Center(
@@ -803,6 +782,13 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
     );
   }
 
+  void _openNotifications() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+    );
+  }
+
   // ── Profile bottom sheet ──────────────────────────────────────────
   void _showProfileSheet() {
     final session = ref.read(authViewModelProvider).session;
@@ -905,10 +891,9 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
 class _QuickAction {
   final IconData icon;
   final String label;
-  final String subtitle;
   final Color color;
   final VoidCallback onTap;
-  const _QuickAction(this.icon, this.label, this.subtitle, this.color, this.onTap);
+  const _QuickAction(this.icon, this.label, this.color, this.onTap);
 }
 
 class _SavedJob {

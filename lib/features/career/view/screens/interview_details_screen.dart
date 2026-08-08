@@ -36,34 +36,6 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                     ),
                   ),
                   const Spacer(),
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: Stack(
-                      children: [
-                        const Center(
-                          child: Icon(
-                            Icons.notifications_none_rounded,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
-                        ),
-                        Positioned(
-                          right: 1,
-                          top: 1,
-                          child: Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFBBF24),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
                   const CircleAvatar(
                     radius: 16,
                     backgroundImage: NetworkImage(
@@ -90,7 +62,7 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+                          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +75,7 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                                   width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF3F0FF),
+                                    color: const Color(0xFFF0F9FF),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Icon(Icons.code_rounded,
@@ -144,7 +116,7 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10, vertical: 5),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF5B4FCF),
+                                    color: const Color(0xFF0284C7),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Text(
@@ -195,7 +167,7 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                               number: '2',
                               title: 'Technical Coding Rounds',
                             ),
-                            const Divider(color: Color(0xFFF3F0FF), height: 16, thickness: 1),
+                            const Divider(color: Color(0xFFF0F9FF), height: 16, thickness: 1),
                             const _RoundItem(
                               number: '1',
                               title: 'System Design & Architecture',
@@ -235,7 +207,7 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+                          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,7 +278,7 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                                       ),
                                       child: const Icon(
                                         Icons.videocam_rounded,
-                                        color: Color(0xFF5B4FCF),
+                                        color: Color(0xFF0284C7),
                                         size: 24,
                                       ),
                                     ),
@@ -368,7 +340,7 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+                          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,7 +370,7 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                                       child: Container(
                                         decoration: BoxDecoration(
                                           color: _selectedMode == 0
-                                              ? const Color(0xFF5B4FCF)
+                                              ? const Color(0xFF0284C7)
                                               : Colors.transparent,
                                           borderRadius: BorderRadius.circular(24),
                                         ),
@@ -422,7 +394,7 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                                       child: Container(
                                         decoration: BoxDecoration(
                                           color: _selectedMode == 1
-                                              ? const Color(0xFF5B4FCF)
+                                              ? const Color(0xFF0284C7)
                                               : Colors.transparent,
                                           borderRadius: BorderRadius.circular(24),
                                         ),
@@ -523,12 +495,12 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                                 Switch(
                                   value: _showATS,
                                   onChanged: (v) => setState(() => _showATS = v),
-                                  activeColor: const Color(0xFF5B4FCF),
+                                  activeColor: const Color(0xFF0284C7),
                                 ),
                               ],
                             ),
                             const Divider(
-                                color: Color(0xFFF3F0FF), height: 20, thickness: 1),
+                                color: Color(0xFFF0F9FF), height: 20, thickness: 1),
                             Row(
                               children: [
                                 Expanded(
@@ -559,7 +531,7 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                                   value: _autoTranscribe,
                                   onChanged: (v) =>
                                       setState(() => _autoTranscribe = v),
-                                  activeColor: const Color(0xFF5B4FCF),
+                                  activeColor: const Color(0xFF0284C7),
                                 ),
                               ],
                             ),
@@ -579,7 +551,7 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF5B4FCF),
+                                  backgroundColor: const Color(0xFF0284C7),
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
@@ -619,7 +591,7 @@ class _InterviewDetailsScreenState extends State<InterviewDetailsScreen> {
                                       text: '4 free credits',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF5B4FCF),
+                                        color: Color(0xFF0284C7),
                                       ),
                                     ),
                                     TextSpan(text: ' remaining'),
@@ -676,7 +648,7 @@ class _StructureInfoCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2C2560),
+              color: Color(0xFF0369A1),
             ),
           ),
         ],
@@ -699,7 +671,7 @@ class _RoundItem extends StatelessWidget {
           width: 24,
           height: 24,
           decoration: const BoxDecoration(
-            color: Color(0xFFF3F0FF),
+            color: Color(0xFFF0F9FF),
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,
@@ -708,7 +680,7 @@ class _RoundItem extends StatelessWidget {
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF5B4FCF),
+              color: Color(0xFF0284C7),
             ),
           ),
         ),
@@ -724,7 +696,7 @@ class _RoundItem extends StatelessWidget {
           ),
         ),
         const Icon(Icons.check_circle_outline_rounded,
-            color: Color(0xFF5B4FCF), size: 18),
+            color: Color(0xFF0284C7), size: 18),
       ],
     );
   }
@@ -777,7 +749,7 @@ class _StatusRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF5B4FCF), size: 18),
+          Icon(icon, color: const Color(0xFF0284C7), size: 18),
           const SizedBox(width: 10),
           Text(
             label,

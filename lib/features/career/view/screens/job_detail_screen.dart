@@ -129,20 +129,6 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              // Bell Button
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.85),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.notifications_none_rounded,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
-              ),
             ],
           ),
         ),
@@ -154,7 +140,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFF3F0FF), width: 1.2),
+              border: Border.all(color: const Color(0xFFF0F9FF), width: 1.2),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.06),
@@ -209,7 +195,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEDE9FF),
+                        color: const Color(0xFFE0F2FE),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
@@ -328,9 +314,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFE),
+        color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Column(
         children: [
@@ -526,7 +512,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                   children: [
                     const Icon(
                       Icons.check_circle_rounded,
-                      color: Color(0xFF7C3AED),
+                      color: Color(0xFF0284C7),
                       size: 20,
                     ),
                     const SizedBox(width: 12),
@@ -722,9 +708,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFF3F0FF),
+              color: const Color(0xFFF0F9FF),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFD8D2FF), width: 1.2),
+              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
             ),
             child: const Icon(
               Icons.chat_bubble_outline_rounded,
@@ -738,7 +724,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
               height: 48,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF7C3AED), Color(0xFF5B4EFF)],
+                  colors: [Color(0xFF0284C7), Color(0xFF0EA5E9)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
@@ -906,19 +892,6 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.85),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.notifications_none_rounded,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
-              ),
             ],
           ),
         ),
@@ -1052,11 +1025,11 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            _buildTagPill('Full-time', const Color(0xFFF3E8FF), const Color(0xFF9333EA)),
+            _buildTagPill('Full-time', const Color(0xFFE0F2FE), const Color(0xFF0284C7)),
             const SizedBox(width: 8),
             _buildTagPill('Hybrid', const Color(0xFFE0F2FE), const Color(0xFF0284C7)),
             const SizedBox(width: 8),
-            _buildTagPill('Senior Level', const Color(0xFFEEF2FF), const Color(0xFF4F46E5)),
+            _buildTagPill('Senior Level', const Color(0xFFE0F2FE), const Color(0xFF0284C7)),
           ],
         ),
       ),
@@ -1102,9 +1075,9 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFE),
+        color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Column(
         children: [
@@ -1252,7 +1225,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF6B4EFF), size: 20),
+          Icon(icon, color: const Color(0xFF0284C7), size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -1299,7 +1272,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                   children: [
                     const Icon(
                       Icons.check_circle_rounded,
-                      color: Color(0xFF7C3AED),
+                      color: Color(0xFF0284C7),
                       size: 20,
                     ),
                     const SizedBox(width: 12),
@@ -1480,9 +1453,9 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFF3F0FF),
+              color: const Color(0xFFF0F9FF),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFD8D2FF), width: 1.2),
+              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
             ),
             child: const Icon(
               Icons.chat_bubble_outline_rounded,
@@ -1496,7 +1469,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
               height: 48,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF7C3AED), Color(0xFF5B4EFF)],
+                  colors: [Color(0xFF0284C7), Color(0xFF0EA5E9)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),

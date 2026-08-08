@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'internships_screen.dart';
 import 'job_detail_screen.dart';
-import 'notifications_screen.dart';
 
 
 class JobsScreen extends StatefulWidget {
@@ -95,44 +94,6 @@ class _JobsScreenState extends State<JobsScreen> {
                 },
               ),
               const Spacer(),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NotificationsScreen(),
-                    ),
-                  );
-                },
-                child: SizedBox(
-                  width: 36,
-                  height: 36,
-                  child: Stack(
-                    children: [
-                      const Center(
-                        child: Icon(
-                          Icons.notifications_none_rounded,
-                          color: AppColors.primary,
-                          size: 26,
-                        ),
-                      ),
-                      Positioned(
-                        right: 2,
-                        top: 2,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFBBF24),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
               const CircleAvatar(
                 radius: 18,
                 backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=47'),
@@ -162,9 +123,9 @@ class _JobsScreenState extends State<JobsScreen> {
           Container(
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFF7F7FB),
+              color: const Color(0xFFF7F9FC),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E0FF), width: 1.2),
+              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
             ),
             child: Row(
               children: [
@@ -186,7 +147,7 @@ class _JobsScreenState extends State<JobsScreen> {
                   margin: const EdgeInsets.only(right: 10),
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEDE9FF),
+                    color: const Color(0xFFE0F2FE),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.tune_rounded, color: AppColors.primary, size: 16),
@@ -212,7 +173,7 @@ class _JobsScreenState extends State<JobsScreen> {
                       color: selected ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(
-                        color: selected ? AppColors.primary : const Color(0xFFD1CBFF),
+                        color: selected ? AppColors.primary : const Color(0xFFBAE6FD),
                         width: 1.3,
                       ),
                     ),
@@ -221,7 +182,7 @@ class _JobsScreenState extends State<JobsScreen> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: selected ? Colors.white : const Color(0xFF5B4FCF),
+                        color: selected ? Colors.white : const Color(0xFF0369A1),
                       ),
                     ),
                   ),
@@ -332,7 +293,7 @@ class _JobsScreenState extends State<JobsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -351,7 +312,7 @@ class _JobsScreenState extends State<JobsScreen> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3F0FF),
+                  color: const Color(0xFFF0F9FF),
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Icon(item.logo, color: AppColors.primary, size: 20),
@@ -420,7 +381,7 @@ class _JobsScreenState extends State<JobsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3E8FF),
+                  color: const Color(0xFFE0F2FE),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -428,14 +389,14 @@ class _JobsScreenState extends State<JobsScreen> {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF9333EA),
+                    color: Color(0xFF0369A1),
                   ),
                 ),
               ),
               ...item.tags.map((tag) => Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF0EDFF),
+                      color: const Color(0xFFF0F9FF),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -466,7 +427,7 @@ class _JobsScreenState extends State<JobsScreen> {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFD8D2FF)),
+                  border: Border.all(color: const Color(0xFFBAE6FD)),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.bookmark_border_rounded, size: 18, color: AppColors.primary),
@@ -515,7 +476,7 @@ class _JobsScreenState extends State<JobsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -524,7 +485,7 @@ class _JobsScreenState extends State<JobsScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFFF0EDFF),
+              color: const Color(0xFFF0F9FF),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.business_rounded, color: AppColors.primary, size: 22),

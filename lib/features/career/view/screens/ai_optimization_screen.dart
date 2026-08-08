@@ -35,34 +35,6 @@ class AIOptimizationScreen extends StatelessWidget {
                             ),
                           ),
                           const Spacer(),
-                          SizedBox(
-                            width: 32,
-                            height: 32,
-                            child: Stack(
-                              children: [
-                                const Center(
-                                  child: Icon(
-                                    Icons.notifications_none_rounded,
-                                    color: AppColors.primary,
-                                    size: 24,
-                                  ),
-                                ),
-                                Positioned(
-                                  right: 1,
-                                  top: 1,
-                                  child: Container(
-                                    width: 7,
-                                    height: 7,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFFBBF24),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 10),
                           const CircleAvatar(
                             radius: 16,
                             backgroundImage: NetworkImage(
@@ -100,7 +72,7 @@ class AIOptimizationScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 32,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2C2560),
+                                      color: Color(0xFF0369A1),
                                     ),
                                   ),
                                   Text(
@@ -153,7 +125,7 @@ class AIOptimizationScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF5B4FCF),
+                          color: Color(0xFF0284C7),
                           letterSpacing: 0.8,
                         ),
                       ),
@@ -167,7 +139,7 @@ class AIOptimizationScreen extends StatelessWidget {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                              color: const Color(0xFFEDE9FF), width: 1.2),
+                              color: const Color(0xFFE0F2FE), width: 1.2),
                         ),
                         child: Column(
                           children: [
@@ -175,7 +147,7 @@ class AIOptimizationScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Icon(Icons.check_circle_outline_rounded,
-                                    color: Color(0xFF5B4FCF), size: 18),
+                                    color: Color(0xFF0284C7), size: 18),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: RichText(
@@ -191,7 +163,7 @@ class AIOptimizationScreen extends StatelessWidget {
                                           text: '4 experience bullet points',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF5B4FCF),
+                                            color: Color(0xFF0284C7),
                                           ),
                                         ),
                                         TextSpan(text: '.'),
@@ -206,7 +178,7 @@ class AIOptimizationScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Icon(Icons.check_circle_outline_rounded,
-                                    color: Color(0xFF5B4FCF), size: 18),
+                                    color: Color(0xFF0284C7), size: 18),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: RichText(
@@ -222,7 +194,7 @@ class AIOptimizationScreen extends StatelessWidget {
                                           text: '"Cloud Architecture"',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF2C2560),
+                                            color: Color(0xFF0369A1),
                                           ),
                                         ),
                                         TextSpan(text: ' and '),
@@ -230,7 +202,7 @@ class AIOptimizationScreen extends StatelessWidget {
                                           text: '"DevOps"',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF2C2560),
+                                            color: Color(0xFF0369A1),
                                           ),
                                         ),
                                         TextSpan(text: ' keywords.'),
@@ -265,7 +237,7 @@ class AIOptimizationScreen extends StatelessWidget {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                              color: const Color(0xFFEDE9FF), width: 1.2),
+                              color: const Color(0xFFE0F2FE), width: 1.2),
                         ),
                         child: Column(
                           children: [
@@ -273,7 +245,7 @@ class AIOptimizationScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Icon(Icons.info_outline_rounded,
-                                    color: Color(0xFF5B4FCF), size: 18),
+                                    color: Color(0xFF0284C7), size: 18),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: RichText(
@@ -304,7 +276,7 @@ class AIOptimizationScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Icon(Icons.warning_amber_rounded,
-                                    color: Color(0xFF5B4FCF), size: 18),
+                                    color: Color(0xFF0284C7), size: 18),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: RichText(
@@ -349,7 +321,7 @@ class AIOptimizationScreen extends StatelessWidget {
                                 fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF5B4FCF),
+                            backgroundColor: const Color(0xFF0284C7),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
@@ -378,7 +350,7 @@ class AIOptimizationScreen extends StatelessWidget {
                                 fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF5B4FCF),
+                            backgroundColor: const Color(0xFF0284C7),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
@@ -433,7 +405,7 @@ class AIOptimizationScreen extends StatelessWidget {
             : const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: isSelected
             ? BoxDecoration(
-                color: const Color(0xFFE5DFFF),
+                color: const Color(0xFFE0F2FE),
                 borderRadius: BorderRadius.circular(20),
               )
             : null,
@@ -470,7 +442,7 @@ class AIOptimizationScreen extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Color(0x406B4EFF),
+            color: Color(0x400284C7),
             blurRadius: 10,
             offset: Offset(0, 4),
           ),
@@ -493,7 +465,7 @@ class _DonutGaugePainter extends CustomPainter {
 
     // Background track
     final bgPaint = Paint()
-      ..color = const Color(0xFFEDE9FF)
+      ..color = const Color(0xFFE0F2FE)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -502,7 +474,7 @@ class _DonutGaugePainter extends CustomPainter {
 
     // Progress track
     final fgPaint = Paint()
-      ..color = const Color(0xFF5B4FCF)
+      ..color = const Color(0xFF0284C7)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;

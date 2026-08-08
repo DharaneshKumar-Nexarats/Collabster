@@ -40,12 +40,6 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
           ),
         ),
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.primary),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -58,9 +52,9 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
               Container(
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF7F7FB),
+                  color: const Color(0xFFF7F9FC),
                   borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+                  border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
                 ),
                 child: Row(
                   children: [
@@ -91,7 +85,7 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
                         margin: const EdgeInsets.only(right: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: selected ? AppColors.primary : const Color(0xFFF0EDFF),
+                          color: selected ? AppColors.primary : const Color(0xFFE0F2FE),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -99,7 +93,7 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: selected ? Colors.white : const Color(0xFF5B4FCF),
+                            color: selected ? Colors.white : const Color(0xFF0369A1),
                           ),
                         ),
                       ),
@@ -114,7 +108,7 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFFEBE7FF),
+                color: const Color(0xFFE0F2FE),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Row(
@@ -128,7 +122,7 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF5B4FCF),
+                            color: Color(0xFF0284C7),
                             letterSpacing: 0.8,
                           ),
                         ),
@@ -138,7 +132,7 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C2560),
+                            color: Color(0xFF0369A1),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -163,7 +157,7 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C2560),
+                            color: Color(0xFF0369A1),
                           ),
                         ),
                       ),
@@ -247,7 +241,7 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5B4FCF),
+                        backgroundColor: const Color(0xFF0284C7),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
@@ -428,7 +422,7 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF5B4FCF),
+                  backgroundColor: const Color(0xFF0284C7),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
@@ -464,7 +458,7 @@ class _MocksGaugePainter extends CustomPainter {
 
     // Background track
     final bgPaint = Paint()
-      ..color = const Color(0xFFDED9FF)
+      ..color = const Color(0xFFBAE6FD)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -473,7 +467,7 @@ class _MocksGaugePainter extends CustomPainter {
 
     // Progress track
     final fgPaint = Paint()
-      ..color = const Color(0xFF5B4FCF)
+      ..color = const Color(0xFF0284C7)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -734,7 +728,7 @@ class _CoachRow extends StatelessWidget {
           ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFF0EDFF),
+              backgroundColor: const Color(0xFFE0F2FE),
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               minimumSize: Size.zero,
@@ -748,7 +742,7 @@ class _CoachRow extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF5B4FCF),
+                color: Color(0xFF0284C7),
               ),
             ),
           ),

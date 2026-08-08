@@ -202,9 +202,9 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                           Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF3F6FF),
+                              color: const Color(0xFFF0F9FF),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                              border: Border.all(color: const Color(0xFFBAE6FD), width: 1),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,7 +218,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: const Icon(Icons.business_center_rounded,
-                                          color: Color(0xFF5B4FCF), size: 16),
+                                          color: Color(0xFF0284C7), size: 16),
                                     ),
                                     const SizedBox(width: 10),
                                     Expanded(
@@ -309,7 +309,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                           Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF3F6FF),
+                              color: const Color(0xFFF0F9FF),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
@@ -324,7 +324,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF2C2560),
+                                          color: Color(0xFF0369A1),
                                         ),
                                       ),
                                       SizedBox(height: 2),
@@ -332,7 +332,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                         'University of California, Berkeley',
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: Color(0xFF5B4FCF),
+                                          color: Color(0xFF0284C7),
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -347,7 +347,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                     ],
                                   ),
                                 ),
-                                const Icon(Icons.edit_outlined, color: Color(0xFF5B4FCF), size: 18),
+                                const Icon(Icons.edit_outlined, color: Color(0xFF0284C7), size: 18),
                               ],
                             ),
                           ),
@@ -458,7 +458,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFDED9FF), width: 1.5),
+                          side: const BorderSide(color: Color(0xFFBAE6FD), width: 1.5),
                           minimumSize: Size.zero,
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           shape: RoundedRectangleBorder(
@@ -472,7 +472,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                             style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF5B4FCF)),
+                                color: Color(0xFF0284C7)),
                           ),
                         ),
                       ),
@@ -492,7 +492,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF5B4FCF),
+                          backgroundColor: const Color(0xFF0284C7),
                           elevation: 0,
                           minimumSize: Size.zero,
                           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -542,7 +542,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -552,10 +552,10 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF3F0FF),
+                  color: Color(0xFFF0F9FF),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: const Color(0xFF5B4FCF), size: 18),
+                child: Icon(icon, color: const Color(0xFF0284C7), size: 18),
               ),
               const SizedBox(width: 10),
               Text(
@@ -573,7 +573,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF5B4FCF),
+                    color: Color(0xFF0284C7),
                   ),
                 ),
               ],
@@ -633,11 +633,11 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: CustomPaint(
-        painter: _DashedBorderPainter(color: const Color(0xFF5B4FCF)),
+        painter: _DashedBorderPainter(color: const Color(0xFF0284C7)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: const Color(0xFF5B4FCF), size: 24),
+            Icon(icon, color: const Color(0xFF0284C7), size: 24),
             const SizedBox(height: 6),
             Text(
               text,
@@ -676,7 +676,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: selected ? const Color(0xFF5B4FCF) : Colors.grey.shade400,
+                color: selected ? const Color(0xFF0284C7) : Colors.grey.shade400,
                 width: 1.5,
               ),
             ),
@@ -686,7 +686,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                       width: 10,
                       height: 10,
                       decoration: const BoxDecoration(
-                        color: Color(0xFF5B4FCF),
+                        color: Color(0xFF0284C7),
                         shape: BoxShape.circle,
                       ),
                     ),

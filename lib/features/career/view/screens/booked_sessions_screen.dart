@@ -34,34 +34,6 @@ class BookedSessionsScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: Stack(
-                      children: [
-                        const Center(
-                          child: Icon(
-                            Icons.notifications_none_rounded,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
-                        ),
-                        Positioned(
-                          right: 1,
-                          top: 1,
-                          child: Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFBBF24),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
                   const CircleAvatar(
                     radius: 16,
                     backgroundImage: NetworkImage(
@@ -139,7 +111,7 @@ class BookedSessionsScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF3B2FCE),
+                                color: Color(0xFF0284C7),
                               ),
                             ),
                           ),
@@ -233,7 +205,7 @@ class BookedSessionsScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -316,7 +288,7 @@ class BookedSessionsScreen extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: isLobbyActive ? () {} : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B2FCE),
+                      backgroundColor: const Color(0xFF0284C7),
                       disabledBackgroundColor: const Color(0xFFE2E8F0),
                       elevation: 0,
                       minimumSize: Size.zero,
@@ -347,7 +319,7 @@ class BookedSessionsScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF3B2FCE),
+                        color: Color(0xFF0284C7),
                       ),
                     ),
                   ),
@@ -375,7 +347,7 @@ class BookedSessionsScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Row(
         children: [
@@ -425,7 +397,7 @@ class BookedSessionsScreen extends StatelessWidget {
             ),
           ),
           if (hasPlayIcon) ...[
-            const Icon(Icons.play_circle_outline_rounded, color: Color(0xFF3B2FCE), size: 22),
+            const Icon(Icons.play_circle_outline_rounded, color: Color(0xFF0284C7), size: 22),
             const SizedBox(width: 12),
           ],
           SizedBox(
@@ -433,7 +405,7 @@ class BookedSessionsScreen extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFEFF6FF),
+                backgroundColor: const Color(0xFFF0F9FF),
                 elevation: 0,
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -447,7 +419,7 @@ class BookedSessionsScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF3B2FCE),
+                  color: Color(0xFF0284C7),
                 ),
               ),
             ),
@@ -468,7 +440,7 @@ class BookedSessionsScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Column(
         children: [
@@ -525,7 +497,7 @@ class BookedSessionsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
+              color: const Color(0xFFF0F9FF),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -533,7 +505,7 @@ class BookedSessionsScreen extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 8,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2563EB),
+                color: Color(0xFF0284C7),
               ),
             ),
           ),
@@ -546,7 +518,7 @@ class BookedSessionsScreen extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B2FCE),
+                backgroundColor: const Color(0xFF0284C7),
                 elevation: 0,
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,

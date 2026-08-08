@@ -25,34 +25,6 @@ class ApplicationSuccessScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: Stack(
-                      children: [
-                        const Center(
-                          child: Icon(
-                            Icons.notifications_none_rounded,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
-                        ),
-                        Positioned(
-                          right: 1,
-                          top: 1,
-                          child: Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFBBF24),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
                   const CircleAvatar(
                     radius: 16,
                     backgroundImage: NetworkImage(
@@ -133,7 +105,7 @@ class ApplicationSuccessScreen extends StatelessWidget {
                               text: 'alex.j@example.com',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF2563EB),
+                                color: Color(0xFF0284C7),
                               ),
                             ),
                             TextSpan(text: '. You can track your application status in your dashboard.'),
@@ -154,7 +126,7 @@ class ApplicationSuccessScreen extends StatelessWidget {
                                     context, (route) => route.isFirst);
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF5B4FCF),
+                                backgroundColor: const Color(0xFF0284C7),
                                 elevation: 0,
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -178,7 +150,7 @@ class ApplicationSuccessScreen extends StatelessWidget {
                             child: OutlinedButton(
                               onPressed: () {},
                               style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Color(0xFF5B4FCF), width: 1.2),
+                                side: const BorderSide(color: Color(0xFF0284C7), width: 1.2),
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -191,7 +163,7 @@ class ApplicationSuccessScreen extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF5B4FCF),
+                                  color: Color(0xFF0284C7),
                                 ),
                               ),
                             ),
@@ -207,7 +179,7 @@ class ApplicationSuccessScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+                          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,7 +229,7 @@ class ApplicationSuccessScreen extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF3B2FCE),
+                          color: const Color(0xFF0284C7),
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: Column(
@@ -321,12 +293,12 @@ class ApplicationSuccessScreen extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF3B2FCE),
+                                        color: Color(0xFF0284C7),
                                       ),
                                     ),
                                     SizedBox(width: 6),
                                     Icon(Icons.arrow_forward_rounded,
-                                        color: Color(0xFF3B2FCE), size: 16),
+                                        color: Color(0xFF0284C7), size: 16),
                                   ],
                                 ),
                               ),
@@ -394,11 +366,11 @@ class ApplicationSuccessScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: const BoxDecoration(
-                                color: Color(0xFFEEF2F6),
+                                color: Color(0xFFE0F2FE),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.trending_up_rounded,
-                                  color: Color(0xFF3B2FCE), size: 18),
+                                  color: Color(0xFF0284C7), size: 18),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -428,7 +400,7 @@ class ApplicationSuccessScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF3B2FCE),
+                                color: Color(0xFF0284C7),
                               ),
                             ),
                           ],
@@ -557,7 +529,7 @@ class ApplicationSuccessScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -597,7 +569,7 @@ class ApplicationSuccessScreen extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF3F0FF),
+                backgroundColor: const Color(0xFFF0F9FF),
                 elevation: 0,
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -610,7 +582,7 @@ class ApplicationSuccessScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF5B4FCF),
+                  color: Color(0xFF0284C7),
                 ),
               ),
             ),

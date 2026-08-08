@@ -35,34 +35,6 @@ class ATSScoreScreen extends StatelessWidget {
                             ),
                           ),
                           const Spacer(),
-                          SizedBox(
-                            width: 32,
-                            height: 32,
-                            child: Stack(
-                              children: [
-                                const Center(
-                                  child: Icon(
-                                    Icons.notifications_none_rounded,
-                                    color: AppColors.primary,
-                                    size: 24,
-                                  ),
-                                ),
-                                Positioned(
-                                  right: 1,
-                                  top: 1,
-                                  child: Container(
-                                    width: 7,
-                                    height: 7,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFFBBF24),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 10),
                           const CircleAvatar(
                             radius: 16,
                             backgroundImage: NetworkImage(
@@ -92,7 +64,7 @@ class ATSScoreScreen extends StatelessWidget {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
-                              color: const Color(0xFFEDE9FF), width: 1.2),
+                              color: const Color(0xFFE0F2FE), width: 1.2),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.02),
@@ -115,7 +87,7 @@ class ATSScoreScreen extends StatelessWidget {
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF2C2560),
+                                          color: Color(0xFF0369A1),
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -139,12 +111,12 @@ class ATSScoreScreen extends StatelessWidget {
                               ],
                             ),
                             const SizedBox(height: 12),
-                            const Divider(color: Color(0xFFF3F0FF), height: 1, thickness: 1.2),
+                            const Divider(color: Color(0xFFF0F9FF), height: 1, thickness: 1.2),
                             const SizedBox(height: 12),
                             Row(
                               children: [
                                 const Icon(Icons.email_outlined,
-                                    color: Color(0xFF5B4FCF), size: 16),
+                                    color: Color(0xFF0284C7), size: 16),
                                 const SizedBox(width: 6),
                                 Text(
                                   'alex.riv@sphere.io',
@@ -153,7 +125,7 @@ class ATSScoreScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 16),
                                 const Icon(Icons.location_on_outlined,
-                                    color: Color(0xFF5B4FCF), size: 16),
+                                    color: Color(0xFF0284C7), size: 16),
                                 const SizedBox(width: 4),
                                 Text(
                                   'San Francisco, CA',
@@ -170,7 +142,7 @@ class ATSScoreScreen extends StatelessWidget {
                                   width: 3,
                                   height: 14,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF5B4FCF),
+                                    color: const Color(0xFF0284C7),
                                     borderRadius: BorderRadius.circular(2),
                                   ),
                                 ),
@@ -180,7 +152,7 @@ class ATSScoreScreen extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF5B4FCF),
+                                    color: Color(0xFF0284C7),
                                     letterSpacing: 0.5,
                                   ),
                                 ),
@@ -216,7 +188,7 @@ class ATSScoreScreen extends StatelessWidget {
                                     fontSize: 14, fontWeight: FontWeight.bold),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF5B4FCF),
+                                backgroundColor: const Color(0xFF0284C7),
                                 minimumSize: const Size(0, 48),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
@@ -230,12 +202,12 @@ class ATSScoreScreen extends StatelessWidget {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF3F0FF),
+                              color: const Color(0xFFF0F9FF),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: const Icon(
                               Icons.edit_outlined,
-                              color: Color(0xFF5B4FCF),
+                              color: Color(0xFF0284C7),
                               size: 20,
                             ),
                           ),
@@ -259,21 +231,21 @@ class ATSScoreScreen extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF0EDFF),
+                              color: const Color(0xFFE0F2FE),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: const [
                                 Icon(Icons.auto_awesome,
-                                    color: Color(0xFF5B4FCF), size: 12),
+                                    color: Color(0xFF0284C7), size: 12),
                                 SizedBox(width: 4),
                                 Text(
                                   'Powered by AI',
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF5B4FCF),
+                                    color: Color(0xFF0284C7),
                                   ),
                                 ),
                               ],
@@ -299,7 +271,7 @@ class ATSScoreScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 32,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2C2560),
+                                      color: Color(0xFF0369A1),
                                     ),
                                   ),
                                   Text(
@@ -348,10 +320,10 @@ class ATSScoreScreen extends StatelessWidget {
                         child: Container(
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF9F9FF),
+                            color: const Color(0xFFF0F9FF),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                                color: const Color(0xFF5B4FCF), width: 1.5),
+                                color: const Color(0xFF0284C7), width: 1.5),
                           ),
                           child: Column(
                             children: [
@@ -362,14 +334,14 @@ class ATSScoreScreen extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Icon(Icons.lock_open_rounded,
-                                        color: Color(0xFF5B4FCF), size: 18),
+                                        color: Color(0xFF0284C7), size: 18),
                                     const SizedBox(width: 8),
                                     const Text(
                                       'Review & Enhance',
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF5B4FCF),
+                                        color: Color(0xFF0284C7),
                                       ),
                                     ),
                                     const SizedBox(width: 10),
@@ -377,7 +349,7 @@ class ATSScoreScreen extends StatelessWidget {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 3),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF2C2560),
+                                        color: const Color(0xFF0369A1),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: const Text(
@@ -391,9 +363,9 @@ class ATSScoreScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                              ),
+                               ),
                               const Divider(
-                                  color: Color(0xFF5B4FCF), height: 1, thickness: 1),
+                                  color: Color(0xFF0284C7), height: 1, thickness: 1),
                               Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Row(
@@ -403,7 +375,7 @@ class ATSScoreScreen extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF2C2560),
+                                        color: Color(0xFF0369A1),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -438,7 +410,7 @@ class ATSScoreScreen extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF5B4FCF),
+                                        color: Color(0xFF0284C7),
                                       ),
                                     ),
                                   ],
@@ -532,7 +504,7 @@ class ATSScoreScreen extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Color(0x406B4EFF),
+            color: Color(0x400284C7),
             blurRadius: 10,
             offset: Offset(0, 4),
           ),
@@ -552,7 +524,7 @@ class _ExpertiseTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F0FF),
+        color: const Color(0xFFF0F9FF),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -560,7 +532,7 @@ class _ExpertiseTag extends StatelessWidget {
         style: const TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF5B4FCF),
+          color: Color(0xFF0284C7),
         ),
       ),
     );
@@ -586,7 +558,7 @@ class _SuggestionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.01),
@@ -598,7 +570,7 @@ class _SuggestionCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: const Color(0xFF5B4FCF), size: 20),
+          Icon(icon, color: const Color(0xFF0284C7), size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -642,7 +614,7 @@ class _GaugePainter extends CustomPainter {
 
     // Background track
     final bgPaint = Paint()
-      ..color = const Color(0xFFEDE9FF)
+      ..color = const Color(0xFFE0F2FE)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -651,7 +623,7 @@ class _GaugePainter extends CustomPainter {
 
     // Progress arc (gauge)
     final fgPaint = Paint()
-      ..color = const Color(0xFF5B4FCF)
+      ..color = const Color(0xFF0284C7)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;

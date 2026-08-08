@@ -92,7 +92,7 @@ class _CodingSessionScreenState extends State<CodingSessionScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+                          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,20 +100,20 @@ class _CodingSessionScreenState extends State<CodingSessionScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEFF6FF),
+                                color: const Color(0xFFE0F2FE),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: const [
-                                  Icon(Icons.code_rounded, color: Color(0xFF2563EB), size: 12),
+                                  Icon(Icons.code_rounded, color: Color(0xFF0284C7), size: 12),
                                   SizedBox(width: 4),
                                   Text(
                                     'ALGORITHM: MEDIUM',
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2563EB),
+                                      color: Color(0xFF0284C7),
                                     ),
                                   ),
                                 ],
@@ -378,7 +378,7 @@ class _CodingSessionScreenState extends State<CodingSessionScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+                          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,7 +426,7 @@ class _CodingSessionScreenState extends State<CodingSessionScreen> {
                                 _buildSampleTab(2, '+ Custom'),
                               ],
                             ),
-                            const Divider(color: Color(0xFFEDE9FF), height: 1, thickness: 1.2),
+                            const Divider(color: Color(0xFFE0F2FE), height: 1, thickness: 1.2),
                             const SizedBox(height: 16),
 
                             // INPUT
@@ -536,16 +536,16 @@ class _CodingSessionScreenState extends State<CodingSessionScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () {},
                         icon: const Icon(Icons.play_arrow_rounded,
-                            color: Color(0xFF5B4FCF), size: 18),
+                            color: Color(0xFF0284C7), size: 18),
                         label: const Text(
                           'Run Code',
                           style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF5B4FCF)),
+                              color: Color(0xFF0284C7)),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFDED9FF), width: 1.5),
+                          side: const BorderSide(color: Color(0xFFBAE6FD), width: 1.5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
@@ -567,7 +567,7 @@ class _CodingSessionScreenState extends State<CodingSessionScreen> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF5B4FCF),
+                          backgroundColor: const Color(0xFF0284C7),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
@@ -633,7 +633,7 @@ class _CodingSessionScreenState extends State<CodingSessionScreen> {
         decoration: BoxDecoration(
           border: selected
               ? const Border(
-                  bottom: BorderSide(color: Color(0xFF5B4FCF), width: 2))
+                  bottom: BorderSide(color: Color(0xFF0284C7), width: 2))
               : null,
         ),
         child: Row(
@@ -644,7 +644,7 @@ class _CodingSessionScreenState extends State<CodingSessionScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? const Color(0xFF5B4FCF) : Colors.grey,
+                color: selected ? const Color(0xFF0284C7) : Colors.grey,
               ),
             ),
             if (index < 2) ...[

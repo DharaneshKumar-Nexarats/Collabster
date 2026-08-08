@@ -45,34 +45,6 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                     ),
                   ),
                   const Spacer(),
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: Stack(
-                      children: [
-                        const Center(
-                          child: Icon(
-                            Icons.notifications_none_rounded,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
-                        ),
-                        Positioned(
-                          right: 1,
-                          top: 1,
-                          child: Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFBBF24),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
                   const CircleAvatar(
                     radius: 16,
                     backgroundImage: NetworkImage(
@@ -124,7 +96,7 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                                 child: Container(
                                   decoration: BoxDecoration(
                                     color: _selectedTab == 0
-                                        ? const Color(0xFF3B2FCE)
+                                        ? const Color(0xFF0284C7)
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
@@ -148,7 +120,7 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                                 child: Container(
                                   decoration: BoxDecoration(
                                     color: _selectedTab == 1
-                                        ? const Color(0xFF3B2FCE)
+                                        ? const Color(0xFF0284C7)
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
@@ -196,8 +168,8 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                         title: 'Frontend Engineer',
                         company: 'CloudStrate',
                         statusLabel: 'UNDER REVIEW',
-                        statusColor: const Color(0xFF2563EB),
-                        statusBgColor: const Color(0xFFEFF6FF),
+                        statusColor: const Color(0xFF0284C7),
+                        statusBgColor: const Color(0xFFE0F2FE),
                         isActive: true,
                       ),
                       const SizedBox(height: 16),
@@ -207,8 +179,8 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                         title: 'UX Researcher',
                         company: 'Aether Analytics',
                         statusLabel: 'INTERVIEW SCHEDULED',
-                        statusColor: const Color(0xFF8B5CF6),
-                        statusBgColor: const Color(0xFFF5F3FF),
+                        statusColor: const Color(0xFF0284C7),
+                        statusBgColor: const Color(0xFFE0F2FE),
                         isActive: true,
                       ),
                       const SizedBox(height: 16),
@@ -240,7 +212,7 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,7 +231,7 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF3B2FCE),
+              color: Color(0xFF0284C7),
             ),
           ),
         ],
@@ -285,7 +257,7 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,7 +293,7 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
               ),
               Icon(
                 Icons.chat_bubble_outline_rounded,
-                color: isActive ? const Color(0xFF5B4FCF) : Colors.grey.shade400,
+                color: isActive ? const Color(0xFF0284C7) : Colors.grey.shade400,
                 size: 20,
               ),
             ],
@@ -363,7 +335,7 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
             child: ElevatedButton(
               onPressed: isActive ? () {} : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: isActive ? const Color(0xFF5B4FCF) : const Color(0xFFE2E8F0),
+                backgroundColor: isActive ? const Color(0xFF0284C7) : const Color(0xFFE2E8F0),
                 disabledBackgroundColor: const Color(0xFFE2E8F0),
                 elevation: 0,
                 minimumSize: Size.zero,
@@ -390,7 +362,7 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
               onPressed: isActive ? () {} : null,
               style: OutlinedButton.styleFrom(
                 side: BorderSide(
-                  color: isActive ? const Color(0xFF5B4FCF) : Colors.grey.shade200,
+                  color: isActive ? const Color(0xFF0284C7) : Colors.grey.shade200,
                   width: 1.2,
                 ),
                 minimumSize: Size.zero,
@@ -404,7 +376,7 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: isActive ? const Color(0xFF5B4FCF) : Colors.grey.shade400,
+                  color: isActive ? const Color(0xFF0284C7) : Colors.grey.shade400,
                 ),
               ),
             ),
