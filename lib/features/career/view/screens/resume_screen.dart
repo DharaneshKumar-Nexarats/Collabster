@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../widgets/career_search_bar.dart';
 import 'check_resume_score_screen.dart';
 
 class ResumeScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class ResumeScreen extends StatefulWidget {
 class _ResumeScreenState extends State<ResumeScreen> {
   int _selectedFilter = 0;
   final List<String> _filters = ['All', 'ATS Friendly', 'Modern', 'Minimal'];
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -81,42 +83,19 @@ class _ResumeScreenState extends State<ResumeScreen> {
           const SizedBox(height: 18),
 
           // Search bar
-          Container(
-            height: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF7F9FC),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 14),
-                Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Search jobs, internships, freelance...',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0F2FE),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.tune_rounded, color: AppColors.primary, size: 16),
-                ),
-              ],
-            ),
+          CareerSearchBar(
+            controller: _searchController,
+            hintText: 'Search resume templates, drafts, role titles...',
+            hasActiveFilter: _selectedFilter != 0,
+            onChanged: (value) => setState(() {}),
+            onFilterTap: () {
+              setState(() {
+                _selectedFilter = (_selectedFilter + 1) % _filters.length;
+              });
+            },
           ),
           const SizedBox(height: 16),
+
 
           // Filter chips
           SingleChildScrollView(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../widgets/career_search_bar.dart';
 import 'internships_screen.dart';
 import 'job_detail_screen.dart';
 
@@ -15,6 +16,7 @@ class JobsScreen extends StatefulWidget {
 class _JobsScreenState extends State<JobsScreen> {
   int _selectedFilter = 0;
   final List<String> _filters = ['All Roles', 'Remote', 'Paid', 'Hybrid'];
+  final TextEditingController _searchController = TextEditingController();
 
   static const _jobs = [
     _JobItem(
@@ -48,6 +50,33 @@ class _JobsScreenState extends State<JobsScreen> {
       showNew: false,
     ),
   ];
+
+  List<_JobItem> get _filteredJobs {
+    final query = _searchController.text.trim().toLowerCase();
+    final filter = _filters[_selectedFilter].toLowerCase();
+
+    return _jobs.where((job) {
+      // Filter by chip category
+      if (filter == 'remote' && !job.location.toLowerCase().contains('remote')) {
+        return false;
+      }
+      if (filter == 'hybrid' && !job.location.toLowerCase().contains('hybrid')) {
+        return false;
+      }
+      if (filter == 'paid' && !job.salaryTag.isNotEmpty) {
+        return false;
+      }
+
+      // Filter by search query
+      if (query.isEmpty) return true;
+      final titleMatch = job.title.toLowerCase().contains(query);
+      final companyMatch = job.company.toLowerCase().contains(query);
+      final locationMatch = job.location.toLowerCase().contains(query);
+      final tagMatch = job.tags.any((t) => t.toLowerCase().contains(query));
+
+      return titleMatch || companyMatch || locationMatch || tagMatch;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,40 +145,16 @@ class _JobsScreenState extends State<JobsScreen> {
           const SizedBox(height: 18),
 
           // Search bar
-          Container(
-            height: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF7F9FC),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 14),
-                Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Search jobs, internships, freelance...',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0F2FE),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.tune_rounded, color: AppColors.primary, size: 16),
-                ),
-              ],
-            ),
+          CareerSearchBar(
+            controller: _searchController,
+            hintText: 'Search jobs, skills, or companies...',
+            hasActiveFilter: _selectedFilter != 0,
+            onChanged: (value) => setState(() {}),
+            onFilterTap: () {
+              setState(() {
+                _selectedFilter = (_selectedFilter + 1) % _filters.length;
+              });
+            },
           ),
           const SizedBox(height: 16),
 
@@ -193,6 +198,8 @@ class _JobsScreenState extends State<JobsScreen> {
   }
 
   Widget _buildBody() {
+    final filtered = _filteredJobs;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: Column(
@@ -201,41 +208,55 @@ class _JobsScreenState extends State<JobsScreen> {
           // Popular Jobs Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children: [
               Text(
-                'Popular Jobs',
-                style: TextStyle(
+                _searchController.text.isNotEmpty || _selectedFilter != 0
+                    ? 'Search Results (${filtered.length})'
+                    : 'Popular Jobs',
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF111827),
                   letterSpacing: -0.2,
                 ),
               ),
-              Text(
-                'View all',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _searchController.clear();
+                    _selectedFilter = 0;
+                  });
+                },
+                child: const Text(
+                  'Reset',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 14),
 
-          // Job Cards
-          ..._jobs.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: _buildJobCard(item),
-              )),
+          // Job Cards or Empty state
+          if (filtered.isNotEmpty)
+            ...filtered.map((item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: _buildJobCard(item),
+                ))
+          else
+            _buildEmptyState(),
+
 
           const SizedBox(height: 16),
 
           // Popular Companies Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
+            children: [
+              const Text(
                 'Popular Companies',
                 style: TextStyle(
                   fontSize: 18,
@@ -244,12 +265,19 @@ class _JobsScreenState extends State<JobsScreen> {
                   letterSpacing: -0.2,
                 ),
               ),
-              Text(
-                'View all',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Showing all companies...')),
+                  );
+                },
+                child: const Text(
+                  'View all',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -545,6 +573,45 @@ class _JobsScreenState extends State<JobsScreen> {
                 color: AppColors.primary,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(
+              color: Color(0xFFE0F2FE),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.search_off_rounded, color: Color(0xFF0284C7), size: 28),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'No matching jobs found',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Try adjusting your search query or clear filters.',
+            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
           ),
         ],
       ),
