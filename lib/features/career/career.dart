@@ -1,5 +1,4 @@
-library career;
-
+// Career feature exports
 export 'view/screens/career_dashboard_screen.dart';
 export 'view/screens/career_home_screen.dart';
 export 'view/screens/internships_screen.dart';
