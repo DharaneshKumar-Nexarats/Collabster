@@ -307,7 +307,11 @@ class AIOptimizationScreen extends StatelessWidget {
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton.icon(
-                          onPressed: () {},
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Downloading optimized resume PDF...')),
+                            );
+                          },
                           icon: const Icon(Icons.file_download_outlined,
                               color: Colors.white, size: 18),
                           label: const Text(

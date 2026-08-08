@@ -382,7 +382,33 @@ class SubmissionDetailsScreen extends StatelessWidget {
                         width: double.infinity,
                         height: 48,
                         child: ElevatedButton.icon(
-                          onPressed: () {},
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('Revoke Application?'),
+                                content: const Text('This will cancel your application for Senior Product Designer at Nexus Systems. This action cannot be undone.'),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx),
+                                    child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Application revoked successfully')),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
+                                    child: const Text('Revoke', style: TextStyle(color: Colors.white)),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                           icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFF6B7280), size: 18),
                           label: const Text(
                             'Revoke Application',

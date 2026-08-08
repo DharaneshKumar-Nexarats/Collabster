@@ -11,6 +11,8 @@ import 'freelance_screen.dart';
 import 'resume_screen.dart';
 import 'mock_interviews_screen.dart';
 import 'notifications_screen.dart';
+import 'saved_jobs_screen.dart';
+import 'submission_details_screen.dart';
 
 class CareerDashboardScreen extends ConsumerStatefulWidget {
   const CareerDashboardScreen({super.key});
@@ -497,7 +499,7 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
         Navigator.push(context, MaterialPageRoute(builder: (_) => MockInterviewsScreen(onBack: () => Navigator.pop(context))));
       }),
       _QuickAction(Icons.bookmark_outline_rounded, 'Saved Jobs', const Color(0xFF0284C7), () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const JobsScreen()));
+        Navigator.push(context, MaterialPageRoute(builder: (_) => SavedJobsScreen(onBack: () => Navigator.pop(context))));
       }),
     ];
 
@@ -750,7 +752,9 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SubmissionDetailsScreen()));
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0284C7),
                     minimumSize: const Size(0, 38),
@@ -766,7 +770,11 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
                 width: 38,
                 height: 38,
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Job removed from saved list'), duration: Duration(seconds: 2)),
+                    );
+                  },
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.zero,
                     side: const BorderSide(color: Color(0xFFBAE6FD)),
@@ -989,7 +997,9 @@ class _JobCard extends StatelessWidget {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SubmissionDetailsScreen()));
+                  },
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7), minimumSize: const Size(0, 36), padding: EdgeInsets.zero, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
                   child: const Text('Apply', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                 ),
@@ -1189,7 +1199,9 @@ class _FreelanceCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const SubmissionDetailsScreen()));
+            },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7), minimumSize: const Size(72, 36), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), padding: const EdgeInsets.symmetric(horizontal: 12)),
             child: const Text('Apply', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
           ),

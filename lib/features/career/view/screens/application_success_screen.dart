@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'mock_interviews_screen.dart';
+import 'jobs_screen.dart';
 
-class ApplicationSuccessScreen extends StatelessWidget {
+class ApplicationSuccessScreen extends StatefulWidget {
   const ApplicationSuccessScreen({super.key});
+
+  @override
+  State<ApplicationSuccessScreen> createState() => _ApplicationSuccessScreenState();
+}
+
+class _ApplicationSuccessScreenState extends State<ApplicationSuccessScreen> {
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +151,11 @@ class ApplicationSuccessScreen extends StatelessWidget {
                           SizedBox(
                             height: 38,
                             child: OutlinedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Opening PDF viewer...')),
+                                );
+                              },
                               style: OutlinedButton.styleFrom(
                                 side: const BorderSide(color: Color(0xFF0284C7), width: 1.2),
                                 minimumSize: Size.zero,
@@ -270,7 +282,9 @@ class ApplicationSuccessScreen extends StatelessWidget {
                               width: double.infinity,
                               height: 44,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => MockInterviewsScreen(onBack: () => Navigator.pop(context))));
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
                                   elevation: 0,
@@ -562,7 +576,9 @@ class ApplicationSuccessScreen extends StatelessWidget {
             width: double.infinity,
             height: 32,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const JobsScreen()));
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF0F9FF),
                 elevation: 0,

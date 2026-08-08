@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import 'interview_details_screen.dart';
 import 'match_peer_screen.dart';
 import 'booked_sessions_screen.dart';
+import 'peer_booking_screen.dart';
 
 
 
@@ -726,7 +727,9 @@ class _CoachRow extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const PeerBookingScreen()));
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE0F2FE),
               elevation: 0,

@@ -443,7 +443,11 @@ class _FreelanceScreenState extends State<FreelanceScreen> {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Opening gig details...')),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     minimumSize: const Size(0, 42),
@@ -539,7 +543,11 @@ class _FreelanceScreenState extends State<FreelanceScreen> {
           ),
           const SizedBox(height: 14),
           OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Loading all projects...')),
+              );
+            },
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: AppColors.primary, width: 1.2),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'job_detail_screen.dart';
+import 'submission_details_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InternshipsScreen — opened when user taps "Internships" chip on Dashboard.
@@ -472,7 +473,9 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SubmissionDetailsScreen()));
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     minimumSize: const Size(0, 42),

@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'interview_details_screen.dart';
+import 'peer_booking_screen.dart';
 
-class BookedSessionsScreen extends StatelessWidget {
+class BookedSessionsScreen extends StatefulWidget {
   const BookedSessionsScreen({super.key});
 
+  @override
+  State<BookedSessionsScreen> createState() => _BookedSessionsScreenState();
+}
+
+class _BookedSessionsScreenState extends State<BookedSessionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,8 +106,12 @@ class BookedSessionsScreen extends StatelessWidget {
                               color: Color(0xFF1E293B),
                             ),
                           ),
-                          TextButton(
-                            onPressed: () {},
+                      TextButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Showing full session history')),
+                          );
+                        },
                             child: const Text(
                               'View All',
                               style: TextStyle(
@@ -281,7 +292,9 @@ class BookedSessionsScreen extends StatelessWidget {
                 child: SizedBox(
                   height: 38,
                   child: ElevatedButton(
-                    onPressed: isLobbyActive ? () {} : null,
+                    onPressed: isLobbyActive ? () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const InterviewDetailsScreen()));
+                    } : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0284C7),
                       disabledBackgroundColor: const Color(0xFFE2E8F0),
@@ -308,7 +321,11 @@ class BookedSessionsScreen extends StatelessWidget {
                 child: SizedBox(
                   height: 38,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Opening reschedule options...')),
+                      );
+                    },
                     child: const Text(
                       'Reschedule',
                       style: TextStyle(
@@ -398,7 +415,9 @@ class BookedSessionsScreen extends StatelessWidget {
           SizedBox(
             height: 28,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const PeerBookingScreen()));
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF0F9FF),
                 elevation: 0,
@@ -511,7 +530,9 @@ class BookedSessionsScreen extends StatelessWidget {
             width: double.infinity,
             height: 32,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const PeerBookingScreen()));
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF0284C7),
                 elevation: 0,

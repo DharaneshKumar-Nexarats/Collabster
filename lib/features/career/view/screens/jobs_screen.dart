@@ -527,7 +527,11 @@ class _JobsScreenState extends State<JobsScreen> {
           ),
           const SizedBox(height: 14),
           OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Loading all available jobs...')),
+              );
+            },
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: AppColors.primary, width: 1.2),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),

@@ -534,7 +534,11 @@ class _CodingSessionScreenState extends State<CodingSessionScreen> {
                     child: SizedBox(
                       height: 48,
                       child: OutlinedButton.icon(
-                        onPressed: () {},
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Running code against test cases...'), duration: Duration(seconds: 2)),
+                          );
+                        },
                         icon: const Icon(Icons.play_arrow_rounded,
                             color: Color(0xFF0284C7), size: 18),
                         label: const Text(

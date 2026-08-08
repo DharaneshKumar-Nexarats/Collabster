@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
-class ManualRecommendationsScreen extends StatelessWidget {
+class ManualRecommendationsScreen extends StatefulWidget {
   const ManualRecommendationsScreen({super.key});
+
+  @override
+  State<ManualRecommendationsScreen> createState() => _ManualRecommendationsScreenState();
+}
+
+class _ManualRecommendationsScreenState extends State<ManualRecommendationsScreen> {
+  final Set<int> _appliedCards = {};
+  final Set<int> _declinedCards = {};
 
   @override
   Widget build(BuildContext context) {
@@ -59,31 +67,43 @@ class ManualRecommendationsScreen extends StatelessWidget {
                       const SizedBox(height: 24),
 
                       // Card 1: EXPERIENCE
-                      const _RecommendationCard(
+                      _RecommendationCard(
                         category: 'EXPERIENCE',
                         currentText:
                             '"Managed a small team of developers to build web applications for various clients."',
                         recommendedText:
                             '"**Spearheaded** a cross-functional team of 6 developers to deliver **enterprise-grade** web applications, resulting in a **25%** increase in operational efficiency** for key clients."',
+                        isApplied: _appliedCards.contains(0),
+                        isDeclined: _declinedCards.contains(0),
+                        onDecline: () => setState(() => _declinedCards.add(0)),
+                        onApply: () => setState(() => _appliedCards.add(0)),
                       ),
                       const SizedBox(height: 16),
 
                       // Card 2: SKILLS
-                      const _RecommendationCard(
+                      _RecommendationCard(
                         category: 'SKILLS',
                         currentText: '"JavaScript, React, CSS, Node.js"',
                         recommendedText:
                             '"**Full-Stack Development**: JavaScript (ES6+), **React.js**, Node.js, **Tailwind CSS**, and **Scalable System Design**."',
+                        isApplied: _appliedCards.contains(1),
+                        isDeclined: _declinedCards.contains(1),
+                        onDecline: () => setState(() => _declinedCards.add(1)),
+                        onApply: () => setState(() => _appliedCards.add(1)),
                       ),
                       const SizedBox(height: 16),
 
                       // Card 3: SUMMARY
-                      const _RecommendationCard(
+                      _RecommendationCard(
                         category: 'SUMMARY',
                         currentText:
                             '"A motivated developer looking for new opportunities to grow and learn in a fast-paced environment."',
                         recommendedText:
                             '"**Results-driven** Software Engineer with **4+ years of experience** specializing in building high-performance SaaS solutions. **Passionate** about optimizing user experiences** and leading high-impact technical projects."',
+                        isApplied: _appliedCards.contains(2),
+                        isDeclined: _declinedCards.contains(2),
+                        onDecline: () => setState(() => _declinedCards.add(2)),
+                        onApply: () => setState(() => _appliedCards.add(2)),
                       ),
                       const SizedBox(height: 24),
                     ],
@@ -134,11 +154,19 @@ class _RecommendationCard extends StatelessWidget {
   final String category;
   final String currentText;
   final String recommendedText;
+  final bool isApplied;
+  final bool isDeclined;
+  final VoidCallback? onDecline;
+  final VoidCallback? onApply;
 
   const _RecommendationCard({
     required this.category,
     required this.currentText,
     required this.recommendedText,
+    this.isApplied = false,
+    this.isDeclined = false,
+    this.onDecline,
+    this.onApply,
   });
 
   @override
@@ -224,21 +252,21 @@ class _RecommendationCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
-                onPressed: () {},
-                child: const Text(
-                  'Decline',
+                onPressed: isApplied || isDeclined ? null : onDecline,
+                child: Text(
+                  isDeclined ? 'Declined' : 'Decline',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey,
+                    color: isDeclined ? Colors.red.shade300 : Colors.grey,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               const SizedBox(width: 12),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: isApplied || isDeclined ? null : onApply,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0284C7),
+                  backgroundColor: isApplied ? const Color(0xFF10B981) : const Color(0xFF0284C7),
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                   minimumSize: Size.zero,
@@ -247,9 +275,9 @@ class _RecommendationCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: const Text(
-                  'Apply Change',
-                  style: TextStyle(
+                child: Text(
+                  isApplied ? 'Applied' : 'Apply Change',
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,

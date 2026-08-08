@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'coding_session_screen.dart';
+import 'session_review_screen.dart';
 
 class InterviewSessionScreen extends StatefulWidget {
   const InterviewSessionScreen({super.key});
@@ -10,6 +11,8 @@ class InterviewSessionScreen extends StatefulWidget {
 }
 
 class _InterviewSessionScreenState extends State<InterviewSessionScreen> {
+  bool _hintRevealed = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -127,12 +130,14 @@ class _InterviewSessionScreenState extends State<InterviewSessionScreen> {
                             ),
                             const SizedBox(height: 18),
                             ElevatedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.lightbulb_outline_rounded,
-                                  color: Color(0xFF0284C7), size: 16),
-                              label: const Text(
-                                'Reveal Hint',
-                                style: TextStyle(
+                              onPressed: () {
+                                setState(() => _hintRevealed = !_hintRevealed);
+                              },
+                              icon: Icon(Icons.lightbulb_outline_rounded,
+                                  color: const Color(0xFF0284C7), size: 16),
+                              label: Text(
+                                _hintRevealed ? 'Hide Hint' : 'Reveal Hint',
+                                style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF0284C7)),
@@ -148,7 +153,12 @@ class _InterviewSessionScreenState extends State<InterviewSessionScreen> {
                             ),
                             const SizedBox(height: 8),
                             TextButton.icon(
-                              onPressed: () {},
+                              onPressed: () {
+                                setState(() => _hintRevealed = false);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Question reloaded'), duration: Duration(seconds: 1)),
+                                );
+                              },
                               icon: const Icon(Icons.refresh_rounded,
                                   color: Colors.grey, size: 16),
                               label: const Text(
@@ -389,7 +399,33 @@ class _InterviewSessionScreenState extends State<InterviewSessionScreen> {
                     width: double.infinity,
                     height: 48,
                     child: OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Stop & Submit?'),
+                            content: const Text('Are you sure you want to end this mock interview session? Your responses will be submitted for review.'),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const SessionReviewScreen()),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7)),
+                                child: const Text('Submit', style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                       icon: const Icon(Icons.stop_circle_outlined,
                           color: Color(0xFF0284C7), size: 18),
                       label: const Text(

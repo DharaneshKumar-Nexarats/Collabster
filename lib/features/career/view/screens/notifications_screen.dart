@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'jobs_screen.dart';
+import 'booked_sessions_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -88,6 +90,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           primaryBtnText: 'Upgrade Now',
                           secondaryBtnText: 'Dismiss',
                           primaryBtnColor: const Color(0xFF0284C7),
+                          onPrimaryTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Opening upgrade page...')),
+                            );
+                          },
+                          onSecondaryTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Notification dismissed')),
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -105,6 +117,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           primaryBtnText: 'Join Lobby',
                           secondaryBtnText: 'View Schedule',
                           primaryBtnColor: const Color(0xFF0284C7),
+                          onPrimaryTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const BookedSessionsScreen()));
+                          },
+                          onSecondaryTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const BookedSessionsScreen()));
+                          },
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -122,6 +140,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           primaryBtnText: 'Quick Apply',
                           secondaryBtnText: 'Dismiss',
                           primaryBtnColor: const Color(0xFF10B981),
+                          onPrimaryTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const JobsScreen()));
+                          },
+                          onSecondaryTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Notification dismissed')),
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -135,10 +161,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           iconBg: const Color(0xFFE0F2FE),
                           title: 'New message from David Chen (Meta)',
                           time: '5h ago',
-                          desc: '“Hi Alex, great performance in our mock! I’ve uploaded your full feedback sheet.”',
+                          desc: '"Hi Alex, great performance in our mock! I\'ve uploaded your full feedback sheet."',
                           primaryBtnText: 'Reply',
                           secondaryBtnText: 'Open Chat',
                           primaryBtnColor: const Color(0xFF0284C7),
+                          onPrimaryTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Opening chat...')),
+                            );
+                          },
+                          onSecondaryTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Opening chat...')),
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -156,6 +192,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           desc: 'The Backend Engineer role you saved at Figma stops accepting responses in 4 hours.',
                           primaryBtnText: 'Apply Now',
                           primaryBtnColor: const Color(0xFFF59E0B),
+                          onPrimaryTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const JobsScreen()));
+                          },
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -171,6 +210,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           time: '2 days ago',
                           desc: 'Stripe has closed the application for Frontend Engineer. Thank you for applying.',
                           secondaryBtnText: 'View Similar Jobs',
+                          onSecondaryTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const JobsScreen()));
+                          },
                         ),
                         const SizedBox(height: 24),
                       ],
@@ -228,6 +270,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     String? primaryBtnText,
     String? secondaryBtnText,
     Color? primaryBtnColor,
+    VoidCallback? onPrimaryTap,
+    VoidCallback? onSecondaryTap,
   }) {
     return Container(
       width: double.infinity,
@@ -305,7 +349,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   SizedBox(
                     height: 32,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: onPrimaryTap ?? () {},
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryBtnColor ?? const Color(0xFF0284C7),
                         elevation: 0,
@@ -330,7 +374,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ],
                 if (secondaryBtnText != null)
                   TextButton(
-                    onPressed: () {},
+                    onPressed: onSecondaryTap ?? () {},
                     style: TextButton.styleFrom(
                       minimumSize: Size.zero,
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
