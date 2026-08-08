@@ -5,7 +5,7 @@ import 'join_startup_screen.dart';
 import 'startup_registration_flow_screen.dart';
 
 class StartupLandingScreen extends StatelessWidget {
-  const StartupLandingScreen({super.key, this.selectedRole = 'Founder'});
+  const StartupLandingScreen({super.key, this.selectedRole = 'Startup'});
 
   final String selectedRole;
 

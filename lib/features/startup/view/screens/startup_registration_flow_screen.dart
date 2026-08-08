@@ -15,7 +15,7 @@ import 'startup_success_screen.dart';
 class StartupRegistrationFlowScreen extends ConsumerStatefulWidget {
   const StartupRegistrationFlowScreen({
     super.key,
-    this.selectedRole = 'Founder',
+    this.selectedRole = 'Startup',
   });
 
   final String selectedRole;

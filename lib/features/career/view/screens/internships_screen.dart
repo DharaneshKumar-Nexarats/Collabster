@@ -7,8 +7,8 @@ import 'job_detail_screen.dart';
 // Pixel-perfect match to the provided screenshot.
 // ═══════════════════════════════════════════════════════════════════════════
 class InternshipsScreen extends StatefulWidget {
-  final VoidCallback onBack;
-  const InternshipsScreen({super.key, required this.onBack});
+  final VoidCallback? onBack;
+  const InternshipsScreen({super.key, this.onBack});
 
   @override
   State<InternshipsScreen> createState() => _InternshipsScreenState();
@@ -46,94 +46,51 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(context),
-          _buildBody(),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.primary),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Discover Internships',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF111827),
+          ),
+        ),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.primary),
+            onPressed: () {},
+          ),
         ],
+      ),
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildBody(),
+          ],
+        ),
       ),
     );
   }
 
-  // ── Header ──────────────────────────────────────────────────────────────
-  Widget _buildHeader(BuildContext context) {
+  // ── Body ────────────────────────────────────────────────────────────────
+  Widget _buildBody() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Navigation Row
-          Row(
-            children: [
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: AppColors.primary,
-                  size: 24,
-                ),
-                onPressed: widget.onBack,
-              ),
-              const Spacer(),
-              SizedBox(
-                width: 36,
-                height: 36,
-                child: Stack(
-                  children: [
-                    const Center(
-                      child: Icon(
-                        Icons.notifications_none_rounded,
-                        color: AppColors.primary,
-                        size: 26,
-                      ),
-                    ),
-                    Positioned(
-                      right: 2,
-                      top: 2,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFBBF24),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              const CircleAvatar(
-                radius: 18,
-                backgroundImage:
-                    NetworkImage('https://i.pravatar.cc/150?img=47'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Title
-          const Text(
-            'Discover Internships',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
-              letterSpacing: -0.4,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            'Find opportunities tailored to your career  goals.',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-          ),
-          const SizedBox(height: 18),
-
-          // Search bar
+          // ── Search bar ──────────────────────────────────────────────────
           Container(
             height: 48,
             decoration: BoxDecoration(
@@ -144,18 +101,14 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
             child: Row(
               children: [
                 const SizedBox(width: 14),
-                Icon(Icons.search_rounded,
-                    color: Colors.grey.shade400, size: 20),
+                Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Search jobs, internships, freelance...',
+                    'Search internships...',
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
                   ),
                 ),
                 Container(
@@ -165,15 +118,14 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
                     color: const Color(0xFFEDE9FF),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.tune_rounded,
-                      color: AppColors.primary, size: 16),
+                  child: const Icon(Icons.tune_rounded, color: AppColors.primary, size: 16),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
 
-          // Filter chips
+          // ── Filter chips ────────────────────────────────────────────────
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -184,17 +136,12 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     margin: const EdgeInsets.only(right: 10),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 9),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
                     decoration: BoxDecoration(
-                      color: selected
-                          ? AppColors.primary
-                          : Colors.white,
+                      color: selected ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(
-                        color: selected
-                            ? AppColors.primary
-                            : const Color(0xFFD1CBFF),
+                        color: selected ? AppColors.primary : const Color(0xFFD1CBFF),
                         width: 1.3,
                       ),
                     ),
@@ -212,18 +159,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
             ),
           ),
           const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
 
-  // ── Body ────────────────────────────────────────────────────────────────
-  Widget _buildBody() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
           // ── Featured Card (purple gradient) ─────────────────────────────
           _buildFeaturedCard(),
           const SizedBox(height: 26),
