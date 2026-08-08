@@ -29,6 +29,7 @@ export 'view/screens/booked_sessions_screen.dart';
 export 'view/screens/notifications_screen.dart';
 export 'view/screens/live_session_screen.dart';
 export 'view/screens/session_feedback_screen.dart';
+export 'view/widgets/career_search_bar.dart';
 
 
 

@@ -13,6 +13,7 @@ import 'mock_interviews_screen.dart';
 import 'notifications_screen.dart';
 import 'saved_jobs_screen.dart';
 import 'submission_details_screen.dart';
+import 'applied_applications_screen.dart';
 
 class CareerDashboardScreen extends ConsumerStatefulWidget {
   const CareerDashboardScreen({super.key});
@@ -162,7 +163,7 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
   Widget build(BuildContext context) {
     final pages = [
       _buildHomeContent(),
-      _buildJobsPage(),
+      _buildAppliedJobsPage(),
       const SizedBox.shrink(),
       _buildSavedPage(),
       const SizedBox.shrink(),
@@ -362,7 +363,9 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
               const SizedBox(height: 24),
 
               // Opportunity Feed
-              _buildSectionHeader('Opportunity Feed', 'View all'),
+              _buildSectionHeader('Opportunity Feed', 'View all', onCtaTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const JobsScreen()));
+              }),
               const SizedBox(height: 4),
               Text('Based on your skills in UI & React', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
               const SizedBox(height: 14),
@@ -398,7 +401,9 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
               const SizedBox(height: 26),
 
               // Build your resume
-              _buildSectionHeader('Build your resume', 'View All'),
+              _buildSectionHeader('Build your resume', 'View All', onCtaTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ResumeScreen()));
+              }),
               const SizedBox(height: 14),
               SizedBox(
                 height: 220,
@@ -424,7 +429,9 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
               const SizedBox(height: 26),
 
               // Practice for Interviews
-              _buildSectionHeader('Practice for Interviews', 'View All'),
+              _buildSectionHeader('Practice for Interviews', 'View All', onCtaTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => MockInterviewsScreen(onBack: () => Navigator.pop(context))));
+              }),
               const SizedBox(height: 14),
               SizedBox(
                 height: 160,
@@ -452,7 +459,9 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
               const SizedBox(height: 26),
 
               // Freelance Picks
-              _buildSectionHeader('Freelance Picks', 'View All'),
+              _buildSectionHeader('Freelance Picks', 'View All', onCtaTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const FreelanceScreen()));
+              }),
               const SizedBox(height: 14),
               const _FreelanceCard(
                 title: 'E-commerce Landing Page',
@@ -583,12 +592,16 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
   }
 
   // ── Section Header ──────────────────────────────────────────────────
-  Widget _buildSectionHeader(String title, String? cta) {
+  Widget _buildSectionHeader(String title, String? cta, {VoidCallback? onCtaTap}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF111827), letterSpacing: -0.2)),
-        if (cta != null) Text(cta, style: const TextStyle(fontSize: 13, color: Color(0xFF0284C7), fontWeight: FontWeight.w600)),
+        if (cta != null)
+          GestureDetector(
+            onTap: onCtaTap ?? () {},
+            child: Text(cta, style: const TextStyle(fontSize: 13, color: Color(0xFF0284C7), fontWeight: FontWeight.w600)),
+          ),
       ],
     );
   }
@@ -607,7 +620,11 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
     return Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.2));
   }
 
-  Widget _buildJobsPage() => const JobsScreen();
+  Widget _buildAppliedJobsPage() {
+    return AppliedApplicationsScreen(
+      onBack: () => setState(() => _selectedIndex = 0),
+    );
+  }
 
   Widget _buildSavedPage() {
     final savedJobs = [
@@ -1250,7 +1267,7 @@ class _BottomNavBar extends StatelessWidget {
                   child: Row(
                     children: [
                       _navItem(0, Icons.home_outlined, Icons.home_rounded, 'Home'),
-                      _navItem(1, Icons.work_outline_rounded, Icons.work_rounded, 'Jobs'),
+                      _navItem(1, Icons.work_outline_rounded, Icons.work_rounded, 'Applied Job'),
                       SizedBox(width: _fabSize + 12),
                       _navItem(3, Icons.bookmark_outline_rounded, Icons.bookmark_rounded, 'Saved'),
                       _navItem(4, Icons.person_outline, Icons.person, 'Profile'),

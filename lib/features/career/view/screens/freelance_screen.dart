@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../widgets/career_search_bar.dart';
 
 class FreelanceScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -12,6 +13,7 @@ class FreelanceScreen extends StatefulWidget {
 class _FreelanceScreenState extends State<FreelanceScreen> {
   int _selectedFilter = 0;
   final List<String> _filters = ['All Roles', 'Remote', 'Paid', 'Hybrid'];
+  final TextEditingController _searchController = TextEditingController();
 
   static const _gigs = [
     _GigItem(
@@ -51,6 +53,31 @@ class _FreelanceScreenState extends State<FreelanceScreen> {
       tags: ['API Docs', 'Cybersecurity'],
     ),
   ];
+
+  List<_GigItem> get _filteredGigs {
+    final query = _searchController.text.trim().toLowerCase();
+    final filter = _filters[_selectedFilter].toLowerCase();
+
+    return _gigs.where((gig) {
+      if (filter == 'remote' && gig.badge != 'REMOTE') {
+        return false;
+      }
+      if (filter == 'hybrid' && gig.badge != 'HYBRID') {
+        return false;
+      }
+      if (filter == 'paid' && gig.budget.isEmpty) {
+        return false;
+      }
+
+      if (query.isEmpty) return true;
+      final titleMatch = gig.title.toLowerCase().contains(query);
+      final companyMatch = gig.company.toLowerCase().contains(query);
+      final durationMatch = gig.duration.toLowerCase().contains(query);
+      final tagMatch = gig.tags.any((t) => t.toLowerCase().contains(query));
+
+      return titleMatch || companyMatch || durationMatch || tagMatch;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,42 +146,19 @@ class _FreelanceScreenState extends State<FreelanceScreen> {
           const SizedBox(height: 18),
 
           // Search bar
-          Container(
-            height: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF7F9FC),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 14),
-                Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Search jobs, internships, freelance...',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0F2FE),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.tune_rounded, color: AppColors.primary, size: 16),
-                ),
-              ],
-            ),
+          CareerSearchBar(
+            controller: _searchController,
+            hintText: 'Search freelance gigs, skills, clients...',
+            hasActiveFilter: _selectedFilter != 0,
+            onChanged: (value) => setState(() {}),
+            onFilterTap: () {
+              setState(() {
+                _selectedFilter = (_selectedFilter + 1) % _filters.length;
+              });
+            },
           ),
           const SizedBox(height: 16),
+
 
           // Filter chips
           SingleChildScrollView(
@@ -196,6 +200,8 @@ class _FreelanceScreenState extends State<FreelanceScreen> {
   }
 
   Widget _buildBody() {
+    final filtered = _filteredGigs;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: Column(
@@ -204,35 +210,49 @@ class _FreelanceScreenState extends State<FreelanceScreen> {
           // Featured Gigs Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children: [
               Text(
-                'Featured Gigs',
-                style: TextStyle(
+                _searchController.text.isNotEmpty || _selectedFilter != 0
+                    ? 'Search Results (${filtered.length})'
+                    : 'Featured Gigs',
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF111827),
                   letterSpacing: -0.2,
                 ),
               ),
-              Text(
-                'View All',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _searchController.clear();
+                    _selectedFilter = 0;
+                  });
+                },
+                child: const Text(
+                  'Reset',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 14),
 
-          // Gig Cards
-          ..._gigs.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: _buildGigCard(item),
-              )),
+          // Gig Cards or Empty State
+          if (filtered.isNotEmpty)
+            ...filtered.map((item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildGigCard(item),
+                ))
+          else
+            _buildEmptyState(),
 
           const SizedBox(height: 16),
+
 
           // Top Hiring Clients Header
           const Text(
@@ -561,6 +581,45 @@ class _FreelanceScreenState extends State<FreelanceScreen> {
                 color: AppColors.primary,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(
+              color: Color(0xFFE0F2FE),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.search_off_rounded, color: Color(0xFF0284C7), size: 28),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'No matching freelance gigs found',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Try searching with a different term or clear filters.',
+            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
           ),
         ],
       ),

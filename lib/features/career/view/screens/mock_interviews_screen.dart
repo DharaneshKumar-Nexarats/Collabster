@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../../../../core/theme/app_colors.dart';
+import '../widgets/career_search_bar.dart';
 import 'interview_details_screen.dart';
 import 'match_peer_screen.dart';
 import 'booked_sessions_screen.dart';
 import 'peer_booking_screen.dart';
-
-
-
 
 class MockInterviewsScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -20,6 +18,7 @@ class MockInterviewsScreen extends StatefulWidget {
 class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
   int _selectedFilter = 0; // 0=All, 1=Technical, 2=HR, 3=Behavioral, 4=Case Study
   final List<String> _filters = ['All', 'Technical', 'HR', 'Behavioral', 'Case Study'];
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -50,28 +49,19 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Search Bar
-              Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF7F9FC),
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
-                ),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 16),
-                    Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Search templates...',
-                        style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                      ),
-                    ),
-                  ],
-                ),
+              CareerSearchBar(
+                controller: _searchController,
+                hintText: 'Search interview templates, topics, or coaches...',
+                hasActiveFilter: _selectedFilter != 0,
+                onChanged: (value) => setState(() {}),
+                onFilterTap: () {
+                  setState(() {
+                    _selectedFilter = (_selectedFilter + 1) % _filters.length;
+                  });
+                },
               ),
               const SizedBox(height: 16),
+
 
               // Filter Chips (scrollable)
               SingleChildScrollView(

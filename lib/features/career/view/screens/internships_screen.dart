@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../widgets/career_search_bar.dart';
 import 'job_detail_screen.dart';
 import 'submission_details_screen.dart';
 
@@ -18,6 +19,7 @@ class InternshipsScreen extends StatefulWidget {
 class _InternshipsScreenState extends State<InternshipsScreen> {
   int _selectedFilter = 0; // 0=All Roles, 1=Remote, 2=Paid, 3=Hybrid
   final List<String> _filters = ['All Roles', 'Remote', 'Paid', 'Hybrid'];
+  final TextEditingController _searchController = TextEditingController();
 
   // ── Internship listings ─────────────────────────────────────────────────
   static const _internships = [
@@ -44,6 +46,31 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
       badgeBg: Color(0xFFE0F2FE),
     ),
   ];
+
+  List<_Internship> get _filteredInternships {
+    final query = _searchController.text.trim().toLowerCase();
+    final filter = _filters[_selectedFilter].toLowerCase();
+
+    return _internships.where((item) {
+      if (filter == 'remote' && item.badge != 'REMOTE' && !item.location.toLowerCase().contains('remote')) {
+        return false;
+      }
+      if (filter == 'hybrid' && item.badge != 'HYBRID' && !item.location.toLowerCase().contains('hybrid')) {
+        return false;
+      }
+      if (filter == 'paid' && item.salary.isEmpty) {
+        return false;
+      }
+
+      if (query.isEmpty) return true;
+      final titleMatch = item.title.toLowerCase().contains(query);
+      final companyMatch = item.company.toLowerCase().contains(query);
+      final locationMatch = item.location.toLowerCase().contains(query);
+      final tagMatch = item.tags.any((t) => t.toLowerCase().contains(query));
+
+      return titleMatch || companyMatch || locationMatch || tagMatch;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,45 +107,27 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
 
   // ── Body ────────────────────────────────────────────────────────────────
   Widget _buildBody() {
+    final filtered = _filteredInternships;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Search bar ──────────────────────────────────────────────────
-          Container(
-            height: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF7F9FC),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 14),
-                Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Search internships...',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0F2FE),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.tune_rounded, color: AppColors.primary, size: 16),
-                ),
-              ],
-            ),
+          CareerSearchBar(
+            controller: _searchController,
+            hintText: 'Search internships, roles, or companies...',
+            hasActiveFilter: _selectedFilter != 0,
+            onChanged: (value) => setState(() {}),
+            onFilterTap: () {
+              setState(() {
+                _selectedFilter = (_selectedFilter + 1) % _filters.length;
+              });
+            },
           ),
           const SizedBox(height: 16),
+
 
           // ── Filter chips ────────────────────────────────────────────────
           SingleChildScrollView(
@@ -172,27 +181,76 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
                   letterSpacing: -0.2,
                 ),
               ),
-              Text(
-                'View All',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Showing all internships...')),
+                  );
+                },
+                child: const Text(
+                  'View All',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 14),
 
-          // Internship cards
-          ..._internships.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: _buildInternshipCard(item),
-              )),
+          // Internship cards or Empty state
+          if (filtered.isNotEmpty)
+            ...filtered.map((item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: _buildInternshipCard(item),
+                ))
+          else
+            _buildEmptyState(),
         ],
       ),
     );
   }
+
+  Widget _buildEmptyState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(
+              color: Color(0xFFE0F2FE),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.search_off_rounded, color: Color(0xFF0284C7), size: 28),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'No matching internships found',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Try searching with a different term or clear filters.',
+            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   // ── Featured Card ────────────────────────────────────────────────────────
   Widget _buildFeaturedCard() {

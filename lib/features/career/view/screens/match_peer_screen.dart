@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../widgets/career_search_bar.dart';
 import 'peer_booking_screen.dart';
-
 
 class MatchPeerScreen extends StatefulWidget {
   const MatchPeerScreen({super.key});
@@ -13,6 +13,7 @@ class MatchPeerScreen extends StatefulWidget {
 class _MatchPeerScreenState extends State<MatchPeerScreen> {
   int _selectedDomain = 0; // 0 = All, 1 = Frontend, 2 = Backend, 3 = Data Science
   final Set<String> _selectedSkills = {'JavaScript', 'Node.js'};
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -107,32 +108,20 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
                       const SizedBox(height: 14),
 
                       // Search bar
-                      Container(
-                        height: 46,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF9F9FB),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.grey.shade200, width: 1.2),
-                        ),
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 14),
-                            Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: TextField(
-                                decoration: InputDecoration(
-                                  hintText: 'Search specific skill or framework...',
-                                  hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      CareerSearchBar(
+                        controller: _searchController,
+                        hintText: 'Search specific skill, framework, or peer...',
+                        hasActiveFilter: _selectedDomain != 0,
+                        showFilterButton: true,
+                        onChanged: (value) => setState(() {}),
+                        onFilterTap: () {
+                          setState(() {
+                            _selectedDomain = (_selectedDomain + 1) % 4;
+                          });
+                        },
                       ),
                       const SizedBox(height: 16),
+
 
                       // Domain Filter chips
                       SingleChildScrollView(
