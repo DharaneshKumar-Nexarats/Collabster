@@ -1,0 +1,621 @@
+import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
+import 'job_detail_screen.dart';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// InternshipsScreen — opened when user taps "Internships" chip on Dashboard.
+// Pixel-perfect match to the provided screenshot.
+// ═══════════════════════════════════════════════════════════════════════════
+class InternshipsScreen extends StatefulWidget {
+  final VoidCallback onBack;
+  const InternshipsScreen({super.key, required this.onBack});
+
+  @override
+  State<InternshipsScreen> createState() => _InternshipsScreenState();
+}
+
+class _InternshipsScreenState extends State<InternshipsScreen> {
+  int _selectedFilter = 0; // 0=All Roles, 1=Remote, 2=Paid, 3=Hybrid
+  final List<String> _filters = ['All Roles', 'Remote', 'Paid', 'Hybrid'];
+
+  // ── Internship listings ─────────────────────────────────────────────────
+  static const _internships = [
+    _Internship(
+      logo: Icons.code_rounded,
+      title: 'Frontend Developer',
+      salary: '\$4,500 - \$6,000/mo',
+      company: 'Google',
+      location: 'California',
+      tags: ['React', 'Tailwind'],
+      badge: 'ON-SITE',
+      badgeFg: Color(0xFF15803D),
+      badgeBg: Color(0xFFDCFCE7),
+    ),
+    _Internship(
+      logo: Icons.design_services_outlined,
+      title: 'UI/UX Designer',
+      salary: '\$3,500 - \$5,000/mo',
+      company: 'Stripe',
+      location: 'Remote',
+      tags: ['Figma', 'Design Systems'],
+      badge: 'REMOTE',
+      badgeFg: Color(0xFF9333EA),
+      badgeBg: Color(0xFFF3E8FF),
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(context),
+          _buildBody(),
+        ],
+      ),
+    );
+  }
+
+  // ── Header ──────────────────────────────────────────────────────────────
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Navigation Row
+          Row(
+            children: [
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
+                onPressed: widget.onBack,
+              ),
+              const Spacer(),
+              SizedBox(
+                width: 36,
+                height: 36,
+                child: Stack(
+                  children: [
+                    const Center(
+                      child: Icon(
+                        Icons.notifications_none_rounded,
+                        color: AppColors.primary,
+                        size: 26,
+                      ),
+                    ),
+                    Positioned(
+                      right: 2,
+                      top: 2,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFBBF24),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              const CircleAvatar(
+                radius: 18,
+                backgroundImage:
+                    NetworkImage('https://i.pravatar.cc/150?img=47'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Title
+          const Text(
+            'Discover Internships',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF111827),
+              letterSpacing: -0.4,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            'Find opportunities tailored to your career  goals.',
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+          ),
+          const SizedBox(height: 18),
+
+          // Search bar
+          Container(
+            height: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7F7FB),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE5E0FF), width: 1.2),
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 14),
+                Icon(Icons.search_rounded,
+                    color: Colors.grey.shade400, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Search jobs, internships, freelance...',
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: Colors.grey.shade400,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(right: 10),
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEDE9FF),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.tune_rounded,
+                      color: AppColors.primary, size: 16),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Filter chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.generate(_filters.length, (i) {
+                final selected = _selectedFilter == i;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedFilter = i),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    margin: const EdgeInsets.only(right: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppColors.primary
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(
+                        color: selected
+                            ? AppColors.primary
+                            : const Color(0xFFD1CBFF),
+                        width: 1.3,
+                      ),
+                    ),
+                    child: Text(
+                      _filters[i],
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: selected ? Colors.white : const Color(0xFF5B4FCF),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  // ── Body ────────────────────────────────────────────────────────────────
+  Widget _buildBody() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Featured Card (purple gradient) ─────────────────────────────
+          _buildFeaturedCard(),
+          const SizedBox(height: 26),
+
+          // ── All Internships ──────────────────────────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'All internships',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF111827),
+                  letterSpacing: -0.2,
+                ),
+              ),
+              Text(
+                'View All',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Internship cards
+          ..._internships.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _buildInternshipCard(item),
+              )),
+        ],
+      ),
+    );
+  }
+
+  // ── Featured Card ────────────────────────────────────────────────────────
+  Widget _buildFeaturedCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF7C3AED), Color(0xFF5145E0)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Icon + Match badge
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.rocket_launch_rounded,
+                  color: Colors.white,
+                  size: 26,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '✦ 95% Match',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF5145E0),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Company + Featured label
+          Text(
+            'STRIPE  •  FEATURED',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withOpacity(0.65),
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 6),
+
+          // Job title
+          const Text(
+            'Product Design Intern',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Salary + Duration
+          Row(
+            children: [
+              const Icon(Icons.account_balance_wallet_outlined,
+                  color: Colors.white70, size: 16),
+              const SizedBox(width: 5),
+              Text(
+                '\$4,500/mo',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Icon(Icons.access_time_rounded,
+                  color: Colors.white70, size: 16),
+              const SizedBox(width: 5),
+              Text(
+                '6 Months',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Apply Now button
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  SmoothRightToLeftPageRoute(
+                    builder: (context) => const InternshipDetailsScreen(),
+                  ),
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.white, width: 1.5),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                backgroundColor: Colors.white,
+              ),
+              child: const Text(
+                'Apply Now',
+                style: TextStyle(
+                  color: Color(0xFF5145E0),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Internship Card ───────────────────────────────────────────────────────
+  Widget _buildInternshipCard(_Internship item) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Logo + title + badge
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F0FF),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(item.logo,
+                    color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF111827),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 9, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: item.badgeBg,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            item.badge,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: item.badgeFg,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    // Salary
+                    Text(
+                      item.salary,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    // Company · Location
+                    Text(
+                      '${item.company} • ${item.location}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Tags
+          Row(
+            children: item.tags.map((tag) {
+              return Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0EDFF),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  tag,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 14),
+
+          // Apply + Bookmark
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    minimumSize: const Size(0, 42),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    'Apply',
+                    style: TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFD8D2FF)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.bookmark_border_rounded,
+                    size: 18, color: AppColors.primary),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Data class ───────────────────────────────────────────────────────────────
+class _Internship {
+  final IconData logo;
+  final String title, salary, company, location, badge;
+  final List<String> tags;
+  final Color badgeFg, badgeBg;
+  const _Internship({
+    required this.logo,
+    required this.title,
+    required this.salary,
+    required this.company,
+    required this.location,
+    required this.tags,
+    required this.badge,
+    required this.badgeFg,
+    required this.badgeBg,
+  });
+}
+
+class SmoothRightToLeftPageRoute<T> extends MaterialPageRoute<T> {
+  SmoothRightToLeftPageRoute({required super.builder, super.settings});
+
+  @override
+  Widget buildTransitions(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return SlideTransition(
+      position: Tween<Offset>(
+        begin: const Offset(1.0, 0.0),
+        end: Offset.zero,
+      ).animate(
+        CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeInOut,
+        ),
+      ),
+      child: child,
+    );
+  }
+}
