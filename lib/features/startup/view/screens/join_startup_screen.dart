@@ -1,39 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/di/providers.dart';
+import '../../model/startup_models.dart';
+import '../../viewmodel/join_startup_viewmodel.dart';
 import 'join_startup_verification_screen.dart';
 
-class JoinStartupScreen extends StatefulWidget {
+
+class JoinStartupScreen extends ConsumerStatefulWidget {
   const JoinStartupScreen({super.key});
 
   @override
-  State<JoinStartupScreen> createState() => _JoinStartupScreenState();
+  ConsumerState<JoinStartupScreen> createState() => _JoinStartupScreenState();
 }
 
-class _JoinStartupScreenState extends State<JoinStartupScreen> {
+class _JoinStartupScreenState extends ConsumerState<JoinStartupScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedMode = 'Startup Name';
-  final String _selectedStartup = 'NexusAI';
-
-  final List<_SuggestedStartup> _suggestedStartups = const [
-    _SuggestedStartup(
-      name: 'NexusAI',
-      industry: 'Artificial Intelligence',
-      location: 'San Francisco',
-      teamMembers: 48,
-    ),
-    _SuggestedStartup(
-      name: 'FlowPay',
-      industry: 'Fintech',
-      location: 'London',
-      teamMembers: 124,
-    ),
-    _SuggestedStartup(
-      name: 'VitaLife',
-      industry: 'HealthTech',
-      location: 'Berlin',
-      teamMembers: 32,
-    ),
-  ];
+  final JoinStartupViewModel _viewModel = JoinStartupViewModel();
+  bool _showAll = false;
+  SuggestedStartup? _selectedStartup;
 
   @override
   void dispose() {
@@ -41,151 +26,288 @@ class _JoinStartupScreenState extends State<JoinStartupScreen> {
     super.dispose();
   }
 
-  void _openVerification([String? startupName]) {
-    final selected = startupName ?? _selectedStartup;
+  void _openVerification(SuggestedStartup startup) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => JoinStartupVerificationScreen(startupName: selected),
+        builder: (_) => JoinStartupVerificationScreen(startup: startup),
       ),
     );
   }
 
-  void _showSnack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  String get _searchHint {
+    switch (_viewModel.selectedMode) {
+      case 'Industry':
+        return 'Search by industry (AI, Fintech, HealthTech...)';
+      case 'Location':
+        return 'Search by city or country...';
+      case 'Stage':
+        return 'Search by stage (Seed, Series A...)';
+      default:
+        return 'Search startups...';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredStartups = _filteredStartups;
+    // Merge user-created startups (from registry) with the hardcoded seeds.
+    final registryStartups = ref.watch(startupRegistryProvider);
+    final allStartups = [...registryStartups, ..._viewModel.suggestedStartups];
+    final filtered = _viewModel.filterStartups(_searchController.text, allStartups);
+    final displayed = _showAll ? filtered : filtered.take(3).toList();
+
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F5FF),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F5FF),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF5B21B6)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        automaticallyImplyLeading: false,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Join Existing Startup',
-                style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w800,
-                  height: 1.1,
-                  color: Color(0xFF12233D),
+      backgroundColor: const Color(0xFFF6F3FF),
+      body: CustomScrollView(
+        slivers: [
+          // Header gradient
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF4A0E8F),
+                    Color(0xFF6D28D9),
+                    Color(0xFF5B21B6),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Search for the startup you want to join. You can search using the startup name, startup ID, invitation code, or website.',
-                style: TextStyle(
-                  fontSize: 14.5,
-                  height: 1.5,
-                  color: Color(0xFF5D6472),
-                ),
-              ),
-              const SizedBox(height: 18),
-              TextFormField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search Startup',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      _searchController.clear();
-                      setState(() {});
-                    },
-                    icon: const Icon(Icons.close),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Join Existing Startup',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Search for the startup you want to join by name, ID, invitation code, or website.',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Search bar
+                      TextField(
+                        controller: _searchController,
+                        onChanged: (_) => setState(() {}),
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: _searchHint,
+                          hintStyle: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? GestureDetector(
+                                  onTap: () {
+                                    _searchController.clear();
+                                    setState(() {});
+                                  },
+                                  child: Icon(
+                                    Icons.close,
+                                    color: Colors.white.withValues(alpha: 0.7),
+                                  ),
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.15),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                onChanged: (_) => setState(() {}),
               ),
-              const SizedBox(height: 18),
-              const Text(
-                'Quick Join Options',
-                style: TextStyle(
-                  fontSize: 12,
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF8C8FA0),
+            ),
+          ),
+
+          // Body content
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Quick Join Options
+                const Text(
+                  'QUICK JOIN OPTIONS',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF9CA3AF),
+                    letterSpacing: 1.2,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1.2,
-                children: [
-                  _quickOption('Startup Name', Icons.domain_add_outlined, () {
-                    setState(() {
-                      _selectedMode = 'Startup Name';
-                    });
-                    _showSnack('Search by startup name selected');
-                  }),
-                  _quickOption('Invitation Code', Icons.key_outlined, () {
-                    setState(() {
-                      _selectedMode = 'Invitation Code';
-                    });
-                    _showSnack('Invitation code selected');
-                  }),
-                  _quickOption('Scan QR Code', Icons.qr_code_scanner_outlined, () {
-                    _showSnack('QR scanner coming soon');
-                  }),
-                  _quickOption('Org Email', Icons.alternate_email, () {
-                    setState(() {
-                      _selectedMode = 'Org Email';
-                    });
-                    _showSnack('Organizational email selected');
-                  }),
-                ],
-              ),
-              const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Suggested Startups',
-                    style: TextStyle(
-                      fontSize: 12,
-                      letterSpacing: 1.1,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF8C8FA0),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _quickOptionCard(
+                        icon: Icons.domain_add_outlined,
+                        label: 'Startup Name',
+                        subtitle: 'Search by name',
+                        selected: _viewModel.selectedMode == 'Startup Name',
+                        onTap: () {
+                          _viewModel.selectMode('Startup Name');
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _quickOptionCard(
+                        icon: Icons.category_outlined,
+                        label: 'Industry',
+                        subtitle: 'AI, Fintech, Health...',
+                        selected: _viewModel.selectedMode == 'Industry',
+                        onTap: () {
+                          _viewModel.selectMode('Industry');
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _quickOptionCard(
+                        icon: Icons.location_on_outlined,
+                        label: 'Location',
+                        subtitle: 'City or country',
+                        selected: _viewModel.selectedMode == 'Location',
+                        onTap: () {
+                          _viewModel.selectMode('Location');
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _quickOptionCard(
+                        icon: Icons.trending_up_rounded,
+                        label: 'Stage',
+                        subtitle: 'Seed, Series A...',
+                        selected: _viewModel.selectedMode == 'Stage',
+                        onTap: () {
+                          _viewModel.selectMode('Stage');
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Suggested Startups
+                Row(
+                  children: [
+                    const Text(
+                      'SUGGESTED STARTUPS',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF9CA3AF),
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (filtered.length > 3)
+                      TextButton(
+                        onPressed: () => setState(() => _showAll = !_showAll),
+                        child: Text(
+                          _showAll ? 'Show Less' : 'View All (${filtered.length})',
+                          style: const TextStyle(
+                            color: Color(0xFF5B21B6),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ...displayed.map(
+                  (startup) => _StartupCard(
+                    startup: startup,
+                    isSelected: _selectedStartup?.name == startup.name,
+                    onTap: () => setState(() {
+                      _selectedStartup = startup;
+                    }),
+                    onContinue: () => _openVerification(startup),
+                  ),
+                ),
+
+                if (filtered.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.search_off_outlined,
+                            size: 48,
+                            color: Color(0xFFD1D5DB),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No startups found for "${_searchController.text}"',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color(0xFF9CA3AF),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  TextButton(
-                    onPressed: () => _showSnack('View all coming soon'),
-                    child: const Text('View All'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 2),
-              ...filteredStartups.map((startup) => _startupCard(startup)),
-              const SizedBox(height: 8),
-              Text(
-                'Selected mode: $_selectedMode',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF5B21B6),
-                ),
-              ),
-            ],
+              ]),
+            ),
           ),
-        ),
+        ],
       ),
       bottomNavigationBar: SafeArea(
         top: false,
@@ -193,7 +315,7 @@ class _JoinStartupScreenState extends State<JoinStartupScreen> {
           padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
           decoration: const BoxDecoration(
             color: Colors.white,
-            border: Border(top: BorderSide(color: Color(0xFFD9D5E9))),
+            border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
           ),
           child: Row(
             children: [
@@ -202,30 +324,47 @@ class _JoinStartupScreenState extends State<JoinStartupScreen> {
                   onPressed: () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(54),
-                    foregroundColor: const Color(0xFF3B3B4F),
-                    side: const BorderSide(color: Color(0xFFB7B5C9)),
+                    foregroundColor: const Color(0xFF374151),
+                    side: const BorderSide(color: Color(0xFFD1D5DB)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text('Back', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Text(
+                    'Back',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
-                  onPressed: () => _openVerification(),
+                  onPressed: _selectedStartup != null ? () => _openVerification(_selectedStartup!) : null,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(54),
                     elevation: 0,
                     backgroundColor: const Color(0xFF5B21B6),
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: const Color(0xFF9CA3AF),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text('Next Step', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Next Step',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                      SizedBox(width: 6),
+                      Icon(Icons.arrow_forward_rounded, size: 18),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -235,49 +374,79 @@ class _JoinStartupScreenState extends State<JoinStartupScreen> {
     );
   }
 
-  List<_SuggestedStartup> get _filteredStartups {
-    final query = _searchController.text.trim().toLowerCase();
-    if (query.isEmpty) {
-      return _suggestedStartups;
-    }
-
-    return _suggestedStartups.where((startup) {
-      return startup.name.toLowerCase().contains(query) ||
-          startup.industry.toLowerCase().contains(query) ||
-          startup.location.toLowerCase().contains(query);
-    }).toList();
-  }
-
-  Widget _quickOption(String label, IconData icon, VoidCallback onTap) {
+  Widget _quickOptionCard({
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFFD7D5E5)),
-        ),
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8DBFF),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: const Color(0xFF5B21B6), size: 22),
+          color: selected ? const Color(0xFFEDE9FE) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? const Color(0xFF5B21B6) : const Color(0xFFE5E7EB),
+            width: selected ? 1.5 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: selected
+                  ? const Color(0xFF5B21B6).withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
-            const SizedBox(height: 10),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? const Color(0xFF5B21B6).withValues(alpha: 0.15)
+                        : const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: selected ? const Color(0xFF5B21B6) : const Color(0xFF6B7280),
+                    size: 18,
+                  ),
+                ),
+                const Spacer(),
+                if (selected)
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: Color(0xFF5B21B6),
+                    size: 18,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
             Text(
               label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 12,
+              style: TextStyle(
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF12233D),
+                color: selected ? const Color(0xFF5B21B6) : const Color(0xFF12233D),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 11,
+                color: selected ? const Color(0xFF7C3AED).withValues(alpha: 0.7) : const Color(0xFF9CA3AF),
               ),
             ),
           ],
@@ -285,93 +454,205 @@ class _JoinStartupScreenState extends State<JoinStartupScreen> {
       ),
     );
   }
+}
 
-  Widget _startupCard(_SuggestedStartup startup) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFD7D5E5)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE9EFFF),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(Icons.business_outlined, color: Color(0xFF5B21B6)),
+class _StartupCard extends StatelessWidget {
+  const _StartupCard({
+    required this.startup,
+    required this.isSelected,
+    required this.onTap,
+    required this.onContinue,
+  });
+  final SuggestedStartup startup;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final VoidCallback onContinue;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFEDE9FE) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF5B21B6) : Colors.transparent,
+            width: isSelected ? 1.5 : 0,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? const Color(0xFF5B21B6).withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.03),
+              blurRadius: 14,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Text(
-                      startup.name,
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6D28D9), Color(0xFF5B21B6)],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Center(
+                    child: Text(
+                      startup.name[0],
                       style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF12233D),
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    const Icon(Icons.verified, size: 16, color: Color(0xFF5B21B6)),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${startup.industry} · ${startup.location}',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF5D6472)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            startup.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF12233D),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                        const Icon(
+                          Icons.verified_rounded,
+                          size: 16,
+                          color: Color(0xFF5B21B6),
+                        ),
+                        if (isSelected) ...[
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.check_circle_rounded,
+                            size: 16,
+                            color: Color(0xFF5B21B6),
+                          ),
+                        ],
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        '${startup.industry} · ${startup.location}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  '${startup.teamMembers} Team Members',
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF8C8FA0)),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEDE9FE),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    startup.stage,
+                    style: const TextStyle(
+                      color: Color(0xFF5B21B6),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            height: 46,
-            child: ElevatedButton(
-              onPressed: () => _openVerification(startup.name),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(0, 46),
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                elevation: 0,
-                backgroundColor: const Color(0xFF5B21B6),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-              child: const Text('Continue', style: TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 10),
+            Text(
+              startup.tagline,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              children: startup.tags
+                  .map(
+                    (tag) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3F4F6),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        tag,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF6B7280),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(
+                  Icons.people_outline,
+                  size: 14,
+                  color: Color(0xFF9CA3AF),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${startup.teamMembers} Team Members',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
+                ),
+                const Spacer(),
+                ElevatedButton(
+                  onPressed: onContinue,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
+                    ),
+                    backgroundColor: const Color(0xFF5B21B6),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    minimumSize: Size.zero,
+                  ),
+                  child: const Text(
+                    'Continue',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
-}
-
-class _SuggestedStartup {
-  const _SuggestedStartup({
-    required this.name,
-    required this.industry,
-    required this.location,
-    required this.teamMembers,
-  });
-
-  final String name;
-  final String industry;
-  final String location;
-  final int teamMembers;
 }

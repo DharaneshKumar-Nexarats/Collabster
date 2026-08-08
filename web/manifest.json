@@ -1,6 +1,6 @@
 {
-    "name": "collabsphere",
-    "short_name": "collabsphere",
+    "name": "Collabster",
+    "short_name": "Collabster",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

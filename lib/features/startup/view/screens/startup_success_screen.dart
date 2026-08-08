@@ -1,22 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'startup_dashboard_screen.dart';
 import 'startup_public_profile_screen.dart';
 
-class StartupSuccessScreen extends StatelessWidget {
+class StartupSuccessScreen extends ConsumerWidget {
   const StartupSuccessScreen({
     super.key,
     required this.startupName,
     required this.selectedRole,
     required this.completion,
+    this.industry = '',
+    this.stage = '',
+    this.tagline = '',
+    this.country = '',
+    this.city = '',
   });
 
   final String startupName;
   final String selectedRole;
   final int completion;
+  final String industry;
+  final String stage;
+  final String tagline;
+  final String country;
+  final String city;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F5FF),
       appBar: AppBar(
@@ -171,10 +182,10 @@ class StartupSuccessScreen extends StatelessWidget {
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
+                 child: ElevatedButton(
+                  onPressed: () async {
+                    final navigator = Navigator.of(context);
+                    navigator.pushReplacement(
                       MaterialPageRoute(
                         builder: (context) => StartupDashboardScreen(startupName: startupName),
                       ),
