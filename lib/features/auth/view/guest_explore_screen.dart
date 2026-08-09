@@ -22,7 +22,7 @@ class _GuestExploreScreenState extends State<GuestExploreScreen> {
       colors: [Color(0xFF5B21B6), Color(0xFF7C3AED)],
     ),
     _ExploreMode(
-      title: 'Carrer Mode',
+      title: 'Career Mode',
       description: 'Find your next big opportunity. Connect with fast-growing startups and apply to exclusive roles.',
       icon: Icons.work_rounded,
       colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],

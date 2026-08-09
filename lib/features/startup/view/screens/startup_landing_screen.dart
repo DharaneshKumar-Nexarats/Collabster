@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../auth/view/secondary_goal_screen.dart';
 import 'join_startup_screen.dart';
 import 'startup_registration_flow_screen.dart';
 
@@ -28,7 +29,14 @@ class StartupLandingScreen extends StatelessWidget {
                         Row(
                           children: [
                             IconButton(
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const SecondaryGoalScreen(),
+                                  ),
+                                );
+                              },
                               icon: const Icon(Icons.arrow_back_rounded),
                               color: const Color(0xFF6B21D9),
                               style: IconButton.styleFrom(

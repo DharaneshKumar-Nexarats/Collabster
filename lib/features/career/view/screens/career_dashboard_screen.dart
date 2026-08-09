@@ -1277,7 +1277,7 @@ class _BottomNavBar extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(top: _fabTop, child: _addButton()),
+          Positioned(top: _fabTop, left: 0, right: 0, child: Center(child: _addButton())),
         ],
       ),
     );

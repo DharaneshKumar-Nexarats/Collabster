@@ -103,7 +103,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
 
     final currentRoles = currentSession.userRoles.map((r) => r.name).toList();
     if (currentRoles.contains(newRole.name)) {
-      await switchRole(newRole);
       return;
     }
 
@@ -112,7 +111,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
     await _repository.updateSession((current) {
       if (current == null) return null;
       return current.copyWith(
-        activeRole: newRole.name,
         roles: currentRoles,
       );
     });
@@ -140,6 +138,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
     String? website,
     String? incorporationDate,
     String? founderName,
+    String? founderPhotoPath,
     String? founderDesignation,
     String? founderEmail,
     String? founderPhone,
@@ -178,6 +177,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
         startupWebsite: website,
         startupIncorporationDate: incorporationDate,
         startupFounderName: founderName,
+        startupFounderPhotoPath: founderPhotoPath,
         startupFounderDesignation: founderDesignation,
         startupFounderEmail: founderEmail,
         startupFounderPhone: founderPhone,
@@ -229,6 +229,17 @@ class AuthViewModel extends StateNotifier<AuthState> {
         profilePhotoPath: photoPath,
         profilePhotoLabel: 'Photo uploaded',
       );
+    });
+    final updated = await _repository.readSession();
+    if (updated != null) {
+      state = state.copyWith(session: updated);
+    }
+  }
+
+  Future<void> updateFounderPhoto(String photoPath) async {
+    await _repository.updateSession((current) {
+      if (current == null) return null;
+      return current.copyWith(startupFounderPhotoPath: photoPath);
     });
     final updated = await _repository.readSession();
     if (updated != null) {

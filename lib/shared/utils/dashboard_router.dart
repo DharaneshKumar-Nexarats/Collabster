@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../shared/enums/app_enums.dart';
 import '../../features/auth/model/auth_session.dart';
 import '../../features/home/view/home_screen.dart';
+import '../../features/home/view/home_dashboard_screen.dart';
 import '../../features/investor/view/screens/investor_home_screen.dart';
 import '../../features/community/view/screens/community_home_screen.dart';
 import '../../features/career/view/screens/career_dashboard_screen.dart';
@@ -31,6 +32,8 @@ Widget buildDashboardForRole(AuthSession session) {
       return const CommunityHomeScreen();
     case UserRole.serviceProvider:
       return const CareerDashboardScreen();
+    case UserRole.other:
+      return const HomeDashboardScreen();
     default:
       return const HomeScreen();
   }

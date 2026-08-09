@@ -379,6 +379,7 @@ class _StartupRegistrationFlowScreenState
       website: _websiteController.text.trim(),
       incorporationDate: _incorporationController.text.trim(),
       founderName: _founderNameController.text.trim(),
+      founderPhotoPath: _founderPhoto?.path,
       founderDesignation: _designationController.text.trim(),
       founderEmail: _emailController.text.trim(),
       founderPhone: _phoneController.text.trim(),
