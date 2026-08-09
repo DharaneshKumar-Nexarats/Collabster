@@ -13,15 +13,21 @@ import 'secondary_goal_screen.dart';
 import 'sign_in_screen.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
-  const SignUpScreen({super.key});
+  const SignUpScreen({super.key, this.initialPage = 0, this.initialRole});
+
+  /// 0 = basic details, 1 = personal info, 2 = role selection
+  final int initialPage;
+
+  /// Optional role to pre-select when returning from another screen
+  final UserRole? initialRole;
 
   @override
   ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
-  final PageController _pageController = PageController();
-  final SignUpViewModel _viewModel = SignUpViewModel();
+  late final PageController _pageController;
+  late final SignUpViewModel _viewModel;
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -35,6 +41,16 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     text: 'United States',
   );
   final TextEditingController _cityController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: widget.initialPage);
+    _viewModel = SignUpViewModel()..setCurrentStep(widget.initialPage);
+    if (widget.initialRole != null) {
+      _viewModel.selectRole(widget.initialRole!);
+    }
+  }
 
   @override
   void dispose() {
@@ -163,7 +179,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       return;
     }
 
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const SecondaryGoalScreen(),
@@ -832,8 +848,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     }
 
     _viewModel.setDateOfBirth(picked);
+    final months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
     _dobController.text =
-        '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+        '${picked.day.toString().padLeft(2, '0')} ${months[picked.month - 1]} ${picked.year}';
     _ageController.text = _viewModel.calculateAge(picked).toString();
   }
 
