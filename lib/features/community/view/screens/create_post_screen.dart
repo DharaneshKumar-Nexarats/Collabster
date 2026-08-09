@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/di/providers.dart';
 
-class CreatePostScreen extends StatefulWidget {
+class CreatePostScreen extends ConsumerStatefulWidget {
   const CreatePostScreen({super.key});
 
   @override
-  State<CreatePostScreen> createState() => _CreatePostScreenState();
+  ConsumerState<CreatePostScreen> createState() => _CreatePostScreenState();
 }
 
-class _CreatePostScreenState extends State<CreatePostScreen> {
+class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
   final FocusNode _titleFocus = FocusNode();
   final FocusNode _contentFocus = FocusNode();
   String _selectedCommunity = 'Flutter Developers';
-  int _selectedPostType = 0;
-  bool _hasTitle = false;
-  bool _hasContent = false;
 
   final List<String> _communities = const [
     'Flutter Developers',
@@ -36,12 +35,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   void initState() {
     super.initState();
     _titleController.addListener(() {
-      final hasText = _titleController.text.trim().isNotEmpty;
-      if (hasText != _hasTitle) setState(() => _hasTitle = hasText);
+      ref.read(postViewModelProvider.notifier).updateTitle(_titleController.text.trim());
     });
     _contentController.addListener(() {
-      final hasText = _contentController.text.trim().isNotEmpty;
-      if (hasText != _hasContent) setState(() => _hasContent = hasText);
+      ref.read(postViewModelProvider.notifier).updateContent(_contentController.text.trim());
     });
   }
 
@@ -60,8 +57,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   void _submitPost() {
-    if (_titleController.text.trim().isEmpty ||
-        _contentController.text.trim().isEmpty) {
+    final postState = ref.read(postViewModelProvider);
+    if (!postState.hasTitle || !postState.hasContent) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
@@ -78,6 +75,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       );
       return;
     }
+
+    ref.read(postViewModelProvider.notifier).submitPost(
+          _titleController.text.trim(),
+          _contentController.text.trim(),
+          _selectedCommunity,
+        );
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -96,10 +99,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     _closeScreen();
   }
 
-  bool get _canPost => _hasTitle && _hasContent;
-
   @override
   Widget build(BuildContext context) {
+    final postState = ref.watch(postViewModelProvider);
+    final selectedPostType = postState.selectedPostType;
+    final canPost = postState.hasTitle && postState.hasContent;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -128,21 +133,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: GestureDetector(
-              onTap: _canPost ? _submitPost : null,
+              onTap: canPost ? _submitPost : null,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 9),
                 decoration: BoxDecoration(
-                  gradient: _canPost
+                  gradient: canPost
                       ? const LinearGradient(
                           colors: [Color(0xFFEA580C), Color(0xFFF97316)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         )
                       : null,
-                  color: _canPost ? null : const Color(0xFFE2E8F0),
+                  color: canPost ? null : const Color(0xFFE2E8F0),
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: _canPost
+                  boxShadow: canPost
                       ? [BoxShadow(color: const Color(0xFFEA580C).withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3))]
                       : null,
                 ),
@@ -151,7 +156,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: _canPost ? Colors.white : const Color(0xFF94A3B8),
+                    color: canPost ? Colors.white : const Color(0xFF94A3B8),
                   ),
                 ),
               ),
@@ -169,7 +174,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 children: [
                   _buildCommunitySelector(),
                   const SizedBox(height: 16),
-                  _buildPostTypeSelector(),
+                  _buildPostTypeSelector(selectedPostType),
                   const SizedBox(height: 20),
                   _buildTitleField(),
                   Divider(color: const Color(0xFFE2E8F0), height: 1, indent: 4, endIndent: 4, thickness: 1),
@@ -247,7 +252,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  Widget _buildPostTypeSelector() {
+  Widget _buildPostTypeSelector(String selectedPostType) {
     return SizedBox(
       height: 40,
       child: ListView.separated(
@@ -256,9 +261,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final type = _postTypes[index];
-          final isSelected = _selectedPostType == index;
+          final isSelected = selectedPostType == type.label;
           return GestureDetector(
-            onTap: () => setState(() => _selectedPostType = index),
+            onTap: () => ref.read(postViewModelProvider.notifier).setPostType(type.label),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 14),

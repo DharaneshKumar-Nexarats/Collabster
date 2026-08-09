@@ -1,102 +1,59 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../shared/enums/app_enums.dart';
+import 'sign_up_state.dart';
 
-class SignUpViewModel extends ChangeNotifier {
-  int _currentStep = 0;
-  int get currentStep => _currentStep;
-
-  UserRole _selectedRole = UserRole.founder;
-  UserRole get selectedRole => _selectedRole;
-
-  String _selectedGender = 'Male';
-  String get selectedGender => _selectedGender;
-
-  DateTime? _dateOfBirth;
-  DateTime? get dateOfBirth => _dateOfBirth;
-
-  String? _profilePhotoPath;
-  String? get profilePhotoPath => _profilePhotoPath;
-
-  Uint8List? _profilePhotoBytes;
-  Uint8List? get profilePhotoBytes => _profilePhotoBytes;
-
-  bool _photoUploaded = false;
-  bool get photoUploaded => _photoUploaded;
-
-  String _photoLabel = 'Upload Photo';
-  String get photoLabel => _photoLabel;
-
-  bool _obscurePassword = true;
-  bool get obscurePassword => _obscurePassword;
-
-  bool _obscureConfirmPassword = true;
-  bool get obscureConfirmPassword => _obscureConfirmPassword;
-
-  String get passwordStatusText {
-    if (_profilePhotoBytes != null) return '$_photoLabel • Tap to change';
-    if (_photoUploaded) return 'Photo ready • Tap to change';
-    return 'Optional • JPG or PNG • Max 5 MB';
-  }
-
-  String get roleButtonText =>
-      _selectedRole.isStartupRole ? 'Create Startup' : 'Complete Registration';
+class SignUpViewModel extends StateNotifier<SignUpState> {
+  SignUpViewModel() : super(const SignUpState());
 
   void setCurrentStep(int step) {
-    _currentStep = step;
-    notifyListeners();
+    state = state.copyWith(currentStep: step);
   }
 
   bool goToNextStep() {
-    if (_currentStep < 2) {
-      _currentStep++;
-      notifyListeners();
+    if (state.currentStep < 2) {
+      state = state.copyWith(currentStep: state.currentStep + 1);
       return true;
     }
     return false;
   }
 
   bool goToPreviousStep() {
-    if (_currentStep > 0) {
-      _currentStep--;
-      notifyListeners();
+    if (state.currentStep > 0) {
+      state = state.copyWith(currentStep: state.currentStep - 1);
       return true;
     }
     return false;
   }
 
   void togglePasswordVisibility() {
-    _obscurePassword = !_obscurePassword;
-    notifyListeners();
+    state = state.copyWith(obscurePassword: !state.obscurePassword);
   }
 
   void toggleConfirmPasswordVisibility() {
-    _obscureConfirmPassword = !_obscureConfirmPassword;
-    notifyListeners();
+    state = state.copyWith(obscureConfirmPassword: !state.obscureConfirmPassword);
   }
 
   void selectRole(UserRole role) {
-    _selectedRole = role;
-    notifyListeners();
+    state = state.copyWith(selectedRole: role);
   }
 
   void selectGender(String gender) {
-    _selectedGender = gender;
-    notifyListeners();
+    state = state.copyWith(selectedGender: gender);
   }
 
   void setDateOfBirth(DateTime picked) {
-    _dateOfBirth = picked;
-    notifyListeners();
+    state = state.copyWith(dateOfBirth: picked);
   }
 
   void selectCountry(String country) {
-    notifyListeners();
+    // Country selection handled by UI
   }
 
-  Future<void> pickPhoto(ImageSource source, {VoidCallback? onCameraUnsupported}) async {
+  Future<void> pickPhoto(ImageSource source, {void Function()? onCameraUnsupported}) async {
     if (kIsWeb && source == ImageSource.camera) {
       onCameraUnsupported?.call();
       return;
@@ -113,17 +70,17 @@ class SignUpViewModel extends ChangeNotifier {
 
     final bytes = await pickedFile.readAsBytes();
 
-    // Save bytes to a persistent file in app documents directory
     final dir = await getApplicationDocumentsDirectory();
     final fileName = 'profile_photo_${DateTime.now().millisecondsSinceEpoch}.jpg';
     final persistentFile = File('${dir.path}/$fileName');
     await persistentFile.writeAsBytes(bytes);
 
-    _profilePhotoPath = persistentFile.path;
-    _profilePhotoBytes = bytes;
-    _photoUploaded = true;
-    _photoLabel = source == ImageSource.camera ? 'Photo captured' : 'Photo selected';
-    notifyListeners();
+    state = state.copyWith(
+      profilePhotoPath: persistentFile.path,
+      profilePhotoBytes: bytes,
+      photoUploaded: true,
+      photoLabel: source == ImageSource.camera ? 'Photo captured' : 'Photo selected',
+    );
   }
 
   int calculateAge(DateTime birthDate) {

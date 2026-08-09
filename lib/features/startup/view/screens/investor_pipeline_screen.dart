@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/di/providers.dart';
 import '../../model/startup_models.dart';
-import '../../viewmodel/investor_pipeline_viewmodel.dart';
+import '../../viewmodel/investor_pipeline_state.dart';
 import '../widgets/startup_color_helper.dart';
 
-class InvestorPipelineScreen extends StatefulWidget {
+class InvestorPipelineScreen extends ConsumerStatefulWidget {
   const InvestorPipelineScreen({super.key});
 
   @override
-  State<InvestorPipelineScreen> createState() => _InvestorPipelineScreenState();
+  ConsumerState<InvestorPipelineScreen> createState() => _InvestorPipelineScreenState();
 }
 
-class _InvestorPipelineScreenState extends State<InvestorPipelineScreen>
+class _InvestorPipelineScreenState extends ConsumerState<InvestorPipelineScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
-  final InvestorPipelineViewModel _viewModel = InvestorPipelineViewModel();
   int _selectedTab = 0;
   String? _statusFilter;
   bool _showAllPriority = false;
@@ -39,18 +40,18 @@ class _InvestorPipelineScreenState extends State<InvestorPipelineScreen>
     super.dispose();
   }
 
-  List<InvestorEntry> get _filteredInvestors {
+  List<InvestorEntry> _filteredInvestors(InvestorPipelineState state) {
     final query = _searchController.text.toLowerCase();
     List<InvestorEntry> source;
     switch (_selectedTab) {
       case 1:
-        source = _viewModel.pipelineInvestors;
+        source = state.pipelineInvestors;
         break;
       case 2:
-        source = _viewModel.savedInvestors;
+        source = state.savedInvestors;
         break;
       default:
-        source = _viewModel.discoverInvestors;
+        source = state.discoverInvestors;
     }
     return source.where((i) {
       final matchesQuery = query.isEmpty ||
@@ -71,7 +72,7 @@ class _InvestorPipelineScreenState extends State<InvestorPipelineScreen>
     );
 
     if (created != null) {
-      _viewModel.addInvestor(created);
+      ref.read(investorPipelineViewModelProvider.notifier).addInvestor(created);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -259,9 +260,10 @@ class _InvestorPipelineScreenState extends State<InvestorPipelineScreen>
   }
 
   void _showExportSheet() {
+    final state = ref.read(investorPipelineViewModelProvider);
     final allInvestors = [
-      ..._viewModel.pipelineInvestors,
-      ..._viewModel.discoverInvestors,
+      ...state.pipelineInvestors,
+      ...state.discoverInvestors,
     ].fold<List<InvestorEntry>>([], (acc, inv) {
       if (!acc.any((i) => i.name == inv.name)) acc.add(inv);
       return acc;
@@ -279,8 +281,8 @@ class _InvestorPipelineScreenState extends State<InvestorPipelineScreen>
     }
     buffer.writeln('─' * 40);
     buffer.writeln('Total: ${allInvestors.length} investors');
-    buffer.writeln('Pipeline: ${_viewModel.pipelineInvestors.length} active');
-    buffer.writeln('Saved: ${_viewModel.savedInvestors.length} saved');
+    buffer.writeln('Pipeline: ${state.pipelineInvestors.length} active');
+    buffer.writeln('Saved: ${state.savedInvestors.length} saved');
 
     final exportText = buffer.toString();
 
@@ -353,11 +355,11 @@ class _InvestorPipelineScreenState extends State<InvestorPipelineScreen>
                     '${allInvestors.length}', 'Total', const Color(0xFF5B21B6)),
                 const SizedBox(width: 10),
                 _exportStatCard(
-                    '${_viewModel.pipelineInvestors.length}',
+                    '${state.pipelineInvestors.length}',
                     'Pipeline',
                     const Color(0xFF059669)),
                 const SizedBox(width: 10),
-                _exportStatCard('${_viewModel.savedInvestors.length}', 'Saved',
+                _exportStatCard('${state.savedInvestors.length}', 'Saved',
                     const Color(0xFFF59E0B)),
               ],
             ),
@@ -507,7 +509,6 @@ class _InvestorPipelineScreenState extends State<InvestorPipelineScreen>
       MaterialPageRoute(
         builder: (_) => _InvestorProfileScreen(
           investor: investor,
-          viewModel: _viewModel,
           onScheduleCall: () => _showScheduleCallSheet(investor.name),
         ),
       ),
@@ -517,7 +518,8 @@ class _InvestorPipelineScreenState extends State<InvestorPipelineScreen>
 
   @override
   Widget build(BuildContext context) {
-    final activeCount = _viewModel.pipelineInvestors.length + 15;
+    final pipelineState = ref.watch(investorPipelineViewModelProvider);
+    final activeCount = pipelineState.pipelineInvestors.length + 15;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F3FF),
@@ -767,7 +769,7 @@ class _InvestorPipelineScreenState extends State<InvestorPipelineScreen>
                               color: Color(0xFF12233D))),
                       const Spacer(),
                       Text(
-                        '${_filteredInvestors.length} total',
+                        '${_filteredInvestors(pipelineState).length} total',
                         style: const TextStyle(
                             fontSize: 12, color: Color(0xFF6B7280)),
                       ),
@@ -778,7 +780,7 @@ class _InvestorPipelineScreenState extends State<InvestorPipelineScreen>
               ),
             ),
           ),
-          _filteredInvestors.isEmpty
+          _filteredInvestors(pipelineState).isEmpty
               ? SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(32),
@@ -807,7 +809,7 @@ class _InvestorPipelineScreenState extends State<InvestorPipelineScreen>
               : SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      final investors = _filteredInvestors;
+                      final investors = _filteredInvestors(pipelineState);
                       if (index >= investors.length) return null;
                       final inv = investors[index];
                       return Padding(
@@ -818,7 +820,7 @@ class _InvestorPipelineScreenState extends State<InvestorPipelineScreen>
                         ),
                       );
                     },
-                    childCount: _filteredInvestors.length,
+                    childCount: _filteredInvestors(pipelineState).length,
                   ),
                 ),
           const SliverToBoxAdapter(child: SizedBox(height: 80)),
@@ -1308,22 +1310,20 @@ class _AddInvestorBottomSheetState extends State<_AddInvestorBottomSheet> {
 // Full Investor Profile Screen
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _InvestorProfileScreen extends StatefulWidget {
+class _InvestorProfileScreen extends ConsumerStatefulWidget {
   const _InvestorProfileScreen({
     required this.investor,
-    required this.viewModel,
     required this.onScheduleCall,
   });
 
   final InvestorEntry investor;
-  final InvestorPipelineViewModel viewModel;
   final VoidCallback onScheduleCall;
 
   @override
-  State<_InvestorProfileScreen> createState() => _InvestorProfileScreenState();
+  ConsumerState<_InvestorProfileScreen> createState() => _InvestorProfileScreenState();
 }
 
-class _InvestorProfileScreenState extends State<_InvestorProfileScreen> {
+class _InvestorProfileScreenState extends ConsumerState<_InvestorProfileScreen> {
   late bool _isSaved;
   final TextEditingController _noteCtrl = TextEditingController();
   String _noteText = '';
@@ -1331,7 +1331,7 @@ class _InvestorProfileScreenState extends State<_InvestorProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _isSaved = widget.viewModel.isSaved(widget.investor.name);
+    _isSaved = ref.read(investorPipelineViewModelProvider).isSaved(widget.investor.name);
   }
 
   @override
@@ -1343,10 +1343,10 @@ class _InvestorProfileScreenState extends State<_InvestorProfileScreen> {
   void _toggleSave() {
     setState(() {
       if (_isSaved) {
-        widget.viewModel.unsaveInvestor(widget.investor.name);
+        ref.read(investorPipelineViewModelProvider.notifier).unsaveInvestor(widget.investor.name);
         _isSaved = false;
       } else {
-        widget.viewModel.saveInvestor(widget.investor);
+        ref.read(investorPipelineViewModelProvider.notifier).saveInvestor(widget.investor);
         _isSaved = true;
       }
     });
@@ -1387,7 +1387,7 @@ class _InvestorProfileScreenState extends State<_InvestorProfileScreen> {
       ),
     ).then((confirmed) {
       if (confirmed == true) {
-        widget.viewModel.removeInvestor(widget.investor.name);
+        ref.read(investorPipelineViewModelProvider.notifier).removeInvestor(widget.investor.name);
         if (mounted) Navigator.pop(context);
       }
     });

@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../model/startup_models.dart';
-import '../../viewmodel/documents_viewmodel.dart';
+import '../../../../core/di/providers.dart';
 import '../widgets/startup_color_helper.dart';
 
-class StartupDocumentsScreen extends StatefulWidget {
+class StartupDocumentsScreen extends ConsumerStatefulWidget {
   const StartupDocumentsScreen({super.key});
 
   @override
-  State<StartupDocumentsScreen> createState() => _StartupDocumentsScreenState();
+  ConsumerState<StartupDocumentsScreen> createState() =>
+      _StartupDocumentsScreenState();
 }
 
-class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
+class _StartupDocumentsScreenState extends ConsumerState<StartupDocumentsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final DocumentsViewModel _viewModel = DocumentsViewModel();
-  String _selectedCategory = 'All';
 
   @override
   void dispose() {
@@ -56,7 +56,8 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: StartupColorHelper.fromKey(doc.colorKey).withValues(alpha: 0.12),
+                    color: StartupColorHelper.fromKey(doc.colorKey)
+                        .withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(
@@ -120,16 +121,19 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                   const SizedBox(height: 8),
                   Text(
                     doc.description ?? 'No description provided for this document.',
-                    style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563)),
+                    style:
+                        const TextStyle(fontSize: 13, color: Color(0xFF4B5563)),
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFF9CA3AF)),
+                      const Icon(Icons.calendar_today_rounded,
+                          size: 14, color: Color(0xFF9CA3AF)),
                       const SizedBox(width: 6),
                       Text(
                         'Added: ${doc.dateAdded ?? "Recent"}',
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                        style:
+                            const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
                       ),
                     ],
                   ),
@@ -137,7 +141,6 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            // Actions
             Row(
               children: [
                 Expanded(
@@ -156,10 +159,12 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                       minimumSize: const Size.fromHeight(48),
                       backgroundColor: const Color(0xFF5B21B6),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     icon: const Icon(Icons.visibility_rounded, size: 18),
-                    label: const Text('View Document', style: TextStyle(fontWeight: FontWeight.w700)),
+                    label: const Text('View Document',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -168,7 +173,8 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Downloading "${doc.name}" (${doc.size})...'),
+                        content:
+                            Text('Downloading "${doc.name}" (${doc.size})...'),
                         backgroundColor: const Color(0xFF059669),
                         behavior: SnackBarBehavior.floating,
                       ),
@@ -178,10 +184,12 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                     minimumSize: const Size(0, 48),
                     foregroundColor: const Color(0xFF5B21B6),
                     side: const BorderSide(color: Color(0xFF5B21B6)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   icon: const Icon(Icons.download_rounded, size: 18),
-                  label: const Text('Download', style: TextStyle(fontWeight: FontWeight.w700)),
+                  label: const Text('Download',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ],
             ),
@@ -211,7 +219,6 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
     final categories = ['Fundraising', 'Legal', 'Product', 'Finance', 'HR', 'Other'];
     final types = ['PDF', 'XLSX', 'Spreadsheet', 'Doc', 'PNG'];
 
-    // Mutable copies for StatefulBuilder
     var currentSize = size;
     var currentType = type;
     var currentCategory = category;
@@ -294,8 +301,6 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-
-                  // File Name
                   const Text(
                     'Document Title *',
                     style: TextStyle(
@@ -309,10 +314,12 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                     controller: nameCtrl,
                     decoration: InputDecoration(
                       hintText: 'e.g. Q3 Financial Audit',
-                      prefixIcon: const Icon(Icons.description_outlined, color: Color(0xFF6B7280), size: 20),
+                      prefixIcon: const Icon(Icons.description_outlined,
+                          color: Color(0xFF6B7280), size: 20),
                       filled: true,
                       fillColor: const Color(0xFFF9FAFB),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -323,13 +330,12 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFF5B21B6), width: 1.5),
+                        borderSide:
+                            const BorderSide(color: Color(0xFF5B21B6), width: 1.5),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Category Selector
                   const Text(
                     'Category',
                     style: TextStyle(
@@ -350,17 +356,18 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                         selectedColor: const Color(0xFF5B21B6),
                         backgroundColor: const Color(0xFFF3F4F6),
                         labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : const Color(0xFF374151),
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF374151),
                           fontWeight: FontWeight.w600,
                           fontSize: 12,
                         ),
-                        onSelected: (_) => setModalState(() => currentCategory = cat),
+                        onSelected: (_) =>
+                            setModalState(() => currentCategory = cat),
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
-
-                  // File Type Selector
                   const Text(
                     'Format Type',
                     style: TextStyle(
@@ -380,17 +387,18 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                         selectedColor: const Color(0xFF5B21B6),
                         backgroundColor: const Color(0xFFF3F4F6),
                         labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : const Color(0xFF374151),
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF374151),
                           fontWeight: FontWeight.w600,
                           fontSize: 12,
                         ),
-                        onSelected: (_) => setModalState(() => currentType = t),
+                        onSelected: (_) =>
+                            setModalState(() => currentType = t),
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
-
-                  // Interactive File Attachment area
                   const Text(
                     'Attachment *',
                     style: TextStyle(
@@ -403,16 +411,15 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                   GestureDetector(
                     onTap: () async {
                       try {
-                        // Dismiss the bottom sheet first so iOS can present
-                        // the native file picker on the root view controller.
                         Navigator.pop(sheetCtx);
-
                         final result = await FilePicker.platform.pickFiles(
                           allowMultiple: false,
                           type: FileType.custom,
-                          allowedExtensions: ['pdf', 'xlsx', 'xls', 'doc', 'docx', 'png', 'jpg', 'ppt', 'pptx', 'csv', 'txt'],
+                          allowedExtensions: [
+                            'pdf', 'xlsx', 'xls', 'doc', 'docx',
+                            'png', 'jpg', 'ppt', 'pptx', 'csv', 'txt'
+                          ],
                         );
-
                         if (result != null && result.files.isNotEmpty) {
                           final picked = result.files.first;
                           final fileName = picked.name;
@@ -420,8 +427,6 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                           final fileSizeStr = fileBytes > 1024 * 1024
                               ? '${(fileBytes / (1024 * 1024)).toStringAsFixed(1)} MB'
                               : '${(fileBytes / 1024).toStringAsFixed(0)} KB';
-
-                          // Re-open the upload sheet with the picked file data
                           _openUploadSheetWithData(
                             nameCtrl: nameCtrl,
                             size: fileSizeStr,
@@ -444,7 +449,8 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                     },
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 20, horizontal: 16),
                       decoration: BoxDecoration(
                         color: currentAttachedFileName != null
                             ? const Color(0xFFECFDF5)
@@ -460,8 +466,12 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                       child: Column(
                         children: [
                           Icon(
-                            currentAttachedFileName != null ? Icons.check_circle_rounded : Icons.cloud_upload_outlined,
-                            color: currentAttachedFileName != null ? const Color(0xFF059669) : const Color(0xFF5B21B6),
+                            currentAttachedFileName != null
+                                ? Icons.check_circle_rounded
+                                : Icons.cloud_upload_outlined,
+                            color: currentAttachedFileName != null
+                                ? const Color(0xFF059669)
+                                : const Color(0xFF5B21B6),
                             size: 34,
                           ),
                           const SizedBox(height: 8),
@@ -471,22 +481,25 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                                 : 'Tap to Choose File / Browse Storage',
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
-                              color: currentAttachedFileName != null ? const Color(0xFF059669) : const Color(0xFF5B21B6),
+                              color: currentAttachedFileName != null
+                                  ? const Color(0xFF059669)
+                                  : const Color(0xFF5B21B6),
                               fontSize: 13,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            currentAttachedFileName != null ? 'Ready to upload • Tap to change file' : 'Supports PDF, XLSX, DOC, PNG up to 50MB',
-                            style: const TextStyle(color: Color(0xFF6B7280), fontSize: 11),
+                            currentAttachedFileName != null
+                                ? 'Ready to upload • Tap to change file'
+                                : 'Supports PDF, XLSX, DOC, PNG up to 50MB',
+                            style: const TextStyle(
+                                color: Color(0xFF6B7280), fontSize: 11),
                           ),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // Submit Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -504,13 +517,13 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                         if (currentAttachedFileName == null) {
                           ScaffoldMessenger.of(sheetCtx).showSnackBar(
                             const SnackBar(
-                              content: Text('Please tap "Choose File" to attach a document first'),
+                              content: Text(
+                                  'Please tap "Choose File" to attach a document first'),
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
                           return;
                         }
-
                         final colorKeyMap = {
                           'Fundraising': 'primary',
                           'Legal': 'red',
@@ -519,30 +532,33 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                           'HR': 'amber',
                           'Other': 'draft',
                         };
-
-                        _viewModel.addDocument(DocumentItem(
-                          name: name,
-                          type: currentType,
-                          size: currentSize,
-                          category: currentCategory,
-                          colorKey: colorKeyMap[currentCategory] ?? 'primary',
-                          dateAdded: 'Today',
-                          description: 'User uploaded document ($currentAttachedFileName).',
-                        ));
-
-                        // Clear active search or filters so the user immediately sees the new upload
-                        setState(() {
-                          _selectedCategory = 'All';
-                          _searchController.clear();
-                        });
-
+                        ref
+                            .read(documentsViewModelProvider.notifier)
+                            .addDocument(DocumentItem(
+                              name: name,
+                              type: currentType,
+                              size: currentSize,
+                              category: currentCategory,
+                              colorKey:
+                                  colorKeyMap[currentCategory] ?? 'primary',
+                              dateAdded: 'Today',
+                              description:
+                                  'User uploaded document ($currentAttachedFileName).',
+                            ));
+                        ref
+                            .read(documentsViewModelProvider.notifier)
+                            .setSelectedCategory('All');
+                        ref
+                            .read(documentsViewModelProvider.notifier)
+                            .setSearchQuery('');
+                        _searchController.clear();
                         Navigator.pop(sheetCtx);
-
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Row(
                               children: [
-                                const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                                const Icon(Icons.check_circle,
+                                    color: Colors.white, size: 18),
                                 const SizedBox(width: 8),
                                 Text('"$name" uploaded successfully!'),
                               ],
@@ -557,10 +573,13 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                         backgroundColor: const Color(0xFF5B21B6),
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
                       ),
                       icon: const Icon(Icons.check_rounded, size: 20),
-                      label: const Text('Complete Upload', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                      label: const Text('Complete Upload',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 15)),
                     ),
                   ),
                 ],
@@ -572,7 +591,7 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
     );
   }
 
-  void _openCollectionSheet(DocumentCollection col) {
+  void _openCollectionSheet(DocumentCollection col, List<DocumentItem> allDocs) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -606,18 +625,27 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: StartupColorHelper.fromKey(col.colorKey).withValues(alpha: 0.12),
+                    color: StartupColorHelper.fromKey(col.colorKey)
+                        .withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(Icons.folder_special_rounded, color: StartupColorHelper.fromKey(col.colorKey), size: 24),
+                  child: Icon(Icons.folder_special_rounded,
+                      color: StartupColorHelper.fromKey(col.colorKey),
+                      size: 24),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(col.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF12233D))),
-                      Text('${col.count} organized documents', style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                      Text(col.name,
+                          style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF12233D))),
+                      Text('${col.count} organized documents',
+                          style: const TextStyle(
+                              fontSize: 12, color: Color(0xFF6B7280))),
                     ],
                   ),
                 ),
@@ -633,9 +661,9 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
-                itemCount: _viewModel.allDocuments.take(col.count).length,
+                itemCount: allDocs.take(col.count).length,
                 itemBuilder: (context, i) {
-                  final doc = _viewModel.allDocuments[i];
+                  final doc = allDocs[i];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Container(
@@ -647,12 +675,20 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.insert_drive_file_outlined, color: StartupColorHelper.fromKey(col.colorKey), size: 20),
+                          Icon(Icons.insert_drive_file_outlined,
+                              color: StartupColorHelper.fromKey(col.colorKey),
+                              size: 20),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: Text(doc.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF12233D))),
+                            child: Text(doc.name,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
+                                    color: Color(0xFF12233D))),
                           ),
-                          Text(doc.size, style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+                          Text(doc.size,
+                              style: const TextStyle(
+                                  fontSize: 11, color: Color(0xFF9CA3AF))),
                         ],
                       ),
                     ),
@@ -668,230 +704,273 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _viewModel,
-      builder: (context, _) {
-        final filteredDocs = _viewModel.filterByCategory(_selectedCategory, _searchController.text);
-        final isFiltering = _selectedCategory != 'All' || _searchController.text.isNotEmpty;
+    final documentsState = ref.watch(documentsViewModelProvider);
+    final filteredDocs = documentsState.filteredDocuments;
+    final pinnedDocs = documentsState.filteredPinned;
+    final recentDocs = documentsState.filteredRecent;
+    final collections = documentsState.collections;
+    final isFiltering = documentsState.isFiltering;
 
-        final pinnedDocs = filteredDocs.where((d) => d.isPinned).toList();
-        final recentDocs = filteredDocs.where((d) => !d.isPinned).toList();
-
-        return Scaffold(
-          backgroundColor: const Color(0xFFF6F3FF),
-          body: CustomScrollView(
-            slivers: [
-              // ── Header + Search ──────────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF5B21B6), Color(0xFF7C3AED), Color(0xFF4338CA)],
-                    ),
-                  ),
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + 12,
-                    left: 20, right: 20, bottom: 20,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              width: 40, height: 40,
-                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
-                              child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Text('Documents', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      TextField(
-                        controller: _searchController,
-                        onChanged: (_) => setState(() {}),
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Search documents, files or folders...',
-                          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
-                          prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.7)),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear, color: Colors.white),
-                                  onPressed: () => setState(() => _searchController.clear()),
-                                )
-                              : null,
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.15),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                        ),
-                      ),
-                    ],
-                  ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F3FF),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF5B21B6), Color(0xFF7C3AED), Color(0xFF4338CA)],
                 ),
               ),
-
-              // ── Main Content ─────────────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 12,
+                left: 20, right: 20, bottom: 20,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      // Categories Header
-                      Row(
-                        children: [
-                          const Text('Categories', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF12233D))),
-                          const Spacer(),
-                          if (_selectedCategory != 'All')
-                            TextButton(
-                              onPressed: () => setState(() => _selectedCategory = 'All'),
-                              child: const Text('Clear Filter', style: TextStyle(color: Color(0xFF5B21B6), fontSize: 12, fontWeight: FontWeight.w700)),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      GridView.count(
-                        crossAxisCount: 3,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 10,
-                        childAspectRatio: 1.2,
-                        children: [
-                          _catChip(Icons.monetization_on_outlined, 'Fundraising', const Color(0xFF5B21B6)),
-                          _catChip(Icons.gavel_outlined, 'Legal', const Color(0xFFDC2626)),
-                          _catChip(Icons.inventory_2_outlined, 'Product', const Color(0xFF2563EB)),
-                          _catChip(Icons.account_balance_outlined, 'Finance', const Color(0xFF059669)),
-                          _catChip(Icons.people_outline, 'HR', const Color(0xFFF59E0B)),
-                          _catChip(Icons.folder_outlined, 'Other', const Color(0xFF6B7280)),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Pinned Section
-                      if (pinnedDocs.isNotEmpty) ...[
-                        Row(
-                          children: const [
-                            Text('Pinned', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF12233D))),
-                            SizedBox(width: 8),
-                            Icon(Icons.push_pin, size: 16, color: Color(0xFF5B21B6)),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        ...pinnedDocs.map((d) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: _DocCard(
-                                doc: d,
-                                pinned: true,
-                                onTap: () => _openDocumentDetails(d),
-                                onPinToggle: () => _viewModel.togglePin(d),
-                                onDelete: () => _viewModel.removeDocument(d),
-                              ),
-                            )),
-                        const SizedBox(height: 10),
-                      ],
-
-                      // Recent Documents Section
-                      Row(
-                        children: [
-                          Text(
-                            isFiltering ? 'Matching Documents (${filteredDocs.length})' : 'Recent Documents',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF12233D)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-
-                      if (recentDocs.isEmpty && (pinnedDocs.isEmpty || !isFiltering))
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(24),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 40, height: 40,
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'No documents found matching your criteria.',
-                              style: TextStyle(color: Color(0xFF6B7280), fontSize: 13),
-                            ),
-                          ),
-                        )
-                      else
-                        ...recentDocs.map((d) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: _DocCard(
-                                doc: d,
-                                pinned: false,
-                                onTap: () => _openDocumentDetails(d),
-                                onPinToggle: () => _viewModel.togglePin(d),
-                                onDelete: () => _viewModel.removeDocument(d),
-                              ),
-                            )),
-
-                      const SizedBox(height: 14),
-
-                      // Smart Collections
-                      if (!isFiltering) ...[
-                        const Text('Smart Collections', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF12233D))),
-                        const SizedBox(height: 4),
-                        const Text('AI organized document groups for faster access.', style: TextStyle(fontSize: 13, color: Color(0xFF9CA3AF))),
-                        const SizedBox(height: 12),
-                        ..._viewModel.collections.map((c) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: DocumentCollectionCard(
-                                collection: c,
-                                onTap: () => _openCollectionSheet(c),
-                              ),
-                            )),
-                      ],
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12)),
+                          child: const Icon(Icons.arrow_back,
+                              color: Colors.white, size: 20),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text('Documents',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800)),
                     ],
                   ),
-                ),
-              ),
-
-              // Upload Button
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _showUploadDocumentSheet,
-                      icon: const Icon(Icons.upload_outlined),
-                      label: const Text('Upload New Document', style: TextStyle(fontWeight: FontWeight.w700)),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
-                        backgroundColor: const Color(0xFF5B21B6),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: _searchController,
+                    onChanged: (value) => ref
+                        .read(documentsViewModelProvider.notifier)
+                        .setSearchQuery(value),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Search documents, files or folders...',
+                      hintStyle:
+                          TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+                      prefixIcon: Icon(Icons.search,
+                          color: Colors.white.withValues(alpha: 0.7)),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, color: Colors.white),
+                              onPressed: () {
+                                _searchController.clear();
+                                ref
+                                    .read(documentsViewModelProvider.notifier)
+                                    .setSearchQuery('');
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.15),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none),
                     ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text('Categories',
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF12233D))),
+                      const Spacer(),
+                      if (documentsState.selectedCategory != 'All')
+                        TextButton(
+                          onPressed: () => ref
+                              .read(documentsViewModelProvider.notifier)
+                              .setSelectedCategory('All'),
+                          child: const Text('Clear Filter',
+                              style: TextStyle(
+                                  color: Color(0xFF5B21B6),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700)),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  GridView.count(
+                    crossAxisCount: 3,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.2,
+                    children: [
+                      _catChip(Icons.monetization_on_outlined, 'Fundraising',
+                          const Color(0xFF5B21B6), documentsState.selectedCategory),
+                      _catChip(Icons.gavel_outlined, 'Legal',
+                          const Color(0xFFDC2626), documentsState.selectedCategory),
+                      _catChip(Icons.inventory_2_outlined, 'Product',
+                          const Color(0xFF2563EB), documentsState.selectedCategory),
+                      _catChip(Icons.account_balance_outlined, 'Finance',
+                          const Color(0xFF059669), documentsState.selectedCategory),
+                      _catChip(Icons.people_outline, 'HR',
+                          const Color(0xFFF59E0B), documentsState.selectedCategory),
+                      _catChip(Icons.folder_outlined, 'Other',
+                          const Color(0xFF6B7280), documentsState.selectedCategory),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  if (pinnedDocs.isNotEmpty) ...[
+                    Row(
+                      children: const [
+                        Text('Pinned',
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF12233D))),
+                        SizedBox(width: 8),
+                        Icon(Icons.push_pin, size: 16, color: Color(0xFF5B21B6)),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    ...pinnedDocs.map((d) => Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _DocCard(
+                            doc: d,
+                            pinned: true,
+                            onTap: () => _openDocumentDetails(d),
+                            onPinToggle: () => ref
+                                .read(documentsViewModelProvider.notifier)
+                                .togglePin(d),
+                            onDelete: () => ref
+                                .read(documentsViewModelProvider.notifier)
+                                .removeDocument(d),
+                          ),
+                        )),
+                    const SizedBox(height: 10),
+                  ],
+                  Row(
+                    children: [
+                      Text(
+                        isFiltering
+                            ? 'Matching Documents (${filteredDocs.length})'
+                            : 'Recent Documents',
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF12233D)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  if (recentDocs.isEmpty && (pinnedDocs.isEmpty || !isFiltering))
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'No documents found matching your criteria.',
+                          style:
+                              TextStyle(color: Color(0xFF6B7280), fontSize: 13),
+                        ),
+                      ),
+                    )
+                  else
+                    ...recentDocs.map((d) => Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _DocCard(
+                            doc: d,
+                            pinned: false,
+                            onTap: () => _openDocumentDetails(d),
+                            onPinToggle: () => ref
+                                .read(documentsViewModelProvider.notifier)
+                                .togglePin(d),
+                            onDelete: () => ref
+                                .read(documentsViewModelProvider.notifier)
+                                .removeDocument(d),
+                          ),
+                        )),
+                  const SizedBox(height: 14),
+                  if (!isFiltering) ...[
+                    const Text('Smart Collections',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF12233D))),
+                    const SizedBox(height: 4),
+                    const Text(
+                        'AI organized document groups for faster access.',
+                        style:
+                            TextStyle(fontSize: 13, color: Color(0xFF9CA3AF))),
+                    const SizedBox(height: 12),
+                    ...collections.map((c) => Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: DocumentCollectionCard(
+                            collection: c,
+                            onTap: () => _openCollectionSheet(
+                                c, documentsState.allDocuments),
+                          ),
+                        )),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _showUploadDocumentSheet,
+                  icon: const Icon(Icons.upload_outlined),
+                  label: const Text('Upload New Document',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                    backgroundColor: const Color(0xFF5B21B6),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
-  Widget _catChip(IconData icon, String label, Color color) {
-    final isSelected = _selectedCategory.toLowerCase() == label.toLowerCase();
-
+  Widget _catChip(
+      IconData icon, String label, Color color, String selectedCategory) {
+    final isSelected = selectedCategory.toLowerCase() == label.toLowerCase();
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _selectedCategory = isSelected ? 'All' : label;
-        });
+        ref.read(documentsViewModelProvider.notifier).setSelectedCategory(
+            isSelected ? 'All' : label);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
@@ -902,7 +981,10 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
             color: isSelected ? const Color(0xFF5B21B6) : Colors.transparent,
             width: 1.5,
           ),
-          boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 8, offset: Offset(0, 3))],
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x06000000), blurRadius: 8, offset: Offset(0, 3))
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -910,7 +992,9 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
             Container(
               width: 36,
               height: 36,
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10)),
               child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(height: 6),
@@ -919,7 +1003,9 @@ class _StartupDocumentsScreenState extends State<StartupDocumentsScreen> {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
-                color: isSelected ? const Color(0xFF5B21B6) : const Color(0xFF374151),
+                color: isSelected
+                    ? const Color(0xFF5B21B6)
+                    : const Color(0xFF374151),
               ),
             ),
           ],
@@ -953,14 +1039,20 @@ class _DocCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 8, offset: Offset(0, 3))],
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x06000000), blurRadius: 8, offset: Offset(0, 3))
+          ],
         ),
         child: Row(
           children: [
             Container(
               width: 42,
               height: 42,
-              decoration: BoxDecoration(color: StartupColorHelper.fromKey(doc.colorKey).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(
+                  color: StartupColorHelper.fromKey(doc.colorKey)
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10)),
               child: Icon(
                 doc.type == 'PDF'
                     ? Icons.picture_as_pdf_outlined
@@ -976,14 +1068,22 @@ class _DocCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(doc.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF12233D))),
-                  Text('${doc.type} · ${doc.size}', style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+                  Text(doc.name,
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF12233D))),
+                  Text('${doc.type} · ${doc.size}',
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFF9CA3AF))),
                 ],
               ),
             ),
-            if (pinned) const Icon(Icons.push_pin, size: 16, color: Color(0xFF5B21B6)),
+            if (pinned)
+              const Icon(Icons.push_pin, size: 16, color: Color(0xFF5B21B6)),
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Color(0xFF9CA3AF), size: 20),
+              icon: const Icon(Icons.more_vert,
+                  color: Color(0xFF9CA3AF), size: 20),
               onSelected: (val) {
                 if (val == 'view') {
                   onTap();
@@ -1008,7 +1108,9 @@ class _DocCard extends StatelessWidget {
                   value: 'pin',
                   child: Row(
                     children: [
-                      Icon(pinned ? Icons.push_pin_outlined : Icons.push_pin, size: 18),
+                      Icon(pinned
+                          ? Icons.push_pin_outlined
+                          : Icons.push_pin, size: 18),
                       const SizedBox(width: 8),
                       Text(pinned ? 'Unpin Document' : 'Pin Document'),
                     ],
@@ -1034,7 +1136,8 @@ class _DocCard extends StatelessWidget {
 }
 
 class DocumentCollectionCard extends StatelessWidget {
-  const DocumentCollectionCard({super.key, required this.collection, required this.onTap});
+  const DocumentCollectionCard(
+      {super.key, required this.collection, required this.onTap});
   final DocumentCollection collection;
   final VoidCallback onTap;
 
@@ -1047,33 +1150,55 @@ class DocumentCollectionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 8, offset: Offset(0, 3))],
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x06000000), blurRadius: 8, offset: Offset(0, 3))
+          ],
         ),
         child: Row(
           children: [
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(color: StartupColorHelper.fromKey(collection.colorKey).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
-              child: Icon(Icons.folder_outlined, color: StartupColorHelper.fromKey(collection.colorKey), size: 22),
+              decoration: BoxDecoration(
+                  color: StartupColorHelper.fromKey(collection.colorKey)
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10)),
+              child: Icon(Icons.folder_outlined,
+                  color: StartupColorHelper.fromKey(collection.colorKey),
+                  size: 22),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(collection.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF12233D))),
-                  Text('${collection.count} documents', style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+                  Text(collection.name,
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF12233D))),
+                  Text('${collection.count} documents',
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFF9CA3AF))),
                 ],
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                border: Border.all(color: StartupColorHelper.fromKey(collection.colorKey).withValues(alpha: 0.4)),
+                border: Border.all(
+                    color: StartupColorHelper.fromKey(collection.colorKey)
+                        .withValues(alpha: 0.4)),
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: Text('Open →', style: TextStyle(color: StartupColorHelper.fromKey(collection.colorKey), fontSize: 12, fontWeight: FontWeight.w700)),
+              child: Text('Open →',
+                  style: TextStyle(
+                      color:
+                          StartupColorHelper.fromKey(collection.colorKey),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700)),
             ),
           ],
         ),

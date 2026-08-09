@@ -1,93 +1,88 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/startup_models.dart';
+import 'requests_state.dart';
 
-/// Singleton ChangeNotifier so both StartupNetworkScreen and
-/// StartupRequestsScreen share the exact same request list.
-class RequestsViewModel extends ChangeNotifier {
-  RequestsViewModel._();
-  static final RequestsViewModel instance = RequestsViewModel._();
+class RequestsViewModel extends StateNotifier<RequestsState> {
+  RequestsViewModel() : super(const RequestsState());
 
-  final List<ConnectionRequest> _pending = [
-    const ConnectionRequest(
-      name: 'Priya Sharma',
-      role: 'Angel Investor • Mumbai',
-      initials: 'PS',
-      category: 'Investor',
-      note:
-          'Interested in your B2B SaaS traction. Would love to review your pitch deck!',
-      time: '10m ago',
-      mutualConnections: 12,
-    ),
-    const ConnectionRequest(
-      name: 'Ravi Kumar',
-      role: 'CTO at TechNova • Bangalore',
-      initials: 'RK',
-      category: 'Founder',
-      note:
-          'Hey! Looking to collaborate on cloud infrastructure and API integrations.',
-      time: '1h ago',
-      mutualConnections: 8,
-    ),
-    const ConnectionRequest(
-      name: 'Ananya Patel',
-      role: 'Product Designer • Delhi',
-      initials: 'AP',
-      category: 'Design',
-      note:
-          'Loved your product design! Would like to connect and share feedback.',
-      time: '3h ago',
-      mutualConnections: 4,
-    ),
-    const ConnectionRequest(
-      name: 'Suresh Menon',
-      role: 'Startup Advisor • Hyderabad',
-      initials: 'SM',
-      category: 'Mentor',
-      note:
-          'Advising Series-A founders in FinTech. Happy to connect and offer insights.',
-      time: 'Yesterday',
-      mutualConnections: 19,
-    ),
-    const ConnectionRequest(
-      name: 'Kavitha Reddy',
-      role: 'VC Partner at SeedFund • Chennai',
-      initials: 'KR',
-      category: 'Investor',
-      note:
-          "We are active seed investors in your space. Let's schedule a quick call.",
-      time: '2d ago',
-      mutualConnections: 15,
-    ),
-  ];
-
-  final List<ConnectionRequest> _accepted = [];
-  int _connected = 24;
-  int _ignored = 8;
-
-  List<ConnectionRequest> get pending => List.unmodifiable(_pending);
-  List<ConnectionRequest> get accepted => List.unmodifiable(_accepted);
-  int get pendingCount => _pending.length;
-  int get connectedCount => _connected;
-  int get ignoredCount => _ignored;
+  void loadInitialData() {
+    state = state.copyWith(
+      pending: const [
+        ConnectionRequest(
+          name: 'Priya Sharma',
+          role: 'Angel Investor • Mumbai',
+          initials: 'PS',
+          category: 'Investor',
+          note: 'Interested in your B2B SaaS traction.',
+          time: '10m ago',
+          mutualConnections: 12,
+        ),
+        ConnectionRequest(
+          name: 'Ravi Kumar',
+          role: 'CTO at TechNova • Bangalore',
+          initials: 'RK',
+          category: 'Founder',
+          note: 'Hey! Looking to collaborate on cloud infrastructure.',
+          time: '1h ago',
+          mutualConnections: 8,
+        ),
+        ConnectionRequest(
+          name: 'Ananya Patel',
+          role: 'Product Designer • Delhi',
+          initials: 'AP',
+          category: 'Design',
+          note: 'Loved your product design! Would like to connect.',
+          time: '3h ago',
+          mutualConnections: 4,
+        ),
+        ConnectionRequest(
+          name: 'Suresh Menon',
+          role: 'Startup Advisor • Hyderabad',
+          initials: 'SM',
+          category: 'Mentor',
+          note: 'Advising Series-A founders in FinTech.',
+          time: 'Yesterday',
+          mutualConnections: 19,
+        ),
+        ConnectionRequest(
+          name: 'Kavitha Reddy',
+          role: 'VC Partner at SeedFund • Chennai',
+          initials: 'KR',
+          category: 'Investor',
+          note: 'We are active seed investors in your space.',
+          time: '2d ago',
+          mutualConnections: 15,
+        ),
+      ],
+    );
+  }
 
   void accept(String name) {
-    final requestIndex = _pending.indexWhere((r) => r.name == name);
+    final requestIndex = state.pending.indexWhere((r) => r.name == name);
     if (requestIndex == -1) return;
 
-    _accepted.add(_pending.removeAt(requestIndex));
-    _connected++;
-    notifyListeners();
+    final request = state.pending[requestIndex];
+    final newPending = List<ConnectionRequest>.from(state.pending);
+    newPending.removeAt(requestIndex);
+
+    state = state.copyWith(
+      pending: newPending,
+      accepted: [...state.accepted, request],
+      connected: state.connected + 1,
+    );
   }
 
   void ignore(String name) {
-    _pending.removeWhere((r) => r.name == name);
-    _ignored++;
-    notifyListeners();
+    final newPending = state.pending.where((r) => r.name != name).toList();
+    state = state.copyWith(
+      pending: newPending,
+      ignored: state.ignored + 1,
+    );
   }
 
   List<ConnectionRequest> filtered(String category) {
-    if (category == 'All') return pending;
-    return _pending
+    if (category == 'All') return state.pending;
+    return state.pending
         .where((r) => r.category.toLowerCase() == category.toLowerCase())
         .toList();
   }

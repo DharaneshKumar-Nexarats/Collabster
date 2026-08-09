@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/di/providers.dart';
 import '../../model/startup_models.dart';
-import '../../viewmodel/fundraising_viewmodel.dart';
 import '../widgets/startup_color_helper.dart';
 
-class InvestorDetailScreen extends StatelessWidget {
+class InvestorDetailScreen extends ConsumerWidget {
   const InvestorDetailScreen({
     super.key,
     required this.investor,
-    required this.viewModel,
     required this.startupName,
   });
 
   final FundraisingInvestor investor;
-  final FundraisingViewModel viewModel;
   final String startupName;
 
-  void _showScheduleCallSheet(BuildContext context, String partnerEmail) {
+  void _showScheduleCallSheet(
+    BuildContext context,
+    WidgetRef ref,
+    String partnerEmail,
+  ) {
     String selectedTimeSlot = 'Tomorrow 10:00 AM';
     String selectedFormat = 'Google Meet';
     final agendaCtrl = TextEditingController(
@@ -212,18 +215,22 @@ class InvestorDetailScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        viewModel.updateInvestorStatus(
-                          investor,
-                          'Meeting: $selectedTimeSlot',
-                        );
-                        viewModel.addAttentionTask(
-                          FundraisingTask(
-                            title: 'Investor Call with ${investor.name}',
-                            subtitle: '$selectedTimeSlot · $selectedFormat',
-                            iconKey: 'video',
-                            isUrgent: true,
-                          ),
-                        );
+                        ref
+                            .read(fundraisingViewModelProvider.notifier)
+                            .updateInvestorStatus(
+                              investor,
+                              'Meeting: $selectedTimeSlot',
+                            );
+                        ref
+                            .read(fundraisingViewModelProvider.notifier)
+                            .addAttentionTask(
+                              FundraisingTask(
+                                title: 'Investor Call with ${investor.name}',
+                                subtitle: '$selectedTimeSlot · $selectedFormat',
+                                iconKey: 'video',
+                                isUrgent: true,
+                              ),
+                            );
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -259,9 +266,14 @@ class InvestorDetailScreen extends StatelessWidget {
     );
   }
 
-  void _showSendDeckSheet(BuildContext context, String partnerEmail) {
-    String selectedDeck = viewModel.documents.isNotEmpty
-        ? viewModel.documents.first.name
+  void _showSendDeckSheet(
+    BuildContext context,
+    WidgetRef ref,
+    String partnerEmail,
+  ) {
+    final state = ref.read(fundraisingViewModelProvider);
+    String selectedDeck = state.documents.isNotEmpty
+        ? state.documents.first.name
         : 'Pitch Deck v3.pdf';
 
     final noteCtrl = TextEditingController(
@@ -350,7 +362,7 @@ class InvestorDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...viewModel.documents.map((doc) {
+                  ...state.documents.map((doc) {
                     final selected = doc.name == selectedDeck;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -424,10 +436,12 @@ class InvestorDetailScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        viewModel.updateInvestorStatus(
-                          investor,
-                          'Deck Sent - Awaiting Review',
-                        );
+                        ref
+                            .read(fundraisingViewModelProvider.notifier)
+                            .updateInvestorStatus(
+                              investor,
+                              'Deck Sent - Awaiting Review',
+                            );
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -464,312 +478,311 @@ class InvestorDetailScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: viewModel,
-      builder: (context, _) {
-        final currentInvestor = viewModel.activeInvestors.firstWhere(
-          (i) => i.name == investor.name,
-          orElse: () => investor,
-        );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(fundraisingViewModelProvider);
 
-        final partnerName = currentInvestor.leadPartner ?? 'Managing Partner';
-        final partnerEmail = currentInvestor.email ??
-            'contact@${currentInvestor.name.toLowerCase().replaceAll(' ', '')}.com';
-        final notes = currentInvestor.notes ??
-            'Evaluating product-market fit and recurring revenue traction for Series A round.';
+    final currentInvestor = state.activeInvestors.firstWhere(
+      (i) => i.name == investor.name,
+      orElse: () => investor,
+    );
 
-        return Scaffold(
-          backgroundColor: const Color(0xFFF6F3FF),
-          body: CustomScrollView(
-            slivers: [
-              // Header Banner
-              SliverToBoxAdapter(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        StartupColorHelper.fromKey(currentInvestor.colorKey),
-                        const Color(0xFF5B21B6),
-                        const Color(0xFF4338CA),
-                      ],
-                    ),
-                  ),
-                  child: SafeArea(
-                    bottom: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 30),
-                      child: Column(
+    final partnerName = currentInvestor.leadPartner ?? 'Managing Partner';
+    final partnerEmail = currentInvestor.email ??
+        'contact@${currentInvestor.name.toLowerCase().replaceAll(' ', '')}.com';
+    final notes = currentInvestor.notes ??
+        'Evaluating product-market fit and recurring revenue traction for Series A round.';
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F3FF),
+      body: CustomScrollView(
+        slivers: [
+          // Header Banner
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    StartupColorHelper.fromKey(currentInvestor.colorKey),
+                    const Color(0xFF5B21B6),
+                    const Color(0xFF4338CA),
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 30),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              GestureDetector(
-                                onTap: () => Navigator.pop(context),
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    Icons.arrow_back,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              const Text(
-                                'Investor Details',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          'Investor contact for ${currentInvestor.name} copied!'),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    Icons.share_outlined,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          // Fund Badge Avatar
-                          Container(
-                            width: 86,
-                            height: 86,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Text(
-                                currentInvestor.initials,
-                                style: TextStyle(
-                                  color: StartupColorHelper.fromKey(currentInvestor.colorKey),
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w900,
-                                ),
+                              child: const Icon(
+                                Icons.arrow_back,
+                                color: Colors.white,
+                                size: 20,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            currentInvestor.name,
-                            style: const TextStyle(
+                          const Text(
+                            'Investor Details',
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 23,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'Investor contact for ${currentInvestor.name} copied!'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.share_outlined,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      // Fund Badge Avatar
+                      Container(
+                        width: 86,
+                        height: 86,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 16,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            currentInvestor.initials,
+                            style: TextStyle(
+                              color: StartupColorHelper.fromKey(currentInvestor.colorKey),
+                              fontSize: 32,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Target Check: ${currentInvestor.amount} · ${currentInvestor.fund}',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.9),
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.25),
-                              ),
-                            ),
-                            child: Text(
-                              currentInvestor.meetingIn.toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 16),
+                      Text(
+                        currentInvestor.name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 23,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Target Check: ${currentInvestor.amount} · ${currentInvestor.fund}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Text(
+                          currentInvestor.meetingIn.toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-
-              // Details Content
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 30),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    // Quick Actions
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () => _showScheduleCallSheet(
-                              context,
-                              partnerEmail,
-                            ),
-                            icon: const Icon(Icons.event_available_rounded,
-                                size: 18),
-                            label: const Text(
-                              'Schedule Call',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 13.5,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF5B21B6),
-                              foregroundColor: Colors.white,
-                              minimumSize: const Size.fromHeight(48),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => _showSendDeckSheet(
-                              context,
-                              partnerEmail,
-                            ),
-                            icon: const Icon(Icons.send_rounded, size: 18),
-                            label: const Text(
-                              'Send Deck',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 13.5,
-                              ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF5B21B6),
-                              side: const BorderSide(
-                                color: Color(0xFF5B21B6),
-                                width: 1.5,
-                              ),
-                              minimumSize: const Size.fromHeight(48),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Lead Partner & Contact Info Card
-                    _cardContainer(
-                      title: 'Lead Partner & Contact',
-                      icon: Icons.person_outline_rounded,
-                      child: Column(
-                        children: [
-                          _infoRow(
-                            icon: Icons.badge_outlined,
-                            label: 'Lead Partner',
-                            value: partnerName,
-                          ),
-                          const Divider(height: 24),
-                          _infoRow(
-                            icon: Icons.mail_outline,
-                            label: 'Partner Email',
-                            value: partnerEmail,
-                            trailing: GestureDetector(
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Copied $partnerEmail'),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEDE9FE),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  'Copy',
-                                  style: TextStyle(
-                                    color: Color(0xFF5B21B6),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const Divider(height: 24),
-                          _infoRow(
-                            icon: Icons.monetization_on_outlined,
-                            label: 'Proposed Check Size',
-                            value: currentInvestor.amount,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Investment Notes & Strategy
-                    _cardContainer(
-                      title: 'Investment Notes & Focus',
-                      icon: Icons.notes_outlined,
-                      child: Text(
-                        notes,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF374151),
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                  ]),
-                ),
-              ),
-            ],
+            ),
           ),
-        );
-      },
+
+          // Details Content
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 30),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Quick Actions
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showScheduleCallSheet(
+                          context,
+                          ref,
+                          partnerEmail,
+                        ),
+                        icon: const Icon(Icons.event_available_rounded,
+                            size: 18),
+                        label: const Text(
+                          'Schedule Call',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF5B21B6),
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showSendDeckSheet(
+                          context,
+                          ref,
+                          partnerEmail,
+                        ),
+                        icon: const Icon(Icons.send_rounded, size: 18),
+                        label: const Text(
+                          'Send Deck',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF5B21B6),
+                          side: const BorderSide(
+                            color: Color(0xFF5B21B6),
+                            width: 1.5,
+                          ),
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Lead Partner & Contact Info Card
+                _cardContainer(
+                  title: 'Lead Partner & Contact',
+                  icon: Icons.person_outline_rounded,
+                  child: Column(
+                    children: [
+                      _infoRow(
+                        icon: Icons.badge_outlined,
+                        label: 'Lead Partner',
+                        value: partnerName,
+                      ),
+                      const Divider(height: 24),
+                      _infoRow(
+                        icon: Icons.mail_outline,
+                        label: 'Partner Email',
+                        value: partnerEmail,
+                        trailing: GestureDetector(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Copied $partnerEmail'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEDE9FE),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Copy',
+                              style: TextStyle(
+                                color: Color(0xFF5B21B6),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Divider(height: 24),
+                      _infoRow(
+                        icon: Icons.monetization_on_outlined,
+                        label: 'Proposed Check Size',
+                        value: currentInvestor.amount,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Investment Notes & Strategy
+                _cardContainer(
+                  title: 'Investment Notes & Focus',
+                  icon: Icons.notes_outlined,
+                  child: Text(
+                    notes,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF374151),
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ]),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

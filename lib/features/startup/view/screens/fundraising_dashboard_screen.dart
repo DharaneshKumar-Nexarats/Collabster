@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/di/providers.dart';
 import '../../model/startup_models.dart';
-import '../../viewmodel/fundraising_viewmodel.dart';
 import '../widgets/startup_color_helper.dart';
 import 'investor_detail_screen.dart';
 import 'investor_pipeline_screen.dart';
 
-class FundraisingDashboardScreen extends StatefulWidget {
+class FundraisingDashboardScreen extends ConsumerWidget {
   const FundraisingDashboardScreen({
     super.key,
     required this.startupName,
@@ -16,54 +17,335 @@ class FundraisingDashboardScreen extends StatefulWidget {
   final bool autoOpenAddInvestorSheet;
 
   @override
-  State<FundraisingDashboardScreen> createState() =>
-      _FundraisingDashboardScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(fundraisingViewModelProvider);
 
-class _FundraisingDashboardScreenState
-    extends State<FundraisingDashboardScreen> {
-  late final FundraisingViewModel _viewModel;
-
-  @override
-  void initState() {
-    super.initState();
-    _viewModel = FundraisingViewModel();
-    if (widget.autoOpenAddInvestorSheet) {
+    if (autoOpenAddInvestorSheet) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showAddInvestorSheet(context);
+        showAddInvestorSheet(context, ref);
       });
     }
-  }
 
-  @override
-  void dispose() {
-    _viewModel.dispose();
-    super.dispose();
-  }
-
-  void _openInvestorDetail(FundraisingInvestor investor) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => InvestorDetailScreen(
-          investor: investor,
-          viewModel: _viewModel,
-          startupName: widget.startupName,
-        ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F3FF),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF5B21B6),
+                    Color(0xFF7C3AED),
+                    Color(0xFF4338CA),
+                  ],
+                ),
+              ),
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 12,
+                left: 20,
+                right: 20,
+                bottom: 24,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Fundraising',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'CURRENT ROUND',
+                                  style: TextStyle(
+                                    color: Colors.white60,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Series A',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const Text(
+                                  'TARGET',
+                                  style: TextStyle(
+                                    color: Colors.white60,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '\$${state.targetAmount.toStringAsFixed(1)}M',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: LinearProgressIndicator(
+                            value: state.progress,
+                            minHeight: 8,
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.2),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Color(0xFF34D399),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '\$${state.raisedAmount.toStringAsFixed(1)}M Raised',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              '${(state.progress * 100).round()}% of target',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _fundStat(
+                                '${state.meetingsCount}',
+                                'MEETINGS',
+                              ),
+                            ),
+                            Expanded(
+                              child: _fundStat(
+                                '${state.introsCount}',
+                                'INTROS',
+                              ),
+                            ),
+                            Expanded(
+                              child: _fundStat(
+                                '${state.reachCount}',
+                                'REACH',
+                              ),
+                            ),
+                            Expanded(
+                              child: _fundStat(
+                                '${state.repliesCount}',
+                                'REPLIES',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (state.attentionTasks.isNotEmpty) ...[
+                    const Text(
+                      'Needs Your Attention',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF12233D),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...state.attentionTasks.map(
+                      (t) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _taskCard(
+                          StartupColorHelper.iconFromKey(t.iconKey),
+                          t.title,
+                          t.subtitle,
+                          isUrgent: t.isUrgent,
+                          onAct: () => _handleTaskAct(context, ref, t),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  Row(
+                    children: [
+                      const Text(
+                        'Active Opportunities',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF12233D),
+                        ),
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const InvestorPipelineScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'View All',
+                          style: TextStyle(
+                            color: Color(0xFF5B21B6),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ...state.activeInvestors.map(
+                    (inv) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _InvestorOpportunityCard(
+                        investor: inv,
+                        onView: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => InvestorDetailScreen(
+                                investor: inv,
+                                startupName: startupName,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Text(
+                        'Documents',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF12233D),
+                        ),
+                      ),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: () => _showAddDocumentSheet(context, ref),
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text(
+                          'Add Material',
+                          style: TextStyle(
+                            color: Color(0xFF5B21B6),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ...state.documents.map(
+                    (doc) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _docItem(
+                        Icons.picture_as_pdf_outlined,
+                        doc.name,
+                        '${doc.size} · ${doc.dateAdded}',
+                        'View',
+                        onTap: () =>
+                            _showDocumentViewerSheet(context, ref, doc),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
       ),
     );
   }
 
-  void _openPipeline() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const InvestorPipelineScreen(),
-      ),
-    );
-  }
-
-  void _handleTaskAct(FundraisingTask task) {
+  void _handleTaskAct(
+      BuildContext context, WidgetRef ref, FundraisingTask task) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -100,8 +382,8 @@ class _FundraisingDashboardScreenState
                         : const Color(0xFFEDE9FE),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                    child: Icon(
-                      StartupColorHelper.iconFromKey(task.iconKey),
+                  child: Icon(
+                    StartupColorHelper.iconFromKey(task.iconKey),
                     color: task.isUrgent
                         ? const Color(0xFFF59E0B)
                         : const Color(0xFF5B21B6),
@@ -158,10 +440,13 @@ class _FundraisingDashboardScreenState
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pop(ctx);
-                      _viewModel.resolveTask(task);
+                      ref
+                          .read(fundraisingViewModelProvider.notifier)
+                          .resolveTask(task);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Action completed for "${task.title}"!'),
+                          content:
+                              Text('Action completed for "${task.title}"!'),
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
@@ -186,7 +471,8 @@ class _FundraisingDashboardScreenState
     );
   }
 
-  void _showDocumentViewerSheet(BuildContext context, FundraisingDocument doc) {
+  void _showDocumentViewerSheet(
+      BuildContext context, WidgetRef ref, FundraisingDocument doc) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -253,7 +539,6 @@ class _FundraisingDashboardScreenState
               ],
             ),
             const SizedBox(height: 20),
-            // Mock PDF Page Preview Card
             Container(
               height: 160,
               width: double.infinity,
@@ -323,7 +608,8 @@ class _FundraisingDashboardScreenState
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Shareable link for ${doc.name} copied!'),
+                          content: Text(
+                              'Shareable link for ${doc.name} copied!'),
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
@@ -347,7 +633,9 @@ class _FundraisingDashboardScreenState
               child: TextButton.icon(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  _viewModel.removeDocument(doc);
+                  ref
+                      .read(fundraisingViewModelProvider.notifier)
+                      .removeDocument(doc);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Removed ${doc.name} from documents.'),
@@ -372,7 +660,7 @@ class _FundraisingDashboardScreenState
     );
   }
 
-  void _showAddDocumentSheet() {
+  void _showAddDocumentSheet(BuildContext context, WidgetRef ref) {
     final nameCtrl = TextEditingController();
     final sizeCtrl = TextEditingController(text: '2.8 MB');
 
@@ -466,15 +754,15 @@ class _FundraisingDashboardScreenState
                   onPressed: () {
                     final name = nameCtrl.text.trim();
                     if (name.isEmpty) return;
-                    _viewModel.addDocument(
-                      FundraisingDocument(
-                        name: name.endsWith('.pdf') ? name : '$name.pdf',
-                        size: sizeCtrl.text.trim().isEmpty
-                            ? '2.1 MB'
-                            : sizeCtrl.text.trim(),
-                        dateAdded: 'Just now',
-                      ),
-                    );
+                    ref.read(fundraisingViewModelProvider.notifier).addDocument(
+                          FundraisingDocument(
+                            name: name.endsWith('.pdf') ? name : '$name.pdf',
+                            size: sizeCtrl.text.trim().isEmpty
+                                ? '2.1 MB'
+                                : sizeCtrl.text.trim(),
+                            dateAdded: 'Just now',
+                          ),
+                        );
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -486,7 +774,8 @@ class _FundraisingDashboardScreenState
                   icon: const Icon(Icons.upload_file_rounded, size: 18),
                   label: const Text(
                     'Upload Document',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                    style:
+                        TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                   ),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(52),
@@ -505,7 +794,7 @@ class _FundraisingDashboardScreenState
     );
   }
 
-  void showAddInvestorSheet(BuildContext context) {
+  void showAddInvestorSheet(BuildContext context, WidgetRef ref) {
     final nameCtrl = TextEditingController();
     final amountCtrl = TextEditingController();
     final partnerCtrl = TextEditingController();
@@ -578,7 +867,8 @@ class _FundraisingDashboardScreenState
                   TextField(
                     controller: nameCtrl,
                     decoration: InputDecoration(
-                      hintText: 'Fund / Investor Name (e.g. Sequoia Capital)',
+                      hintText:
+                          'Fund / Investor Name (e.g. Sequoia Capital)',
                       prefixIcon: const Icon(Icons.business_outlined),
                       filled: true,
                       fillColor: const Color(0xFFF6F3FF),
@@ -610,7 +900,8 @@ class _FundraisingDashboardScreenState
                   TextField(
                     controller: partnerCtrl,
                     decoration: InputDecoration(
-                      hintText: 'Lead Partner Name (e.g. Anish Srivastava)',
+                      hintText:
+                          'Lead Partner Name (e.g. Anish Srivastava)',
                       prefixIcon: const Icon(Icons.person_outline),
                       filled: true,
                       fillColor: const Color(0xFFF6F3FF),
@@ -724,8 +1015,8 @@ class _FundraisingDashboardScreenState
                         if (name.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content:
-                                  Text('Please enter investor or fund name.'),
+                              content: Text(
+                                  'Please enter investor or fund name.'),
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
@@ -775,7 +1066,9 @@ class _FundraisingDashboardScreenState
                               : notesCtrl.text.trim(),
                         );
 
-                        _viewModel.addInvestor(newInvestor, checkInM);
+                        ref
+                            .read(fundraisingViewModelProvider.notifier)
+                            .addInvestor(newInvestor, checkInM);
 
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -827,7 +1120,8 @@ class _FundraisingDashboardScreenState
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFF5B21B6) : const Color(0xFFF6F3FF),
+          color:
+              selected ? const Color(0xFF5B21B6) : const Color(0xFFF6F3FF),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
             color:
@@ -843,320 +1137,6 @@ class _FundraisingDashboardScreenState
           ),
         ),
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _viewModel,
-      builder: (context, _) {
-        final progress = _viewModel.progress;
-        final raisedAmount = _viewModel.raisedAmount;
-        final targetAmount = _viewModel.targetAmount;
-        final investors = _viewModel.activeInvestors;
-        final tasks = _viewModel.attentionTasks;
-        final documents = _viewModel.documents;
-
-        return Scaffold(
-          backgroundColor: const Color(0xFFF6F3FF),
-          body: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF5B21B6),
-                        Color(0xFF7C3AED),
-                        Color(0xFF4338CA),
-                      ],
-                    ),
-                  ),
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + 12,
-                    left: 20,
-                    right: 20,
-                    bottom: 24,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_back,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'Fundraising',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'CURRENT ROUND',
-                                      style: TextStyle(
-                                        color: Colors.white60,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 1,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      'Series A',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    const Text(
-                                      'TARGET',
-                                      style: TextStyle(
-                                        color: Colors.white60,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 1,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '\$${targetAmount.toStringAsFixed(1)}M',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(999),
-                              child: LinearProgressIndicator(
-                                value: progress,
-                                minHeight: 8,
-                                backgroundColor:
-                                    Colors.white.withValues(alpha: 0.2),
-                                valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Color(0xFF34D399),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '\$${raisedAmount.toStringAsFixed(1)}M Raised',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                Text(
-                                  '${(progress * 100).round()}% of target',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _fundStat(
-                                    '${_viewModel.meetingsCount}',
-                                    'MEETINGS',
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _fundStat(
-                                    '${_viewModel.introsCount}',
-                                    'INTROS',
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _fundStat(
-                                    '${_viewModel.reachCount}',
-                                    'REACH',
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _fundStat(
-                                    '${_viewModel.repliesCount}',
-                                    'REPLIES',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (tasks.isNotEmpty) ...[
-                        const Text(
-                          'Needs Your Attention',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF12233D),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        ...tasks.map(
-                          (t) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _taskCard(
-                              StartupColorHelper.iconFromKey(t.iconKey),
-                              t.title,
-                              t.subtitle,
-                              isUrgent: t.isUrgent,
-                              onAct: () => _handleTaskAct(t),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                      Row(
-                        children: [
-                          const Text(
-                            'Active Opportunities',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF12233D),
-                            ),
-                          ),
-                          const Spacer(),
-                          TextButton(
-                            onPressed: _openPipeline,
-                            child: const Text(
-                              'View All',
-                              style: TextStyle(
-                                color: Color(0xFF5B21B6),
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      ...investors.map(
-                        (inv) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _InvestorOpportunityCard(
-                            investor: inv,
-                            onView: () => _openInvestorDetail(inv),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          const Text(
-                            'Documents',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF12233D),
-                            ),
-                          ),
-                          const Spacer(),
-                          TextButton.icon(
-                            onPressed: _showAddDocumentSheet,
-                            icon: const Icon(Icons.add, size: 16),
-                            label: const Text(
-                              'Add Material',
-                              style: TextStyle(
-                                color: Color(0xFF5B21B6),
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      ...documents.map(
-                        (doc) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _docItem(
-                            Icons.picture_as_pdf_outlined,
-                            doc.name,
-                            '${doc.size} · ${doc.dateAdded}',
-                            'View',
-                            onTap: () => _showDocumentViewerSheet(context, doc),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -1197,7 +1177,8 @@ class _FundraisingDashboardScreenState
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: isUrgent
-            ? Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.4))
+            ? Border.all(
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.4))
             : null,
         boxShadow: const [
           BoxShadow(
@@ -1241,7 +1222,8 @@ class _FundraisingDashboardScreenState
                 ),
                 Text(
                   sub,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                  style: const TextStyle(
+                      fontSize: 12, color: Color(0xFF6B7280)),
                 ),
               ],
             ),
@@ -1313,7 +1295,8 @@ class _FundraisingDashboardScreenState
                   ),
                   Text(
                     size,
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
+                    style: const TextStyle(
+                        fontSize: 12, color: Color(0xFF9CA3AF)),
                   ),
                 ],
               ),
@@ -1367,7 +1350,8 @@ class _InvestorOpportunityCard extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 22,
-              backgroundColor: StartupColorHelper.fromKey(investor.colorKey).withValues(alpha: 0.12),
+              backgroundColor: StartupColorHelper.fromKey(investor.colorKey)
+                  .withValues(alpha: 0.12),
               child: Text(
                 investor.initials,
                 style: TextStyle(
@@ -1401,7 +1385,8 @@ class _InvestorOpportunityCard extends StatelessWidget {
                     investor.meetingIn,
                     style: TextStyle(
                       fontSize: 11,
-                      color: StartupColorHelper.fromKey(investor.colorKey),
+                      color:
+                          StartupColorHelper.fromKey(investor.colorKey),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1421,7 +1406,8 @@ class _InvestorOpportunityCard extends StatelessWidget {
               ),
               child: const Text(
                 'View',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w700),
               ),
             ),
           ],

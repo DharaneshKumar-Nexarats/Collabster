@@ -25,6 +25,12 @@ class CareerDashboardScreen extends ConsumerStatefulWidget {
 class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
   int _selectedIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    ref.read(careerViewModelProvider.notifier).loadInitialData();
+  }
+
   String get _timeBasedGreeting {
     final hour = DateTime.now().hour;
     if (hour >= 5 && hour < 12) return 'Good Morning';
@@ -182,6 +188,8 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
   // ── Home tab ──────────────────────────────────────────────────────────
   Widget _buildHomeContent() {
     final authState = ref.watch(authViewModelProvider);
+    final careerState = ref.watch(careerViewModelProvider);
+    final jobs = careerState.jobs;
     final session = authState.session;
     final userName = session?.fullName ?? 'Professional';
     final greetingName = userName.split(RegExp(r'\s+')).first;
@@ -371,31 +379,25 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
               const SizedBox(height: 14),
               SizedBox(
                 height: 230,
-                child: ListView(
+                child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  children: const [
-                    _JobCard(
-                      title: 'Frontend Developer',
-                      company: 'Google',
-                      location: 'Remote',
-                      tags: ['React', 'Tailwind'],
-                      status: 'Active',
-                      accent: Color(0xFF0284C7),
-                      statusBg: Color(0xFFE0F2FE),
-                      statusFg: Color(0xFF0369A1),
-                    ),
-                    SizedBox(width: 12),
-                    _JobCard(
-                      title: 'Figma UI Designer',
-                      company: 'Figma Inc.',
-                      location: 'Hybrid',
-                      tags: ['Figma', 'Prototyping'],
-                      status: 'Active',
-                      accent: Color(0xFF0EA5E9),
-                      statusBg: Color(0xFFE0F2FE),
-                      statusFg: Color(0xFF0369A1),
-                    ),
-                  ],
+                  itemCount: jobs.length,
+                  itemBuilder: (context, index) {
+                    final job = jobs[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: _JobCard(
+                        title: job.title,
+                        company: job.company,
+                        location: job.location,
+                        tags: job.tags,
+                        status: 'Active',
+                        accent: const Color(0xFF0284C7),
+                        statusBg: const Color(0xFFE0F2FE),
+                        statusFg: const Color(0xFF0369A1),
+                      ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 26),
@@ -627,44 +629,16 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
   }
 
   Widget _buildSavedPage() {
-    final savedJobs = [
-      _SavedJob(
-        title: 'Senior Flutter Developer',
-        company: 'Microsoft',
-        location: 'Hyderabad, India',
-        salary: '\$18L – \$26L',
-        posted: '2 days ago',
-        tags: ['Flutter', 'Dart', 'Firebase'],
-        savedAgo: '1d ago',
-      ),
-      _SavedJob(
-        title: 'UI/UX Designer',
-        company: 'Flipkart',
-        location: 'Bangalore, India',
-        salary: '\$12L – \$18L',
-        posted: '5 days ago',
-        tags: ['Figma', 'Prototyping'],
-        savedAgo: '3d ago',
-      ),
-      _SavedJob(
-        title: 'Full Stack Developer',
-        company: 'Razorpay',
-        location: 'Remote',
-        salary: '\$20L – \$30L',
-        posted: '1 day ago',
-        tags: ['React', 'Node.js', 'PostgreSQL'],
-        savedAgo: '6h ago',
-      ),
-      _SavedJob(
-        title: 'Product Manager',
-        company: 'Zoho',
-        location: 'Chennai, India',
-        salary: '\$22L – \$32L',
-        posted: '3 days ago',
-        tags: ['Strategy', 'Agile', 'Analytics'],
-        savedAgo: '5d ago',
-      ),
-    ];
+    final careerState = ref.watch(careerViewModelProvider);
+    final savedJobs = careerState.jobs.map((job) => _SavedJob(
+      title: job.title,
+      company: job.company,
+      location: job.location,
+      salary: job.salaryTag,
+      posted: job.timeAgo,
+      tags: job.tags,
+      savedAgo: job.timeAgo,
+    )).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F9FF),

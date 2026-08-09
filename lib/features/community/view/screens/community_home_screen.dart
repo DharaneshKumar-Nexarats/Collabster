@@ -17,122 +17,16 @@ class CommunityHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
-  int _selectedBottomNavIndex = 0; // 0 represents Home tab
-  String _selectedCategoryId = 'all';
+  int _selectedBottomNavIndex = 0;
   final TextEditingController _searchController = TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  // Categories list matching screenshot
-  final List<CommunityCategory> _categories = const [
-    CommunityCategory(id: 'all', label: 'All', icon: Icons.grid_view_rounded),
-    CommunityCategory(id: 'tech', label: 'Tech', icon: Icons.code_rounded),
-    CommunityCategory(id: 'startup', label: 'Startup', icon: Icons.rocket_launch_outlined),
-    CommunityCategory(id: 'design', label: 'Design', icon: Icons.edit_outlined),
-    CommunityCategory(id: 'ai_ml', label: 'AI / ML', icon: Icons.psychology_outlined),
-  ];
-
-  // "What's Happening" mock items matching screenshot
-  final List<WhatsHappeningItem> _whatsHappeningList = const [
-    WhatsHappeningItem(
-      id: 'wh_1',
-      title: 'Flutter Developers',
-      subtitle: '12 new discussions • 36 new replies',
-      icon: Icons.chat_bubble_rounded,
-      iconColor: Color(0xFFEA580C),
-      iconBgColor: Color(0xFFFFF7ED),
-    ),
-    WhatsHappeningItem(
-      id: 'wh_2',
-      title: 'Startup Founders',
-      subtitle: '5 new discussions • 2 upcoming events',
-      icon: Icons.calendar_today_rounded,
-      iconColor: Color(0xFFEA580C),
-      iconBgColor: Color(0xFFFFEDD5),
-    ),
-    WhatsHappeningItem(
-      id: 'wh_3',
-      title: 'UI/UX Designers',
-      subtitle: '8 new posts • 14 new replies',
-      icon: Icons.palette_outlined,
-      iconColor: Color(0xFF0284C7),
-      iconBgColor: Color(0xFFE0F2FE),
-    ),
-  ];
-
-  // "My Communities" mock items matching screenshot
-  late List<MyCommunityItem> _myCommunities;
-
-  // "Recommended for you" mock items matching screenshot
-  late List<RecommendedCommunityItem> _recommendedCommunities;
 
   @override
   void initState() {
     super.initState();
-    _myCommunities = [
-      MyCommunityItem(
-        id: 'mc_1',
-        title: 'Flutter Developers',
-        memberCount: '2.4K Members',
-        activeTodayCount: '86 active today',
-        avatarUrls: [
-          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-        ],
-        overflowCount: 32,
-        gradientColors: const [Color(0xFFEA580C), Color(0xFFF97316)],
-        logoIcon: Icons.widgets_rounded,
-        categoryId: 'tech',
-      ),
-      MyCommunityItem(
-        id: 'mc_2',
-        title: 'Startup Founders',
-        memberCount: '1.8K Members',
-        activeTodayCount: '42 active today',
-        avatarUrls: [
-          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-          'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
-          'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
-        ],
-        overflowCount: 18,
-        gradientColors: const [Color(0xFFF97316), Color(0xFFEA580C)],
-        logoIcon: Icons.rocket_launch_rounded,
-        categoryId: 'startup',
-      ),
-    ];
-
-    _recommendedCommunities = [
-      RecommendedCommunityItem(
-        id: 'rc_1',
-        title: 'AI Engineers',
-        memberCount: '3.8K Members',
-        tag: 'AI / ML',
-        categoryId: 'ai_ml',
-        icon: Icons.psychology_rounded,
-        iconBgColor: const Color(0xFF1E293B),
-        iconColor: Colors.white,
-      ),
-      RecommendedCommunityItem(
-        id: 'rc_2',
-        title: 'Product Managers',
-        memberCount: '2.6K Members',
-        tag: 'Product',
-        categoryId: 'startup',
-        icon: Icons.work_rounded,
-        iconBgColor: const Color(0xFF0D9488),
-        iconColor: Colors.white,
-      ),
-      RecommendedCommunityItem(
-        id: 'rc_3',
-        title: 'Growth Hackers',
-        memberCount: '1.9K Members',
-        tag: 'Marketing',
-        categoryId: 'startup',
-        icon: Icons.trending_up_rounded,
-        iconBgColor: const Color(0xFFEA580C),
-        iconColor: Colors.white,
-      ),
-    ];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(communityViewModelProvider.notifier).loadInitialData();
+    });
   }
 
   @override
@@ -641,6 +535,13 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
   // COMMUNITY TAB
   // ══════════════════════════════════════════════════════════════════════
   Widget _buildCommunityTab(BuildContext context, String userName, String email) {
+    final communityState = ref.watch(communityViewModelProvider);
+    final categories = communityState.categories;
+    final selectedCategoryId = communityState.selectedCategoryId;
+    final whatsHappening = communityState.whatsHappening;
+    final filteredMyCommunities = communityState.filteredMyCommunities;
+    final filteredRecommended = communityState.filteredRecommended;
+
     return SafeArea(
       bottom: false,
       child: CustomScrollView(
@@ -670,11 +571,11 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                itemCount: _categories.length,
+                itemCount: categories.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemBuilder: (ctx, index) {
-                  final cat = _categories[index];
-                  final isSelected = cat.id == _selectedCategoryId;
+                  final cat = categories[index];
+                  final isSelected = cat.id == selectedCategoryId;
                   return _buildCategoryCard(cat, isSelected);
                 },
               ),
@@ -686,15 +587,15 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
               delegate: SliverChildListDelegate([
                 _buildSectionHeader(title: "What's Happening", onViewAll: () {}),
                 const SizedBox(height: 12),
-                _buildWhatsHappeningCard(),
+                _buildWhatsHappeningCard(whatsHappening),
                 const SizedBox(height: 24),
                 _buildSectionHeader(title: 'My Communities', onViewAll: () {}),
                 const SizedBox(height: 12),
-                _buildMyCommunitiesList(),
+                _buildMyCommunitiesList(filteredMyCommunities),
                 const SizedBox(height: 24),
                 _buildSectionHeader(title: 'Recommended for you', onViewAll: () {}),
                 const SizedBox(height: 12),
-                _buildRecommendedCard(),
+                _buildRecommendedCard(filteredRecommended),
               ]),
             ),
           ),
@@ -754,7 +655,10 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
           Expanded(
             child: TextField(
               controller: _searchController,
-              onChanged: (val) => setState(() {}),
+              onChanged: (val) {
+                ref.read(communityViewModelProvider.notifier).setSearchQuery(val);
+                setState(() {});
+              },
               style: const TextStyle(
                 color: Color(0xFF0F172A),
                 fontSize: 14,
@@ -779,6 +683,7 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
             GestureDetector(
               onTap: () {
                 _searchController.clear();
+                ref.read(communityViewModelProvider.notifier).setSearchQuery('');
                 setState(() {});
               },
               child: Container(
@@ -808,9 +713,7 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
 
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _selectedCategoryId = cat.id;
-        });
+        ref.read(communityViewModelProvider.notifier).selectCategory(cat.id);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -909,9 +812,7 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
   }
 
   // ── What's Happening Card Container ────────────────────────────────────
-  Widget _buildWhatsHappeningCard() {
-    final filtered = _whatsHappeningList;
-
+  Widget _buildWhatsHappeningCard(List<WhatsHappeningItem> items) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -926,10 +827,10 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
         ],
       ),
       child: Column(
-        children: filtered.asMap().entries.map((entry) {
+        children: items.asMap().entries.map((entry) {
           final idx = entry.key;
           final item = entry.value;
-          final isLast = idx == filtered.length - 1;
+          final isLast = idx == items.length - 1;
 
           return Column(
             children: [
@@ -1028,16 +929,16 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
   }
 
   // ── My Communities Horizontal Scroll ───────────────────────────────────
-  Widget _buildMyCommunitiesList() {
+  Widget _buildMyCommunitiesList(List<MyCommunityItem> communities) {
     return SizedBox(
       height: 226,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        itemCount: _myCommunities.length,
+        itemCount: communities.length,
         separatorBuilder: (_, __) => const SizedBox(width: 14),
         itemBuilder: (ctx, index) {
-          final community = _myCommunities[index];
+          final community = communities[index];
           return _buildCommunityCardItem(community);
         },
       ),
@@ -1168,48 +1069,49 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
                 const SizedBox(height: 10),
 
                 // Overlapping Avatar Stack
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 72,
-                      height: 26,
-                      child: Stack(
-                        children: [
-                          Positioned(
-                            left: 0,
-                            child: _avatarCircle(community.avatarUrls[0]),
-                          ),
-                          Positioned(
-                            left: 16,
-                            child: _avatarCircle(community.avatarUrls[1]),
-                          ),
-                          Positioned(
-                            left: 32,
-                            child: _avatarCircle(community.avatarUrls[2]),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF7ED),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '+${community.overflowCount}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                  color: Color(0xFFEA580C),
+                if (community.avatarUrls.length >= 3)
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 72,
+                        height: 26,
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              left: 0,
+                              child: _avatarCircle(community.avatarUrls[0]),
+                            ),
+                            Positioned(
+                              left: 16,
+                              child: _avatarCircle(community.avatarUrls[1]),
+                            ),
+                            Positioned(
+                              left: 32,
+                              child: _avatarCircle(community.avatarUrls[2]),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF7ED),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '+${community.overflowCount}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                  color: Color(0xFFEA580C),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -1234,7 +1136,7 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
   }
 
   // ── Recommended for you Section ────────────────────────────────────────
-  Widget _buildRecommendedCard() {
+  Widget _buildRecommendedCard(List<RecommendedCommunityItem> items) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1249,10 +1151,10 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
         ],
       ),
       child: Column(
-        children: _recommendedCommunities.asMap().entries.map((entry) {
+        children: items.asMap().entries.map((entry) {
           final idx = entry.key;
           final item = entry.value;
-          final isLast = idx == _recommendedCommunities.length - 1;
+          final isLast = idx == items.length - 1;
 
           return Column(
             children: [
@@ -1302,19 +1204,7 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
                     // Join Button
                     GestureDetector(
                       onTap: () {
-                        setState(() {
-                          item.isJoined = !item.isJoined;
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              item.isJoined
-                                  ? 'Joined ${item.title}'
-                                  : 'Left ${item.title}',
-                            ),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
+                        ref.read(communityViewModelProvider.notifier).toggleJoinRecommended(item.id);
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),

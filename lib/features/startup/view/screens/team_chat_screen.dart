@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../model/startup_models.dart';
 import '../../model/team_chat_message.dart';
-import '../../viewmodel/team_viewmodel.dart';
+import '../../viewmodel/providers.dart';
 import 'team_member_profile_screen.dart';
 import '../widgets/startup_color_helper.dart';
 
-class TeamChatScreen extends StatefulWidget {
+class TeamChatScreen extends ConsumerStatefulWidget {
   const TeamChatScreen({
     super.key,
     required this.member,
-    required this.viewModel,
     this.startupName = 'Collabster',
   });
 
   final TeamMember member;
-  final TeamViewModel viewModel;
   final String startupName;
 
   @override
-  State<TeamChatScreen> createState() => _TeamChatScreenState();
+  ConsumerState<TeamChatScreen> createState() => _TeamChatScreenState();
 }
 
-class _TeamChatScreenState extends State<TeamChatScreen>
+class _TeamChatScreenState extends ConsumerState<TeamChatScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _msgController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -35,10 +34,11 @@ class _TeamChatScreenState extends State<TeamChatScreen>
   @override
   void initState() {
     super.initState();
-    widget.viewModel.markAsRead(widget.member.name);
-    // ensure messages are initialized
-    widget.viewModel.getMessagesFor(widget.member.name);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(teamViewModelProvider.notifier).markAsRead(widget.member.name);
+      ref.read(teamViewModelProvider.notifier).getMessagesFor(widget.member.name);
+      _scrollToBottom();
+    });
   }
 
   @override
@@ -55,7 +55,6 @@ class _TeamChatScreenState extends State<TeamChatScreen>
       MaterialPageRoute(
         builder: (_) => TeamMemberProfileScreen(
           member: widget.member,
-          viewModel: widget.viewModel,
           startupName: widget.startupName,
         ),
       ),
@@ -65,7 +64,7 @@ class _TeamChatScreenState extends State<TeamChatScreen>
   void _handleSend() {
     final text = _msgController.text.trim();
     if (text.isEmpty) return;
-    widget.viewModel.sendMessage(widget.member.name, text);
+    ref.read(teamViewModelProvider.notifier).sendMessage(widget.member.name, text);
     _msgController.clear();
     setState(() => _showEmoji = false);
     _focusNode.requestFocus();
@@ -130,7 +129,7 @@ class _TeamChatScreenState extends State<TeamChatScreen>
                   children: _emojis.map((emoji) {
                     return GestureDetector(
                       onTap: () {
-                        widget.viewModel.addReaction(
+                        ref.read(teamViewModelProvider.notifier).addReaction(
                             widget.member.name, index, emoji);
                         Navigator.pop(context);
                       },
@@ -157,8 +156,9 @@ class _TeamChatScreenState extends State<TeamChatScreen>
                   children: [
                     _actionBtn(Icons.copy_rounded, 'Copy', () {
                       Navigator.pop(context);
-                      final msgs =
-                          widget.viewModel.getMessagesFor(widget.member.name);
+                      final msgs = ref
+                          .read(teamViewModelProvider)
+                          .chatMessages[widget.member.name] ?? [];
                       if (index < msgs.length) {
                         Clipboard.setData(ClipboardData(text: msgs[index].text));
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -219,47 +219,43 @@ class _TeamChatScreenState extends State<TeamChatScreen>
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: widget.viewModel,
-      builder: (context, _) {
-        final messages = widget.viewModel.getMessagesFor(widget.member.name);
-        final isTyping = widget.viewModel.isTypingFor(widget.member.name);
+    final state = ref.watch(teamViewModelProvider);
+    final messages = ref.read(teamViewModelProvider.notifier).getMessagesFor(widget.member.name);
+    final isTyping = state.isTypingFor(widget.member.name);
 
-        return Scaffold(
-          backgroundColor: const Color(0xFFF0EBF8),
-          appBar: _buildAppBar(),
-          body: Column(
-            children: [
-              // ── Messages list ────────────────────────────────────────────
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    _focusNode.unfocus();
-                    setState(() => _showEmoji = false);
-                  },
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(14, 16, 14, 8),
-                    itemCount: messages.length + (isTyping ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (isTyping && index == messages.length) {
-                        return _typingBubble();
-                      }
-                      final msg = messages[index];
-                      final prevIsMe = index > 0 ? messages[index - 1].isMe : null;
-                      final showHeader = prevIsMe == null || prevIsMe != msg.isMe;
-                      return _chatBubble(msg, index, showHeader);
-                    },
-                  ),
-                ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0EBF8),
+      appBar: _buildAppBar(),
+      body: Column(
+        children: [
+          // ── Messages list ────────────────────────────────────────────
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                _focusNode.unfocus();
+                setState(() => _showEmoji = false);
+              },
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.fromLTRB(14, 16, 14, 8),
+                itemCount: messages.length + (isTyping ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (isTyping && index == messages.length) {
+                    return _typingBubble();
+                  }
+                  final msg = messages[index];
+                  final prevIsMe = index > 0 ? messages[index - 1].isMe : null;
+                  final showHeader = prevIsMe == null || prevIsMe != msg.isMe;
+                  return _chatBubble(msg, index, showHeader);
+                },
               ),
-
-              // ── Input box ────────────────────────────────────────────────
-              _buildInputBar(),
-            ],
+            ),
           ),
-        );
-      },
+
+          // ── Input box ────────────────────────────────────────────────
+          _buildInputBar(),
+        ],
+      ),
     );
   }
 

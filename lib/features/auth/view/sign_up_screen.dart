@@ -8,7 +8,7 @@ import '../../../shared/enums/app_enums.dart';
 import '../model/auth_session.dart';
 import '../../../core/di/providers.dart';
 import '../../../shared/utils/app_snackbar.dart';
-import '../viewmodel/sign_up_viewmodel.dart';
+import '../viewmodel/sign_up_state.dart';
 import 'secondary_goal_screen.dart';
 import 'sign_in_screen.dart';
 
@@ -27,7 +27,6 @@ class SignUpScreen extends ConsumerStatefulWidget {
 
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   late final PageController _pageController;
-  late final SignUpViewModel _viewModel;
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -46,10 +45,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: widget.initialPage);
-    _viewModel = SignUpViewModel()..setCurrentStep(widget.initialPage);
-    if (widget.initialRole != null) {
-      _viewModel.selectRole(widget.initialRole!);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(signUpViewModelProvider.notifier).setCurrentStep(widget.initialPage);
+      if (widget.initialRole != null) {
+        ref.read(signUpViewModelProvider.notifier).selectRole(widget.initialRole!);
+      }
+    });
   }
 
   @override
@@ -120,12 +121,15 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   void _nextStep() {
-    if (_viewModel.currentStep == 0) {
+    final currentStep = ref.read(signUpViewModelProvider).currentStep;
+    final notifier = ref.read(signUpViewModelProvider.notifier);
+
+    if (currentStep == 0) {
       if (!_validateBasicDetails()) return;
     }
 
-    if (_viewModel.currentStep < 2) {
-      _viewModel.goToNextStep();
+    if (currentStep < 2) {
+      notifier.goToNextStep();
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -136,8 +140,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Future<void> _completeRegistration() async {
+    final notifier = ref.read(signUpViewModelProvider.notifier);
+
     if (!_validateBasicDetails()) {
-      _viewModel.setCurrentStep(0);
+      notifier.setCurrentStep(0);
       _pageController.animateToPage(
         0,
         duration: const Duration(milliseconds: 300),
@@ -146,6 +152,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       return;
     }
 
+    final state = ref.read(signUpViewModelProvider);
     final fullName = _fullNameController.text.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
@@ -157,21 +164,21 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         email: email,
         password: password,
         phone: phone,
-        role: _viewModel.selectedRole.name,
+        role: state.selectedRole.name,
         onboardingComplete: true,
         username: _usernameController.text.trim().isEmpty
             ? null
             : _usernameController.text.trim(),
-        dateOfBirth: _viewModel.dateOfBirth?.toIso8601String(),
-        gender: _viewModel.selectedGender,
+        dateOfBirth: state.dateOfBirth?.toIso8601String(),
+        gender: state.selectedGender,
         country: _countryController.text.trim().isEmpty
             ? null
             : _countryController.text.trim(),
         city: _cityController.text.trim().isEmpty
             ? null
             : _cityController.text.trim(),
-        profilePhotoLabel: _viewModel.photoUploaded ? _viewModel.photoLabel : null,
-        profilePhotoPath: _viewModel.profilePhotoPath,
+        profilePhotoLabel: state.photoUploaded ? state.photoLabel : null,
+        profilePhotoPath: state.profilePhotoPath,
       ),
     );
 
@@ -188,8 +195,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   void _prevStep() {
-    if (_viewModel.currentStep > 0) {
-      _viewModel.goToPreviousStep();
+    final currentStep = ref.read(signUpViewModelProvider).currentStep;
+    final notifier = ref.read(signUpViewModelProvider.notifier);
+
+    if (currentStep > 0) {
+      notifier.goToPreviousStep();
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -201,46 +211,43 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _viewModel,
-      builder: (context, _) {
-        return GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Scaffold(
-            appBar: AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _prevStep,
-              ),
-            ),
-            body: SafeArea(
-              child: Column(
-                children: [
-                  _buildProgressBar(),
-                  Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      onPageChanged: (index) {
-                        _viewModel.setCurrentStep(index);
-                      },
-                      children: [
-                        _buildBasicDetailsStep(),
-                        _buildPersonalDetailsStep(),
-                        _buildRoleSelectionStep(),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    final state = ref.watch(signUpViewModelProvider);
+
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _prevStep,
           ),
-        );
-      },
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildProgressBar(state),
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onPageChanged: (index) {
+                    ref.read(signUpViewModelProvider.notifier).setCurrentStep(index);
+                  },
+                  children: [
+                    _buildBasicDetailsStep(state),
+                    _buildPersonalDetailsStep(state),
+                    _buildRoleSelectionStep(state),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildProgressBar() {
+  Widget _buildProgressBar(SignUpState state) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
       child: Row(
@@ -251,7 +258,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 4.0),
               height: 4,
               decoration: BoxDecoration(
-                color: index <= _viewModel.currentStep
+                color: index <= state.currentStep
                     ? AppColors.primary
                     : Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(2),
@@ -263,7 +270,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     );
   }
 
-  Widget _buildBasicDetailsStep() {
+  Widget _buildBasicDetailsStep(SignUpState state) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -343,7 +350,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           _buildTextFieldLabel('Password'),
           TextFormField(
             controller: _passwordController,
-            obscureText: _viewModel.obscurePassword,
+            obscureText: state.obscurePassword,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.newPassword],
             decoration: InputDecoration(
@@ -351,9 +358,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               prefixIcon: const Icon(Icons.lock_outline),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _viewModel.obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  state.obscurePassword ? Icons.visibility_off : Icons.visibility,
                 ),
-                onPressed: () => _viewModel.togglePasswordVisibility(),
+                onPressed: () => ref.read(signUpViewModelProvider.notifier).togglePasswordVisibility(),
               ),
             ),
           ),
@@ -361,7 +368,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           _buildTextFieldLabel('Confirm Password'),
           TextFormField(
             controller: _confirmPasswordController,
-            obscureText: _viewModel.obscureConfirmPassword,
+            obscureText: state.obscureConfirmPassword,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.newPassword],
             onFieldSubmitted: (_) => _nextStep(),
@@ -370,11 +377,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               prefixIcon: const Icon(Icons.lock_outline),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _viewModel.obscureConfirmPassword
+                  state.obscureConfirmPassword
                       ? Icons.visibility_off
                       : Icons.visibility,
                 ),
-                onPressed: () => _viewModel.toggleConfirmPasswordVisibility(),
+                onPressed: () => ref.read(signUpViewModelProvider.notifier).toggleConfirmPasswordVisibility(),
               ),
             ),
           ),
@@ -424,7 +431,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     );
   }
 
-  Widget _buildPersonalDetailsStep() {
+  Widget _buildPersonalDetailsStep(SignUpState state) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -456,7 +463,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         width: 84,
                         height: 84,
                         decoration: BoxDecoration(
-                          gradient: _viewModel.photoUploaded
+                          gradient: state.photoUploaded
                               ? const LinearGradient(
                                   colors: [
                                     Color(0xFF5B21B6),
@@ -466,20 +473,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                   end: Alignment.bottomRight,
                                 )
                               : null,
-                          color: _viewModel.photoUploaded ? null : AppColors.secondary,
+                          color: state.photoUploaded ? null : AppColors.secondary,
                           shape: BoxShape.circle,
                         ),
                         child: Center(
-                          child: _viewModel.profilePhotoBytes != null
+                          child: state.profilePhotoBytes != null
                               ? ClipOval(
                                   child: Image.memory(
-                                    _viewModel.profilePhotoBytes!,
+                                    state.profilePhotoBytes!,
                                     width: 84,
                                     height: 84,
                                     fit: BoxFit.cover,
                                   ),
                                 )
-                              : _viewModel.photoUploaded
+                              : state.photoUploaded
                               ? Text(
                                   _fullNameController.text.trim().isEmpty
                                       ? 'U'
@@ -519,16 +526,16 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _viewModel.photoLabel,
+                    state.photoLabel,
                     style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   Text(
-                    _viewModel.profilePhotoBytes != null
-                        ? '${_viewModel.photoLabel} • Tap to change'
-                        : _viewModel.photoUploaded
+                    state.profilePhotoBytes != null
+                        ? '${state.photoLabel} • Tap to change'
+                        : state.photoUploaded
                         ? 'Photo ready • Tap to change'
                         : 'Optional • JPG or PNG • Max 5 MB',
                     style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
@@ -605,7 +612,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     child: _buildGenderOption(
                       Icons.male,
                       'Male',
-                      _viewModel.selectedGender == 'Male',
+                      state.selectedGender == 'Male',
                     ),
                   ),
                   SizedBox(
@@ -613,7 +620,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     child: _buildGenderOption(
                       Icons.female,
                       'Female',
-                      _viewModel.selectedGender == 'Female',
+                      state.selectedGender == 'Female',
                     ),
                   ),
                   SizedBox(
@@ -621,7 +628,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     child: _buildGenderOption(
                       Icons.transgender,
                       'Non-Binary',
-                      _viewModel.selectedGender == 'Non-Binary',
+                      state.selectedGender == 'Non-Binary',
                     ),
                   ),
                   SizedBox(
@@ -629,7 +636,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     child: _buildGenderOption(
                       Icons.visibility_off,
                       'Prefer Not\nTo Say',
-                      _viewModel.selectedGender == 'Prefer Not To Say',
+                      state.selectedGender == 'Prefer Not To Say',
                     ),
                   ),
                 ],
@@ -680,7 +687,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     );
   }
 
-  Widget _buildRoleSelectionStep() {
+  Widget _buildRoleSelectionStep(SignUpState state) {
     final roles = UserRole.values;
 
     return SingleChildScrollView(
@@ -716,11 +723,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             ),
             itemBuilder: (context, index) {
               final role = roles[index];
-              final isSelected = _viewModel.selectedRole == role;
+              final isSelected = state.selectedRole == role;
 
               return GestureDetector(
                 onTap: () {
-                  _viewModel.selectRole(role);
+                  ref.read(signUpViewModelProvider.notifier).selectRole(role);
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -772,7 +779,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           ElevatedButton(
             onPressed: _nextStep,
             child: Text(
-              _viewModel.roleButtonText,
+              state.roleButtonText,
             ),
           ),
         ],
@@ -793,7 +800,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Widget _buildGenderOption(IconData icon, String label, bool isSelected) {
     return InkWell(
       onTap: () {
-        _viewModel.selectGender(label.replaceAll('\n', ' '));
+        ref.read(signUpViewModelProvider.notifier).selectGender(label.replaceAll('\n', ' '));
       },
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -832,9 +839,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Future<void> _pickDateOfBirth() async {
+    final state = ref.read(signUpViewModelProvider);
+    final notifier = ref.read(signUpViewModelProvider.notifier);
     final now = DateTime.now();
     final initialDate =
-        _viewModel.dateOfBirth ?? DateTime(now.year - 25, now.month, now.day);
+        state.dateOfBirth ?? DateTime(now.year - 25, now.month, now.day);
 
     final picked = await showDatePicker(
       context: context,
@@ -847,14 +856,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       return;
     }
 
-    _viewModel.setDateOfBirth(picked);
+    notifier.setDateOfBirth(picked);
     final months = [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
     _dobController.text =
         '${picked.day.toString().padLeft(2, '0')} ${months[picked.month - 1]} ${picked.year}';
-    _ageController.text = _viewModel.calculateAge(picked).toString();
+    _ageController.text = notifier.calculateAge(picked).toString();
   }
 
   Future<void> _selectCountry() async {
@@ -1090,7 +1099,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     }
 
     try {
-      await _viewModel.pickPhoto(source, onCameraUnsupported: () {
+      await ref.read(signUpViewModelProvider.notifier).pickPhoto(source, onCameraUnsupported: () {
         _showMessage(
           'Camera capture is not supported on web. Please choose from gallery.',
         );

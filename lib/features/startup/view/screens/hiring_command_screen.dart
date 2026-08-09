@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../model/startup_models.dart';
-import '../../viewmodel/hiring_viewmodel.dart';
+import '../../viewmodel/hiring_state.dart';
+import '../../../../core/di/providers.dart';
 import '../widgets/startup_color_helper.dart';
 
-class HiringCommandScreen extends StatefulWidget {
+class HiringCommandScreen extends ConsumerStatefulWidget {
   const HiringCommandScreen({
     super.key,
     required this.startupName,
@@ -14,11 +16,11 @@ class HiringCommandScreen extends StatefulWidget {
   final bool autoOpenCreateSheet;
 
   @override
-  State<HiringCommandScreen> createState() => _HiringCommandScreenState();
+  ConsumerState<HiringCommandScreen> createState() =>
+      _HiringCommandScreenState();
 }
 
-class _HiringCommandScreenState extends State<HiringCommandScreen> {
-  final HiringViewModel _viewModel = HiringViewModel();
+class _HiringCommandScreenState extends ConsumerState<HiringCommandScreen> {
   String _selectedFilter = 'ALL';
 
   @override
@@ -31,10 +33,13 @@ class _HiringCommandScreenState extends State<HiringCommandScreen> {
     }
   }
 
-  List<OpenRole> get _filteredRoles => _viewModel.filterRoles(_selectedFilter);
+  List<OpenRole> _filteredRoles(HiringState state) {
+    if (_selectedFilter == 'ALL') return state.roles;
+    return state.roles.where((r) => r.status == _selectedFilter).toList();
+  }
 
   void _addRole(OpenRole role) {
-    _viewModel.addRole(role);
+    ref.read(hiringViewModelProvider.notifier).addRole(role);
   }
 
   void showCreateJobSheet(BuildContext context) {
@@ -643,14 +648,14 @@ class _HiringCommandScreenState extends State<HiringCommandScreen> {
     );
   }
 
-  void _showFullListSheet(BuildContext context) {
+  void _showFullListSheet(BuildContext context, HiringState hiringState) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) {
-          final allRoles = _viewModel.roles;
+          final allRoles = hiringState.roles;
           return Container(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
@@ -733,7 +738,8 @@ class _HiringCommandScreenState extends State<HiringCommandScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _filteredRoles;
+    final hiringState = ref.watch(hiringViewModelProvider);
+    final filtered = _filteredRoles(hiringState);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F3FF),
@@ -811,7 +817,7 @@ class _HiringCommandScreenState extends State<HiringCommandScreen> {
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text('${_viewModel.roles.length}',
+                                  Text('${hiringState.roles.length}',
                                       style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 36,
@@ -839,15 +845,15 @@ class _HiringCommandScreenState extends State<HiringCommandScreen> {
                   Row(
                     children: [
                       Expanded(
-                          child: _pipelineStat('${_viewModel.totalApplicants}', 'APPLIED',
+                          child: _pipelineStat('${hiringState.totalApplicants}', 'APPLIED',
                               const Color(0xFF818CF8))),
                       const SizedBox(width: 10),
                       Expanded(
-                          child: _pipelineStat('${_viewModel.totalShortlisted}',
+                          child: _pipelineStat('${hiringState.totalShortlisted}',
                               'SHORTLISTED', const Color(0xFF34D399))),
                       const SizedBox(width: 10),
                       Expanded(
-                          child: _pipelineStat('${_viewModel.totalInterviews}',
+                          child: _pipelineStat('${hiringState.totalInterviews}',
                               'INTERVIEWS', const Color(0xFFFBBF24))),
                     ],
                   ),
@@ -870,7 +876,7 @@ class _HiringCommandScreenState extends State<HiringCommandScreen> {
                               color: Color(0xFF12233D))),
                       const Spacer(),
                       GestureDetector(
-                        onTap: () => _showFullListSheet(context),
+                        onTap: () => _showFullListSheet(context, hiringState),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
@@ -893,11 +899,11 @@ class _HiringCommandScreenState extends State<HiringCommandScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _filterChip('ALL', 'All Roles (${_viewModel.roles.length})'),
+                        _filterChip('ALL', 'All Roles (${hiringState.roles.length})'),
                         const SizedBox(width: 8),
-                        _filterChip('HIRING', 'Hiring (${_viewModel.roles.where((r) => r.status == "HIRING").length})'),
+                        _filterChip('HIRING', 'Hiring (${hiringState.roles.where((r) => r.status == "HIRING").length})'),
                         const SizedBox(width: 8),
-                        _filterChip('PAUSED', 'Paused (${_viewModel.roles.where((r) => r.status == "PAUSED").length})'),
+                        _filterChip('PAUSED', 'Paused (${hiringState.roles.where((r) => r.status == "PAUSED").length})'),
                       ],
                     ),
                   ),
@@ -936,7 +942,7 @@ class _HiringCommandScreenState extends State<HiringCommandScreen> {
                     'Review 6 applicants for Senior AI Engineer',
                     'Shortlist before Friday',
                     onAct: () =>
-                        _showApplicantsSheet(context, _viewModel.roles.first),
+                        _showApplicantsSheet(context, hiringState.roles.first),
                   ),
                   const SizedBox(height: 10),
                   _attentionCard(

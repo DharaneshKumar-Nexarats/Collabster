@@ -1,85 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/di/providers.dart';
+import '../../model/job_model.dart';
 import '../widgets/career_search_bar.dart';
 import 'internships_screen.dart';
 import 'job_detail_screen.dart';
 
 
-class JobsScreen extends StatefulWidget {
+class JobsScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
   const JobsScreen({super.key, this.onBack});
 
   @override
-  State<JobsScreen> createState() => _JobsScreenState();
+  ConsumerState<JobsScreen> createState() => _JobsScreenState();
 }
 
-class _JobsScreenState extends State<JobsScreen> {
-  int _selectedFilter = 0;
+class _JobsScreenState extends ConsumerState<JobsScreen> {
   final List<String> _filters = ['All Roles', 'Remote', 'Paid', 'Hybrid'];
-  final TextEditingController _searchController = TextEditingController();
 
-  static const _jobs = [
-    _JobItem(
-      logo: Icons.code_rounded,
-      title: 'Senior Software Engineer',
-      company: 'Google',
-      location: 'Mountain View (Hybrid)',
-      salaryTag: '24 - 32 LPA',
-      tags: ['React', 'Node.js', 'Go'],
-      timeAgo: '2 hours ago',
-      showNew: true,
-    ),
-    _JobItem(
-      logo: Icons.design_services_outlined,
-      title: 'Product Designer',
-      company: 'Stripe',
-      location: 'Remote',
-      salaryTag: '18 - 25 LPA',
-      tags: ['Figma', 'Prototyping', 'Design Systems'],
-      timeAgo: '5 hours ago',
-      showNew: false,
-    ),
-    _JobItem(
-      logo: Icons.analytics_outlined,
-      title: 'Data Analyst',
-      company: 'Microsoft',
-      location: 'Bangalore (On-site)',
-      salaryTag: '15 - 22 LPA',
-      tags: ['Python', 'SQL', 'Tableau'],
-      timeAgo: '1 day ago',
-      showNew: false,
-    ),
-  ];
-
-  List<_JobItem> get _filteredJobs {
-    final query = _searchController.text.trim().toLowerCase();
-    final filter = _filters[_selectedFilter].toLowerCase();
-
-    return _jobs.where((job) {
-      // Filter by chip category
-      if (filter == 'remote' && !job.location.toLowerCase().contains('remote')) {
-        return false;
-      }
-      if (filter == 'hybrid' && !job.location.toLowerCase().contains('hybrid')) {
-        return false;
-      }
-      if (filter == 'paid' && !job.salaryTag.isNotEmpty) {
-        return false;
-      }
-
-      // Filter by search query
-      if (query.isEmpty) return true;
-      final titleMatch = job.title.toLowerCase().contains(query);
-      final companyMatch = job.company.toLowerCase().contains(query);
-      final locationMatch = job.location.toLowerCase().contains(query);
-      final tagMatch = job.tags.any((t) => t.toLowerCase().contains(query));
-
-      return titleMatch || companyMatch || locationMatch || tagMatch;
-    }).toList();
+  @override
+  void initState() {
+    super.initState();
+    ref.read(careerViewModelProvider.notifier).loadInitialData();
   }
 
   @override
   Widget build(BuildContext context) {
+    final careerState = ref.watch(careerViewModelProvider);
+    final filtered = careerState.filteredJobs;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -88,8 +38,8 @@ class _JobsScreenState extends State<JobsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(context),
-              _buildBody(),
+              _buildHeader(context, careerState),
+              _buildBody(careerState, filtered),
             ],
           ),
         ),
@@ -97,7 +47,7 @@ class _JobsScreenState extends State<JobsScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, dynamic careerState) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
       child: Column(
@@ -146,14 +96,13 @@ class _JobsScreenState extends State<JobsScreen> {
 
           // Search bar
           CareerSearchBar(
-            controller: _searchController,
+            controller: TextEditingController(text: careerState.searchQuery),
             hintText: 'Search jobs, skills, or companies...',
-            hasActiveFilter: _selectedFilter != 0,
-            onChanged: (value) => setState(() {}),
+            hasActiveFilter: careerState.selectedFilter != 0,
+            onChanged: (value) => ref.read(careerViewModelProvider.notifier).setSearchQuery(value),
             onFilterTap: () {
-              setState(() {
-                _selectedFilter = (_selectedFilter + 1) % _filters.length;
-              });
+              final next = (careerState.selectedFilter + 1) % _filters.length;
+              ref.read(careerViewModelProvider.notifier).setFilter(next);
             },
           ),
           const SizedBox(height: 16),
@@ -163,9 +112,9 @@ class _JobsScreenState extends State<JobsScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: List.generate(_filters.length, (i) {
-                final selected = _selectedFilter == i;
+                final selected = careerState.selectedFilter == i;
                 return GestureDetector(
-                  onTap: () => setState(() => _selectedFilter = i),
+                  onTap: () => ref.read(careerViewModelProvider.notifier).setFilter(i),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     margin: const EdgeInsets.only(right: 10),
@@ -197,9 +146,7 @@ class _JobsScreenState extends State<JobsScreen> {
     );
   }
 
-  Widget _buildBody() {
-    final filtered = _filteredJobs;
-
+  Widget _buildBody(dynamic careerState, List<JobItem> filtered) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: Column(
@@ -210,7 +157,7 @@ class _JobsScreenState extends State<JobsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _searchController.text.isNotEmpty || _selectedFilter != 0
+                careerState.searchQuery.isNotEmpty || careerState.selectedFilter != 0
                     ? 'Search Results (${filtered.length})'
                     : 'Popular Jobs',
                 style: const TextStyle(
@@ -222,10 +169,8 @@ class _JobsScreenState extends State<JobsScreen> {
               ),
               GestureDetector(
                 onTap: () {
-                  setState(() {
-                    _searchController.clear();
-                    _selectedFilter = 0;
-                  });
+                  ref.read(careerViewModelProvider.notifier).setSearchQuery('');
+                  ref.read(careerViewModelProvider.notifier).setFilter(0);
                 },
                 child: const Text(
                   'Reset',
@@ -310,7 +255,20 @@ class _JobsScreenState extends State<JobsScreen> {
     );
   }
 
-  Widget _buildJobCard(_JobItem item) {
+  IconData _logoFromString(String logo) {
+    switch (logo) {
+      case 'code_rounded':
+        return Icons.code_rounded;
+      case 'design_services_outlined':
+        return Icons.design_services_outlined;
+      case 'analytics_outlined':
+        return Icons.analytics_outlined;
+      default:
+        return Icons.work_rounded;
+    }
+  }
+
+  Widget _buildJobCard(JobItem item) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -339,7 +297,7 @@ class _JobsScreenState extends State<JobsScreen> {
                   color: const Color(0xFFF0F9FF),
                   borderRadius: BorderRadius.circular(11),
                 ),
-                child: Icon(item.logo, color: AppColors.primary, size: 20),
+                child: Icon(_logoFromString(item.logo), color: AppColors.primary, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -459,14 +417,13 @@ class _JobsScreenState extends State<JobsScreen> {
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: () {
-                  if (item.title == 'Senior Software Engineer') {
-                    Navigator.push(
-                      context,
-                      SmoothRightToLeftPageRoute(
-                        builder: (context) => const JobDetailsScreen(),
-                      ),
-                    );
-                  }
+                  ref.read(careerViewModelProvider.notifier).applyToJob(item.title);
+                  Navigator.push(
+                    context,
+                    SmoothRightToLeftPageRoute(
+                      builder: (context) => const JobDetailsScreen(),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -617,21 +574,4 @@ class _JobsScreenState extends State<JobsScreen> {
       ),
     );
   }
-}
-
-class _JobItem {
-  final IconData logo;
-  final String title, company, location, salaryTag, timeAgo;
-  final List<String> tags;
-  final bool showNew;
-  const _JobItem({
-    required this.logo,
-    required this.title,
-    required this.company,
-    required this.location,
-    required this.salaryTag,
-    required this.tags,
-    required this.timeAgo,
-    required this.showNew,
-  });
 }
