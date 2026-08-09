@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'submission_details_screen.dart';
+import 'application_tracking_screen.dart';
 
 
 class AppliedApplicationsScreen extends StatefulWidget {
@@ -147,7 +148,15 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                         statusColor: const Color(0xFF10B981),
                         statusBgColor: const Color(0xFFE6FBF3),
                         isActive: true,
-                        onTap: () {
+                        onTrackStatus: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ApplicationTrackingScreen(),
+                            ),
+                          );
+                        },
+                        onViewSubmission: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -166,6 +175,22 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                         statusColor: const Color(0xFF0284C7),
                         statusBgColor: const Color(0xFFE0F2FE),
                         isActive: true,
+                        onTrackStatus: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ApplicationTrackingScreen(),
+                            ),
+                          );
+                        },
+                        onViewSubmission: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SubmissionDetailsScreen(),
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
 
@@ -177,6 +202,22 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                         statusColor: const Color(0xFF0284C7),
                         statusBgColor: const Color(0xFFE0F2FE),
                         isActive: true,
+                        onTrackStatus: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ApplicationTrackingScreen(),
+                            ),
+                          );
+                        },
+                        onViewSubmission: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SubmissionDetailsScreen(),
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
 
@@ -243,141 +284,164 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
     required Color statusBgColor,
     required bool isActive,
     VoidCallback? onTap,
+    VoidCallback? onTrackStatus,
+    VoidCallback? onViewSubmission,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap ?? onViewSubmission,
       child: Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Logo, title and chat row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.network(logoUrl, width: 36, height: 36),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: isActive ? const Color(0xFF1E293B) : Colors.grey.shade400,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      company,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chat_bubble_outline_rounded,
-                color: isActive ? const Color(0xFF0284C7) : Colors.grey.shade400,
-                size: 20,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Status Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: statusBgColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Logo, title and chat row
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 3.5,
-                  backgroundColor: statusColor,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  statusLabel,
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    color: statusColor,
+                Image.network(logoUrl, width: 36, height: 36),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: isActive ? const Color(0xFF1E293B) : Colors.grey.shade400,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        company,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+                Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  color: isActive ? const Color(0xFF0284C7) : Colors.grey.shade400,
+                  size: 20,
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 14),
+            const SizedBox(height: 12),
 
-          // Two buttons
-          SizedBox(
-            width: double.infinity,
-            height: 38,
-            child: ElevatedButton(
-              onPressed: isActive ? () {} : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isActive ? const Color(0xFF0284C7) : const Color(0xFFE2E8F0),
-                disabledBackgroundColor: const Color(0xFFE2E8F0),
-                elevation: 0,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+            // Status Badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: statusBgColor,
+                borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
-                'Track Status',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: isActive ? Colors.white : Colors.grey.shade400,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 3.5,
+                    backgroundColor: statusColor,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    statusLabel,
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      color: statusColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // Two buttons
+            SizedBox(
+              width: double.infinity,
+              height: 38,
+              child: ElevatedButton(
+                onPressed: isActive
+                    ? (onTrackStatus ??
+                        () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ApplicationTrackingScreen(),
+                            ),
+                          );
+                        })
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isActive ? const Color(0xFF0284C7) : const Color(0xFFE2E8F0),
+                  disabledBackgroundColor: const Color(0xFFE2E8F0),
+                  elevation: 0,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Track Status',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: isActive ? Colors.white : Colors.grey.shade400,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            height: 38,
-            child: OutlinedButton(
-              onPressed: isActive ? () {} : null,
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(
-                  color: isActive ? const Color(0xFF0284C7) : Colors.grey.shade200,
-                  width: 1.2,
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              height: 38,
+              child: OutlinedButton(
+                onPressed: isActive
+                    ? (onViewSubmission ??
+                        () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SubmissionDetailsScreen(),
+                            ),
+                          );
+                        })
+                    : null,
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(
+                    color: isActive ? const Color(0xFF0284C7) : Colors.grey.shade200,
+                    width: 1.2,
+                  ),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                'View Submission',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: isActive ? const Color(0xFF0284C7) : Colors.grey.shade400,
+                child: Text(
+                  'View Submission',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: isActive ? const Color(0xFF0284C7) : Colors.grey.shade400,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),);
+    );
   }
 }

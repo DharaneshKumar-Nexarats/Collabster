@@ -414,32 +414,59 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
   // ── Internship Card ───────────────────────────────────────────────────────
   Widget _buildInternshipCard(_Internship item) {
     void openDetails() {
-      final isUiUx = item.title.contains('UI/UX') || item.title.contains('Designer');
+      final isUiUx = item.title.contains('UI/UX') || (item.title.contains('Designer') && !item.title.contains('Frontend'));
+      final isData = item.title.contains('Data') || item.title.contains('Analyst');
+
+      String title = item.title.contains('Intern') ? item.title : '${item.title} Intern';
+      String company = item.company;
+      String location = item.company == 'Google' ? 'Mountain View, CA' : 'San Francisco, CA';
+      String stipend = '₹500+';
+      List<String> tags = item.company == 'Google'
+          ? const ['Frontend', 'React', 'Tailwind', 'JavaScript']
+          : const ['Design', 'Figma', 'UI/UX'];
+      String? about;
+      List<String>? requirements;
+
+      if (isUiUx) {
+        title = 'UI/UX Designer Intern';
+        company = 'Google';
+        location = 'Bangalore, KA';
+        stipend = '₹500+';
+        tags = const ['Figma', 'Design Systems', 'User Research', 'Prototyping'];
+        about = 'Join our design team and create delightful, accessible, and meaningful experiences for millions of users. You’ll collaborate with cross-functional teams to tackle real-world problems through user-centered design.';
+        requirements = const [
+          'Proficiency in Figma, Adobe XD, or Sketch.',
+          'Strong understanding of UI/UX principles and design systems.',
+          'Experience with user research and usability testing.',
+          'A strong portfolio showcasing end-to-end design projects.',
+        ];
+      } else if (isData) {
+        title = 'Data Analyst Intern';
+        company = 'Microsoft';
+        location = 'Bangalore, KA';
+        stipend = '₹400+';
+        tags = const ['SQL', 'Excel', 'Python', 'Power BI', 'Statistics'];
+        about = 'Work with our data team to collect, clean, analyze, and visualize data that drives business decisions. You’ll build dashboards, uncover insights, and help solve real-world problems using data.';
+        requirements = const [
+          'Proficiency in SQL and Excel.',
+          'Knowledge of Python, Power BI, or Tableau is a plus.',
+          'Strong analytical and problem-solving skills.',
+          'Good understanding of statistics and data visualization.',
+        ];
+      }
+
       Navigator.push(
         context,
         SmoothRightToLeftPageRoute(
           builder: (context) => InternshipDetailsScreen(
-            title: isUiUx ? 'UI/UX Designer Intern' : (item.title.contains('Intern') ? item.title : '${item.title} Intern'),
-            company: isUiUx ? 'Google' : item.company,
-            location: isUiUx ? 'Bangalore, KA' : (item.company == 'Google' ? 'Mountain View, CA' : 'San Francisco, CA'),
-            stipend: '₹500+',
+            title: title,
+            company: company,
+            location: location,
+            stipend: stipend,
             type: 'Full-time • 3 Months',
-            tags: isUiUx
-                ? const ['Figma', 'Design Systems', 'User Research', 'Prototyping']
-                : (item.company == 'Google'
-                    ? const ['Frontend', 'React', 'Tailwind', 'JavaScript']
-                    : const ['Design', 'Figma', 'UI/UX']),
-            about: isUiUx
-                ? 'Join our design team and create delightful, accessible, and meaningful experiences for millions of users. You’ll collaborate with cross-functional teams to tackle real-world problems through user-centered design.'
-                : null,
-            requirements: isUiUx
-                ? const [
-                    'Proficiency in Figma, Adobe XD, or Sketch.',
-                    'Strong understanding of UI/UX principles and design systems.',
-                    'Experience with user research and usability testing.',
-                    'A strong portfolio showcasing end-to-end design projects.',
-                  ]
-                : null,
+            tags: tags,
+            about: about,
+            requirements: requirements,
           ),
         ),
       );

@@ -311,179 +311,251 @@ class _JobsScreenState extends State<JobsScreen> {
   }
 
   Widget _buildJobCard(_JobItem item) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+    void openDetails() {
+      final isProductDesigner = item.title.contains('Product Designer') || item.company == 'Stripe';
+      final isDataAnalyst = item.title.contains('Data Analyst') || item.company == 'Microsoft';
+      final isFrontend = item.title.contains('Senior Software') || item.title.contains('Frontend') || item.company == 'Google';
+
+      String title = item.title;
+      String company = item.company;
+      String location = item.location;
+      String salary = item.salaryTag;
+      List<String> tags = item.tags;
+      String? about;
+      List<String>? requirements;
+      String applied = '320+';
+      String size = '1K+';
+      String views = '4.3k';
+
+      if (isFrontend) {
+        title = 'Frontend Developer';
+        company = 'Google';
+        location = 'Remote (Worldwide)';
+        salary = '\$80k – \$110k USD';
+        tags = const ['React', 'Tailwind'];
+        applied = '450+';
+        size = '2 – 5 yrs';
+        views = '2 hours ago';
+        about = 'As a Frontend Developer at Google, you will build beautiful, responsive, and accessible user interfaces that power millions of users worldwide. You\'ll work with cross-functional teams to deliver high-quality products using modern web technologies.';
+      } else if (isProductDesigner) {
+        title = 'Product Designer';
+        company = 'Stripe';
+        location = 'Remote (Worldwide)';
+        salary = '\$80k – \$110k USD';
+        tags = const ['Full-time', 'Remote', 'Mid Level'];
+        applied = '320+';
+        size = '1K+';
+        views = '4.3k';
+        about = 'We’re looking for a Product Designer to join our design team and help create intuitive, beautiful experiences for millions of businesses worldwide. You’ll own the end-to-end design process from user research to high-fidelity designs and work closely with product managers and engineers to ship impactful products.';
+        requirements = const [
+          'Proficiency in Figma and design tools.',
+          'Strong portfolio showcasing product design projects and design thinking.',
+          'Experience with user research, wireframing, prototyping, and design systems.',
+        ];
+      } else if (isDataAnalyst) {
+        title = 'Data Analyst Intern';
+        company = 'Microsoft';
+        location = 'Bangalore, KA (On-site)';
+        salary = '₹15 – ₹22 LPA';
+        tags = const ['Full-time', 'On-site', 'Entry Level'];
+        applied = '280+';
+        size = '1K+';
+        views = '3.8k';
+        about = 'Join our data team to collect, clean, analyze, and visualize data that helps drive business decisions. You’ll work on real-world datasets, build insightful dashboards, and collaborate with cross-functional teams to solve meaningful problems.';
+        requirements = const [
+          'Proficiency in SQL and Excel.',
+          'Knowledge of Python, Power BI, or Tableau is a plus.',
+          'Strong analytical and problem-solving skills.',
+          'Good understanding of statistics and data visualization.',
+        ];
+      }
+
+      Navigator.push(
+        context,
+        SmoothRightToLeftPageRoute(
+          builder: (context) => JobDetailsScreen(
+            title: title,
+            company: company,
+            location: location,
+            salary: salary,
+            tags: tags,
+            about: about,
+            requirements: requirements,
+            applied: applied,
+            size: size,
+            views: views,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0F9FF),
-                  borderRadius: BorderRadius.circular(11),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: openDetails,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F9FF),
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: Icon(item.logo, color: AppColors.primary, size: 20),
                 ),
-                child: Icon(item.logo, color: AppColors.primary, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF111827),
-                            ),
-                          ),
-                        ),
-                        if (item.showNew) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE0F2FE),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text(
-                              'NEW',
-                              style: TextStyle(
-                                fontSize: 10,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF0369A1),
-                                letterSpacing: 0.2,
+                                color: Color(0xFF111827),
                               ),
                             ),
                           ),
+                          if (item.showNew) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE0F2FE),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'NEW',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0369A1),
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      '${item.company} • ${item.location}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2FE),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  item.salaryTag,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0369A1),
+                      const SizedBox(height: 3),
+                      Text(
+                        '${item.company} • ${item.location}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              ...item.tags.map((tag) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0F9FF),
-                      borderRadius: BorderRadius.circular(20),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0F2FE),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    item.salaryTag,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0369A1),
                     ),
-                    child: Text(
-                      tag,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  )),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Icon(Icons.access_time_rounded, size: 14, color: Colors.grey.shade400),
-              const SizedBox(width: 4),
-              Text(
-                item.timeAgo,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade500,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFBAE6FD)),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.bookmark_border_rounded, size: 18, color: AppColors.primary),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: () {
-                  if (item.title == 'Senior Software Engineer') {
-                    Navigator.push(
-                      context,
-                      SmoothRightToLeftPageRoute(
-                        builder: (context) => const JobDetailsScreen(),
+                ...item.tags.map((tag) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F9FF),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  minimumSize: const Size(80, 38),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
+                      child: Text(
+                        tag,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    )),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Icon(Icons.access_time_rounded, size: 14, color: Colors.grey.shade400),
+                const SizedBox(width: 4),
+                Text(
+                  item.timeAgo,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFFBAE6FD)),
                     borderRadius: BorderRadius.circular(10),
                   ),
+                  child: const Icon(Icons.bookmark_border_rounded, size: 18, color: AppColors.primary),
                 ),
-                child: const Text(
-                  'Apply',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: openDetails,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4F46E5),
+                    minimumSize: const Size(80, 38),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Apply',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

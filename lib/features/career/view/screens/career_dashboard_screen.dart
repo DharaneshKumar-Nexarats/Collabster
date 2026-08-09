@@ -281,71 +281,6 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
                       "Here's what's happening with your career today.",
                       style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 13.5),
                     ),
-                    const SizedBox(height: 18),
-                    // Career score card
-                    Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'CAREER SCORE',
-                            style: TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.2),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      const Text(
-                                        '72',
-                                        style: TextStyle(color: Colors.white, fontSize: 52, fontWeight: FontWeight.w900, height: 1),
-                                      ),
-                                      const Text(
-                                        '/100',
-                                        style: TextStyle(color: Colors.white60, fontSize: 20, fontWeight: FontWeight.w600),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const Spacer(),
-                              SizedBox(
-                                width: 52,
-                                height: 52,
-                                child: CustomPaint(
-                                  painter: _ScoreGaugePainter(percentage: 0.72),
-                                  child: const Center(
-                                    child: Text('72%', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _scoreStat('3', 'APPLICATIONS\nSENT'),
-                              _divider(),
-                              _scoreStat('2', 'SAVED\nJOBS'),
-                              _divider(),
-                              _scoreStat('1', 'INTERVIEWS\nSCHEDULED'),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -606,19 +541,7 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
     );
   }
 
-  Widget _scoreStat(String value, String label) {
-    return Column(
-      children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 4),
-        Text(label, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 9, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
-      ],
-    );
-  }
 
-  Widget _divider() {
-    return Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.2));
-  }
 
   Widget _buildAppliedJobsPage() {
     return AppliedApplicationsScreen(
@@ -927,34 +850,7 @@ class _SavedJob {
   const _SavedJob({required this.title, required this.company, required this.location, required this.salary, required this.posted, required this.tags, required this.savedAgo});
 }
 
-class _ScoreGaugePainter extends CustomPainter {
-  final double percentage;
-  const _ScoreGaugePainter({required this.percentage});
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokeWidth = 5.0;
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-
-    final bgPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.2)
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    canvas.drawCircle(center, radius, bgPaint);
-
-    final fgPaint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -3.14159 / 2, 2 * 3.14159 * percentage, false, fgPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
 
 class _JobCard extends StatelessWidget {
   final String title, company, location, status;
