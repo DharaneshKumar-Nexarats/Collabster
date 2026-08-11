@@ -269,7 +269,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF4F46E5), Color(0xFF6366F1)],
+          colors: [Color(0xFF0284C7), Color(0xFF0EA5E9)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -399,7 +399,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
               child: const Text(
                 'Apply Now',
                 style: TextStyle(
-                  color: Color(0xFF4F46E5),
+                  color: Color(0xFF0284C7),
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
                 ),
@@ -605,7 +605,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
                   child: ElevatedButton(
                     onPressed: openDetails,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4F46E5),
+                      backgroundColor: const Color(0xFF0284C7),
                       minimumSize: const Size(0, 42),
                       elevation: 0,
                       shape: RoundedRectangleBorder(

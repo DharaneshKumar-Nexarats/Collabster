@@ -540,7 +540,7 @@ class _JobsScreenState extends State<JobsScreen> {
                 ElevatedButton(
                   onPressed: openDetails,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4F46E5),
+                    backgroundColor: const Color(0xFF0284C7),
                     minimumSize: const Size(80, 38),
                     elevation: 0,
                     shape: RoundedRectangleBorder(

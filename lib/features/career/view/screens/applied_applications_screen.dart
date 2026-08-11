@@ -1,22 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../providers/career_providers.dart';
 import 'submission_details_screen.dart';
 import 'application_tracking_screen.dart';
 
 
-class AppliedApplicationsScreen extends StatefulWidget {
+class AppliedApplicationsScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
-  const AppliedApplicationsScreen({super.key, this.onBack});
+  final String? categoryFilter; // 'Job', 'Internship', 'Freelance', or null
+  final String? title;
+
+  const AppliedApplicationsScreen({
+    super.key,
+    this.onBack,
+    this.categoryFilter,
+    this.title,
+  });
 
   @override
-  State<AppliedApplicationsScreen> createState() => _AppliedApplicationsScreenState();
+  ConsumerState<AppliedApplicationsScreen> createState() => _AppliedApplicationsScreenState();
 }
 
-class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
+class _AppliedApplicationsScreenState extends ConsumerState<AppliedApplicationsScreen> {
   int _selectedTab = 0; // 0 = Active Applications, 1 = Archived / History
 
   @override
   Widget build(BuildContext context) {
+    final careerState = ref.watch(careerStateProvider);
+    final allApps = careerState.appliedApplications;
+    final applications = widget.categoryFilter != null
+        ? allApps.where((a) => a.type == widget.categoryFilter).toList()
+        : allApps;
+    final activeApplications = applications.where((a) => a.isActive).toList();
+    final archivedApplications = applications.where((a) => !a.isActive).toList();
+    final displayList = _selectedTab == 0 ? activeApplications : archivedApplications;
+
+    final headerTitle = widget.title ?? (widget.categoryFilter != null ? 'Applied ${widget.categoryFilter}s' : 'Applied');
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -28,7 +49,7 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: widget.onBack,
+                    onTap: widget.onBack ?? () => Navigator.pop(context),
                     child: const Icon(
                       Icons.arrow_back_rounded,
                       color: AppColors.primary,
@@ -36,9 +57,9 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  const Text(
-                    'Applied',
-                    style: TextStyle(
+                  Text(
+                    headerTitle,
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF111827),
@@ -63,11 +84,11 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildMetricCard('Total Applied', '12'),
+                            child: _buildMetricCard('Total Applied', '${applications.length}'),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: _buildMetricCard('In Review', '5'),
+                            child: _buildMetricCard('In Review', '${activeApplications.length}'),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -98,7 +119,7 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                                   ),
                                   alignment: Alignment.center,
                                   child: Text(
-                                    'Active Applications',
+                                    'Active Applications (${activeApplications.length})',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
@@ -139,97 +160,58 @@ class _AppliedApplicationsScreenState extends State<AppliedApplicationsScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Applications List
-                      _buildApplicationCard(
-                        logoUrl: 'https://img.icons8.com/color/48/adobe-illustrator.png',
-                        title: 'Senior Product Designer',
-                        company: 'Nexus Systems',
-                        statusLabel: 'APPLICATION RECEIVED',
-                        statusColor: const Color(0xFF10B981),
-                        statusBgColor: const Color(0xFFE6FBF3),
-                        isActive: true,
-                        onTrackStatus: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ApplicationTrackingScreen(),
+                      // Dynamic Applications List
+                      if (displayList.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 40),
+                          child: Center(
+                            child: Column(
+                              children: const [
+                                Icon(Icons.assignment_outlined, size: 48, color: Colors.grey),
+                                SizedBox(height: 12),
+                                Text(
+                                  'No applications found',
+                                  style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600),
+                                ),
+                              ],
                             ),
-                          );
-                        },
-                        onViewSubmission: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SubmissionDetailsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      _buildApplicationCard(
-                        logoUrl: 'https://img.icons8.com/color/48/figma--v1.png',
-                        title: 'Frontend Engineer',
-                        company: 'CloudStrate',
-                        statusLabel: 'UNDER REVIEW',
-                        statusColor: const Color(0xFF0284C7),
-                        statusBgColor: const Color(0xFFE0F2FE),
-                        isActive: true,
-                        onTrackStatus: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ApplicationTrackingScreen(),
-                            ),
-                          );
-                        },
-                        onViewSubmission: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SubmissionDetailsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      _buildApplicationCard(
-                        logoUrl: 'https://img.icons8.com/color/48/microsoft.png',
-                        title: 'UX Researcher',
-                        company: 'Aether Analytics',
-                        statusLabel: 'INTERVIEW SCHEDULED',
-                        statusColor: const Color(0xFF0284C7),
-                        statusBgColor: const Color(0xFFE0F2FE),
-                        isActive: true,
-                        onTrackStatus: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ApplicationTrackingScreen(),
-                            ),
-                          );
-                        },
-                        onViewSubmission: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SubmissionDetailsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      _buildApplicationCard(
-                        logoUrl: 'https://img.icons8.com/color/48/google-logo.png',
-                        title: 'Machine Learning Engineer',
-                        company: 'Vortex AI',
-                        statusLabel: 'REJECTED',
-                        statusColor: Colors.grey.shade500,
-                        statusBgColor: const Color(0xFFF1F5F9),
-                        isActive: false,
-                      ),
+                          ),
+                        )
+                      else
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: displayList.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 16),
+                          itemBuilder: (context, index) {
+                            final app = displayList[index];
+                            return _buildApplicationCard(
+                              logoUrl: app.logoUrl,
+                              title: app.title,
+                              company: app.company,
+                              statusLabel: app.statusLabel,
+                              statusColor: app.statusColor,
+                              statusBgColor: app.statusBgColor,
+                              isActive: app.isActive,
+                              onTrackStatus: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ApplicationTrackingScreen(),
+                                  ),
+                                );
+                              },
+                              onViewSubmission: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const SubmissionDetailsScreen(),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
                       const SizedBox(height: 24),
                     ],
                   ),

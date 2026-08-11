@@ -146,7 +146,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                   ),
                   child: const Icon(
                     Icons.arrow_back_rounded,
-                    color: Color(0xFF4F46E5),
+                    color: Color(0xFF0284C7),
                     size: 20,
                   ),
                 ),
@@ -162,7 +162,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                 ),
                 child: const Icon(
                   Icons.share_outlined,
-                  color: Color(0xFF4F46E5),
+                  color: Color(0xFF0284C7),
                   size: 20,
                 ),
               ),
@@ -177,7 +177,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                 ),
                 child: const Icon(
                   Icons.bookmark_border_rounded,
-                  color: Color(0xFF4F46E5),
+                  color: Color(0xFF0284C7),
                   size: 20,
                 ),
               ),
@@ -227,7 +227,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF4F46E5),
+                              color: Color(0xFF0284C7),
                             ),
                           ),
                         ],
@@ -237,12 +237,12 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEEF2FF),
+                        color: const Color(0xFFE0F2FE),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
                         Icons.bookmark_border_rounded,
-                        color: Color(0xFF4F46E5),
+                        color: Color(0xFF0284C7),
                         size: 22,
                       ),
                     ),
@@ -308,8 +308,8 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
             Color fg;
             final t = tag.toLowerCase();
             if (t.contains('figma') || t.contains('front') || t == 'sql') {
-              bg = const Color(0xFFF3E8FF);
-              fg = const Color(0xFF9333EA);
+              bg = const Color(0xFFE0F2FE);
+              fg = const Color(0xFF0284C7);
             } else if (t.contains('design system') || t.contains('react') || t == 'excel') {
               bg = const Color(0xFFE0F2FE);
               fg = const Color(0xFF0284C7);
@@ -391,7 +391,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF4F46E5),
+              color: Color(0xFF0284C7),
             ),
           ),
         ],
@@ -422,7 +422,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFF6B7280),
+                            color: isSelected ? const Color(0xFF0284C7) : const Color(0xFF6B7280),
                             letterSpacing: 0.4,
                           ),
                         ),
@@ -430,7 +430,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                         Container(
                           height: 2.5,
                           width: 40,
-                          color: isSelected ? const Color(0xFF4F46E5) : Colors.transparent,
+                          color: isSelected ? const Color(0xFF0284C7) : Colors.transparent,
                         ),
                       ],
                     ),
@@ -611,7 +611,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                       margin: const EdgeInsets.only(top: 2),
                       padding: const EdgeInsets.all(2),
                       decoration: const BoxDecoration(
-                        color: Color(0xFF4F46E5),
+                        color: Color(0xFF0284C7),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -650,7 +650,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
     final company1 = isUiUx ? 'Microsoft' : (isData ? 'Deloitte' : 'Meta • Full-time');
     final salary1 = isData ? '₹45k/mo' : (isUiUx ? '₹45k/mo' : '₹45k/mo');
     final badge1 = isUiUx ? 'HOT' : (isData ? 'HOT' : '95%');
-    final accent1 = isUiUx ? const Color(0xFF9333EA) : (isData ? const Color(0xFF16A34A) : const Color(0xFF0284C7));
+    final accent1 = isUiUx ? const Color(0xFF0284C7) : (isData ? const Color(0xFF16A34A) : const Color(0xFF0284C7));
     final icon1 = isUiUx ? Icons.grid_view_rounded : (isData ? Icons.insert_chart_outlined : Icons.all_inclusive_rounded);
 
     final title2 = isUiUx ? 'UX Research Intern' : (isData ? 'Data Science Intern' : 'Frontend Intern');
@@ -681,7 +681,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF4F46E5),
+                  color: Color(0xFF0284C7),
                 ),
               ),
             ],
@@ -840,12 +840,16 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ApplicationDetailsScreen(),
+                      builder: (context) => ApplicationDetailsScreen(
+                        jobType: 'Internship',
+                        jobTitle: widget.title,
+                        companyName: widget.company,
+                      ),
                     ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4F46E5),
+                  backgroundColor: const Color(0xFF0284C7),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -975,7 +979,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
     final primaryThemeColor = isFrontend
         ? const Color(0xFF0284C7)
-        : (isStripe ? const Color(0xFF4F46E5) : const Color(0xFF00A4EF));
+        : (isStripe ? const Color(0xFF0284C7) : const Color(0xFF00A4EF));
 
     return Stack(
       clipBehavior: Clip.none,
@@ -1089,7 +1093,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: isFrontend ? const Color(0xFFE0F2FE) : const Color(0xFFEEF2FF),
+                        color: isFrontend ? const Color(0xFFE0F2FE) : const Color(0xFFE0F2FE),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
@@ -1105,7 +1109,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF4F46E5),
+                                      color: Color(0xFF0284C7),
                                     ),
                                   )
                                 : (isMicrosoft
@@ -1116,7 +1120,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                       )
                                     : const Icon(
                                         Icons.bookmark_border_rounded,
-                                        color: Color(0xFF4F46E5),
+                                        color: Color(0xFF0284C7),
                                         size: 22,
                                       ))),
                       ),
@@ -1267,7 +1271,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     final isStripe = widget.company == 'Stripe';
     final primaryColor = isFrontend
         ? const Color(0xFF0284C7)
-        : (isStripe ? const Color(0xFF4F46E5) : const Color(0xFF00A4EF));
+        : (isStripe ? const Color(0xFF0284C7) : const Color(0xFF00A4EF));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1327,7 +1331,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     final isStripe = widget.company == 'Stripe';
     final activeTabColor = isFrontend
         ? const Color(0xFF0284C7)
-        : (isStripe ? const Color(0xFF4F46E5) : const Color(0xFF00A4EF));
+        : (isStripe ? const Color(0xFF0284C7) : const Color(0xFF00A4EF));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1663,7 +1667,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     final company1 = isStripe ? 'Airbnb' : (isData ? 'Deloitte' : 'Airbnb');
     final salary1 = isStripe ? '\$70k/mo' : (isData ? '₹45k/mo' : '\$70k/mo');
     final badge1 = 'REMOTE';
-    final badgeColor1 = const Color(0xFF9333EA);
+    final badgeColor1 = const Color(0xFF0284C7);
 
     final icon2 = isStripe ? Icons.compare_arrows_rounded : (isData ? Icons.hexagon_outlined : Icons.code_rounded);
     final title2 = isStripe ? 'Product Design Intern' : (isData ? 'Data Science Intern' : 'Product Design Intern');
@@ -1674,7 +1678,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
     final primaryThemeColor = (widget.title.contains('Frontend') || widget.company == 'Google')
         ? const Color(0xFF0284C7)
-        : (isStripe ? const Color(0xFF4F46E5) : const Color(0xFF00A4EF));
+        : (isStripe ? const Color(0xFF0284C7) : const Color(0xFF00A4EF));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1804,8 +1808,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                   decoration: BoxDecoration(
-                    color: badgeColor == const Color(0xFF9333EA)
-                        ? const Color(0xFFF3E8FF)
+                    color: badgeColor == const Color(0xFF0284C7)
+                        ? const Color(0xFFE0F2FE)
                         : const Color(0xFFE0F2FE),
                     borderRadius: BorderRadius.circular(6),
                   ),
@@ -1832,7 +1836,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
     final primaryThemeColor = isFrontend
         ? const Color(0xFF0284C7)
-        : (isStripe ? const Color(0xFF4F46E5) : const Color(0xFF00A4EF));
+        : (isStripe ? const Color(0xFF0284C7) : const Color(0xFF00A4EF));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -1872,7 +1876,11 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ApplicationDetailsScreen(),
+                      builder: (context) => ApplicationDetailsScreen(
+                        jobType: 'Job',
+                        jobTitle: widget.title,
+                        companyName: widget.company,
+                      ),
                     ),
                   );
                 },

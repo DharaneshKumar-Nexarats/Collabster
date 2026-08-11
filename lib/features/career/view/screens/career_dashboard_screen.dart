@@ -14,6 +14,12 @@ import 'notifications_screen.dart';
 import 'saved_jobs_screen.dart';
 import 'submission_details_screen.dart';
 import 'applied_applications_screen.dart';
+import 'booked_sessions_screen.dart';
+import 'job_detail_screen.dart';
+import 'explore_screen.dart';
+import 'upload_resume_screen.dart';
+import 'professional_templates_screen.dart';
+import '../../providers/career_providers.dart';
 
 class CareerDashboardScreen extends ConsumerStatefulWidget {
   const CareerDashboardScreen({super.key});
@@ -98,34 +104,98 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
                 crossAxisSpacing: 12,
                 childAspectRatio: 1.0,
                 children: [
-                  _buildCreateAction(ctx, icon: Icons.upload_file_rounded, label: 'Upload\nResume', color: const Color(0xFF0284C7), onTap: () {
-                    Navigator.pop(ctx);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ResumeScreen()));
-                  }),
-                  _buildCreateAction(ctx, icon: Icons.send_rounded, label: 'Apply\nJob', color: const Color(0xFF0EA5E9), onTap: () {
+                  _buildCreateAction(ctx, icon: Icons.search_rounded, label: 'Find\nJobs', color: const Color(0xFF0284C7), onTap: () {
                     Navigator.pop(ctx);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const JobsScreen()));
                   }),
-                  _buildCreateAction(ctx, icon: Icons.videocam_rounded, label: 'Mock\nInterview', color: const Color(0xFF0891B2), onTap: () {
-                    Navigator.pop(ctx);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => MockInterviewsScreen(onBack: () => Navigator.pop(context))));
-                  }),
-                  _buildCreateAction(ctx, icon: Icons.school_rounded, label: 'Find\nInternship', color: const Color(0xFF0369A1), onTap: () {
+                  _buildCreateAction(ctx, icon: Icons.school_rounded, label: 'Find\nInternships', color: const Color(0xFF0EA5E9), onTap: () {
                     Navigator.pop(ctx);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => InternshipsScreen(onBack: () => Navigator.pop(context))));
                   }),
-                  _buildCreateAction(ctx, icon: Icons.laptop_mac_rounded, label: 'Freelance\nGig', color: const Color(0xFF0E7490), onTap: () {
+                  _buildCreateAction(ctx, icon: Icons.laptop_mac_rounded, label: 'Find\nFreelance', color: const Color(0xFF0891B2), onTap: () {
                     Navigator.pop(ctx);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const FreelanceScreen()));
                   }),
-                  _buildCreateAction(ctx, icon: Icons.add_circle_outline_rounded, label: 'Add\nSkill', color: const Color(0xFF0369A1), onTap: () {
+                  _buildCreateAction(ctx, icon: Icons.videocam_rounded, label: 'Mock\nInterview', color: const Color(0xFF0E7490), onTap: () {
                     Navigator.pop(ctx);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => MockInterviewsScreen(onBack: () => Navigator.pop(context))));
+                  }),
+                  _buildCreateAction(ctx, icon: Icons.upload_file_rounded, label: 'Upload\nResume', color: const Color(0xFF0369A1), onTap: () {
+                    Navigator.pop(ctx);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const UploadResumeScreen()));
+                  }),
+                  _buildCreateAction(ctx, icon: Icons.add_circle_outline_rounded, label: 'Add\nSkill', color: const Color(0xFF0284C7), onTap: () {
+                    Navigator.pop(ctx);
+                    _showEmptyAddSkillDialog(context);
                   }),
                 ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showEmptyAddSkillDialog(BuildContext context) {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: const [
+            Icon(Icons.add_circle_outline_rounded, color: Color(0xFF0284C7)),
+            SizedBox(width: 8),
+            Text('Add Skill', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Enter a new skill to add to your profile:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 14),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: 'e.g. Flutter, React, Python...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.5),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0284C7),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                ref.read(careerStateProvider.notifier).addSkill(controller.text.trim());
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Added "${controller.text.trim()}" to your skills!'),
+                    backgroundColor: const Color(0xFF0284C7),
+                  ),
+                );
+              }
+            },
+            child: const Text('Add Skill', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
@@ -163,7 +233,7 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
   Widget build(BuildContext context) {
     final pages = [
       _buildHomeContent(),
-      _buildAppliedJobsPage(),
+      _buildExplorePage(),
       const SizedBox.shrink(),
       _buildSavedPage(),
       const SizedBox.shrink(),
@@ -291,8 +361,8 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              // Quick Actions
-              _buildSectionHeader('Quick Actions', null),
+              // Actions
+              _buildSectionHeader('Actions', null),
               const SizedBox(height: 12),
               _buildQuickActionsGrid(),
               const SizedBox(height: 24),
@@ -337,7 +407,7 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
 
               // Build your resume
               _buildSectionHeader('Build your resume', 'View All', onCtaTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ResumeScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfessionalTemplatesScreen()));
               }),
               const SizedBox(height: 14),
               SizedBox(
@@ -427,20 +497,20 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
   // ── Quick Actions ──────────────────────────────────────────────────
   Widget _buildQuickActionsGrid() {
     final actions = [
-      _QuickAction(Icons.search_rounded, 'Find Jobs', const Color(0xFF0284C7), () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const JobsScreen()));
+      _QuickAction(Icons.work_outline_rounded, 'Applied Jobs', const Color(0xFF0284C7), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const AppliedApplicationsScreen(categoryFilter: 'Job', title: 'Applied Jobs')));
       }),
-      _QuickAction(Icons.school_outlined, 'Internships', const Color(0xFF0EA5E9), () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => InternshipsScreen(onBack: () => Navigator.pop(context))));
+      _QuickAction(Icons.school_outlined, 'Applied Internships', const Color(0xFF0EA5E9), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const AppliedApplicationsScreen(categoryFilter: 'Internship', title: 'Applied Internships')));
       }),
-      _QuickAction(Icons.laptop_mac_outlined, 'Freelance', const Color(0xFF0891B2), () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const FreelanceScreen()));
+      _QuickAction(Icons.laptop_mac_outlined, 'Applied Freelances', const Color(0xFF0891B2), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const AppliedApplicationsScreen(categoryFilter: 'Freelance', title: 'Applied Freelances')));
       }),
       _QuickAction(Icons.description_outlined, 'My Resume', const Color(0xFF0369A1), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const ResumeScreen()));
       }),
-      _QuickAction(Icons.mic_none_rounded, 'Mock Interviews', const Color(0xFF0E7490), () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => MockInterviewsScreen(onBack: () => Navigator.pop(context))));
+      _QuickAction(Icons.verified_outlined, 'Completed Mock Interviews', const Color(0xFF0E7490), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const BookedSessionsScreen()));
       }),
       _QuickAction(Icons.bookmark_outline_rounded, 'Saved Jobs', const Color(0xFF0284C7), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => SavedJobsScreen(onBack: () => Navigator.pop(context))));
@@ -496,6 +566,7 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
             border: Border.all(color: action.color.withValues(alpha: 0.12)),
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 width: 36,
@@ -510,12 +581,13 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
               Expanded(
                 child: Text(
                   action.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  softWrap: true,
                   style: TextStyle(
-                    fontSize: 12.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: Colors.grey.shade900,
+                    height: 1.15,
                   ),
                 ),
               ),
@@ -543,8 +615,8 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
 
 
 
-  Widget _buildAppliedJobsPage() {
-    return AppliedApplicationsScreen(
+  Widget _buildExplorePage() {
+    return ExploreScreen(
       onBack: () => setState(() => _selectedIndex = 0),
     );
   }
@@ -911,7 +983,18 @@ class _JobCard extends StatelessWidget {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SubmissionDetailsScreen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => JobDetailsScreen(
+                          title: title,
+                          company: company,
+                          location: location.contains('Remote') ? 'Remote (Worldwide)' : location,
+                          salary: '\$80k – \$110k USD',
+                          tags: tags,
+                        ),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7), minimumSize: const Size(0, 36), padding: EdgeInsets.zero, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
                   child: const Text('Apply', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
@@ -948,54 +1031,64 @@ class _ResumeCard extends StatelessWidget {
         gradient: LinearGradient(colors: [colorA, colorB], begin: Alignment.topLeft, end: Alignment.bottomRight),
         boxShadow: [BoxShadow(color: colorA.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 6))],
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -30,
-            top: -30,
-            child: Container(width: 110, height: 110, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.06))),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ...List.generate(6, (i) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 5),
-                    height: i == 0 ? 9.0 : 5.0,
-                    width: i == 0 ? 80.0 : (i.isEven ? 130.0 : 75.0),
-                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: i == 0 ? 0.9 : 0.35), borderRadius: BorderRadius.circular(3)),
-                  );
-                }),
-                const Spacer(),
-                Text(title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 3),
-                Text(desc, style: TextStyle(color: Colors.white.withValues(alpha: 0.65), fontSize: 11)),
-                const SizedBox(height: 10),
-                Row(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ProfessionalTemplatesScreen()),
+            );
+          },
+          child: Stack(
+            children: [
+              Positioned(
+                right: -30,
+                top: -30,
+                child: Container(width: 110, height: 110, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.06))),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 9),
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
-                        alignment: Alignment.center,
-                        child: Text('Use Template', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: colorA)),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
-                      child: const Icon(Icons.bookmark_border_rounded, size: 16, color: Colors.white),
+                    ...List.generate(6, (i) {
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 5),
+                        height: i == 0 ? 9.0 : 5.0,
+                        width: i == 0 ? 80.0 : (i.isEven ? 130.0 : 75.0),
+                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: i == 0 ? 0.9 : 0.35), borderRadius: BorderRadius.circular(3)),
+                      );
+                    }),
+                    const Spacer(),
+                    Text(title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 3),
+                    Text(desc, style: TextStyle(color: Colors.white.withValues(alpha: 0.65), fontSize: 11)),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 9),
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+                            alignment: Alignment.center,
+                            child: Text('Use Template', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: colorA)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
+                          child: const Icon(Icons.bookmark_border_rounded, size: 16, color: Colors.white),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1163,7 +1256,7 @@ class _BottomNavBar extends StatelessWidget {
                   child: Row(
                     children: [
                       _navItem(0, Icons.home_outlined, Icons.home_rounded, 'Home'),
-                      _navItem(1, Icons.work_outline_rounded, Icons.work_rounded, 'Applied Job'),
+                      _navItem(1, Icons.explore_outlined, Icons.explore_rounded, 'Explore'),
                       SizedBox(width: _fabSize + 12),
                       _navItem(3, Icons.bookmark_outline_rounded, Icons.bookmark_rounded, 'Saved'),
                       _navItem(4, Icons.person_outline, Icons.person, 'Profile'),
