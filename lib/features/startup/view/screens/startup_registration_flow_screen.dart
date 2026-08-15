@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../model/startup_models.dart';
-import '../../viewmodel/registration_viewmodel.dart';
+import '../../viewmodel/registration_state.dart';
 import '../../../../core/di/providers.dart';
 import '../../../../shared/utils/app_snackbar.dart';
 import 'startup_success_screen.dart';
@@ -28,7 +28,6 @@ class StartupRegistrationFlowScreen extends ConsumerStatefulWidget {
 class _StartupRegistrationFlowScreenState
     extends ConsumerState<StartupRegistrationFlowScreen> {
   final PageController _pageController = PageController();
-  final RegistrationViewModel _viewModel = RegistrationViewModel();
   final TextEditingController _startupNameController = TextEditingController();
   final TextEditingController _taglineController = TextEditingController();
   final TextEditingController _industryController = TextEditingController();
@@ -263,8 +262,9 @@ class _StartupRegistrationFlowScreenState
   }
 
   void _goToNextStep() {
-    if (_viewModel.currentStep < RegistrationViewModel.totalSteps - 1) {
-      _viewModel.goToNextStep();
+    final currentStep = ref.read(registrationViewModelProvider).currentStep;
+    if (currentStep < RegistrationState.totalSteps - 1) {
+      ref.read(registrationViewModelProvider.notifier).goToNextStep();
       _pageController.nextPage(
         duration: const Duration(milliseconds: 280),
         curve: Curves.easeInOut,
@@ -276,8 +276,9 @@ class _StartupRegistrationFlowScreenState
   }
 
   void _goToPreviousStep() {
-    if (_viewModel.currentStep > 0) {
-      _viewModel.goToPreviousStep();
+    final currentStep = ref.read(registrationViewModelProvider).currentStep;
+    if (currentStep > 0) {
+      ref.read(registrationViewModelProvider.notifier).goToPreviousStep();
       _pageController.previousPage(
         duration: const Duration(milliseconds: 280),
         curve: Curves.easeInOut,
@@ -354,6 +355,7 @@ class _StartupRegistrationFlowScreenState
   }
 
   Future<void> _publishStartup() async {
+    final regState = ref.read(registrationViewModelProvider);
     final startupName = _startupNameController.text.trim();
     if (startupName.isEmpty) {
       _showComingSoon('Enter your startup name before publishing');
@@ -365,7 +367,7 @@ class _StartupRegistrationFlowScreenState
     await ref.read(authViewModelProvider.notifier).updateStartupData(
       startupName: startupName,
       industry: _industryController.text.trim(),
-      stage: _viewModel.selectedStage,
+      stage: regState.selectedStage,
       tagline: _taglineController.text.trim(),
       logoPath: _logoFile?.path,
       coverPath: _coverFile?.path,
@@ -379,6 +381,7 @@ class _StartupRegistrationFlowScreenState
       website: _websiteController.text.trim(),
       incorporationDate: _incorporationController.text.trim(),
       founderName: _founderNameController.text.trim(),
+      founderPhotoPath: _founderPhoto?.path,
       founderDesignation: _designationController.text.trim(),
       founderEmail: _emailController.text.trim(),
       founderPhone: _phoneController.text.trim(),
@@ -388,17 +391,17 @@ class _StartupRegistrationFlowScreenState
       socialLinkedin: _socialLinkedInController.text.trim(),
       socialProductHunt: _socialProductHuntController.text.trim(),
       useOfFunds: _useOfFundsController.text.trim(),
-      teamSize: _viewModel.selectedTeamSize,
-      fundingStage: _viewModel.selectedFundingStage,
-      currentlyRaising: _viewModel.currentlyRaising,
-      visibility: _viewModel.selectedVisibility,
+      teamSize: regState.selectedTeamSize,
+      fundingStage: regState.selectedFundingStage,
+      currentlyRaising: regState.currentlyRaising,
+      visibility: regState.selectedVisibility,
       // Do NOT set originalStartupName/Data here — those are only written
       // by the join-another-startup flow, never at registration time.
     );
 
     // --- Frontend registry: publish so Join Startup screen can find it ---
     final industry = _industryController.text.trim();
-    final teamSizeStr = _viewModel.selectedTeamSize; // e.g. '1-5'
+    final teamSizeStr = regState.selectedTeamSize; // e.g. '1-5'
     final teamCount = int.tryParse(teamSizeStr.split('-').first) ?? 1;
     ref.read(startupRegistryProvider.notifier).addStartup(
       SuggestedStartup(
@@ -409,7 +412,7 @@ class _StartupRegistrationFlowScreenState
           _countryController.text.trim(),
         ].where((s) => s.isNotEmpty).join(', '),
         teamMembers: teamCount,
-        stage: _viewModel.selectedStage,
+        stage: regState.selectedStage,
         tags: industry.isNotEmpty ? [industry] : [],
         tagline: _taglineController.text.trim(),
         description: _shortDescriptionController.text.trim(),
@@ -434,7 +437,7 @@ class _StartupRegistrationFlowScreenState
           selectedRole: widget.selectedRole,
           completion: 65,
           industry: _industryController.text.trim(),
-          stage: _viewModel.selectedStage,
+        stage: regState.selectedStage,
           tagline: _taglineController.text.trim(),
           country: _countryController.text.trim(),
           city: _cityController.text.trim(),
@@ -454,7 +457,7 @@ class _StartupRegistrationFlowScreenState
       return;
     }
 
-    _viewModel.inviteTeamMember(email);
+    ref.read(registrationViewModelProvider.notifier).inviteTeamMember(email);
     _inviteEmailController.clear();
 
     AppSnackBar.showSuccess(context, 'Invitation sent to $email');
@@ -462,70 +465,68 @@ class _StartupRegistrationFlowScreenState
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _viewModel,
-      builder: (context, _) {
-        final progress = _viewModel.progress;
+    final regState = ref.watch(registrationViewModelProvider);
+    final progress = regState.progress;
 
-        return Scaffold(
-          backgroundColor: const Color(0xFFF7F5FF),
-          appBar: AppBar(
-            backgroundColor: const Color(0xFFF7F5FF),
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Color(0xFF5B21B6)),
-              onPressed: _goToPreviousStep,
-            ),
-          ),
-          body: SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Step ${_viewModel.currentStep + 1} of ${RegistrationViewModel.totalSteps}',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF5B6272),
-                        ),
-                      ),
-                      Text(
-                        '${((progress * 100).round())}% Complete',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF5B21B6),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(99),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 8,
-                      backgroundColor: const Color(0xFFE9DCF9),
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF5B21B6),
-                      ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F5FF),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF7F5FF),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF5B21B6)),
+          onPressed: _goToPreviousStep,
+        ),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Step ${regState.currentStep + 1} of ${RegistrationState.totalSteps}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF5B6272),
                     ),
                   ),
+                  Text(
+                    '${((progress * 100).round())}% Complete',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF5B21B6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(99),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 8,
+                  backgroundColor: const Color(0xFFE9DCF9),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFF5B21B6),
+                  ),
                 ),
-                const SizedBox(height: 14),
-                Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    physics: const NeverScrollableScrollPhysics(),
-                    onPageChanged: (index) {
-                      _viewModel.setCurrentStep(index);
-                    },
+              ),
+            ),
+            const SizedBox(height: 14),
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                onPageChanged: (index) {
+                  ref.read(registrationViewModelProvider.notifier).setCurrentStep(index);
+                },
                 children: [
                   _buildBasicInformationStep(),
                   _buildFounderInformationStep(),
@@ -562,7 +563,7 @@ class _StartupRegistrationFlowScreenState
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: Text(_viewModel.currentStep == 0 ? 'Back' : 'Back'),
+                  child: Text(regState.currentStep == 0 ? 'Back' : 'Back'),
                 ),
               ),
               const SizedBox(width: 16),
@@ -580,7 +581,7 @@ class _StartupRegistrationFlowScreenState
                     ),
                   ),
                   child: Text(
-                    _viewModel.currentStep == RegistrationViewModel.totalSteps - 1 ? 'Publish' : 'Next Step',
+                    regState.currentStep == RegistrationState.totalSteps - 1 ? 'Publish' : 'Next Step',
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -589,8 +590,6 @@ class _StartupRegistrationFlowScreenState
           ),
         ),
       ),
-      );
-      },
     );
   }
 
@@ -702,10 +701,10 @@ class _StartupRegistrationFlowScreenState
   }
 
   Widget _teamSizeChip(String label) {
-    final selected = _viewModel.selectedTeamSize == label;
+    final selected = ref.watch(registrationViewModelProvider).selectedTeamSize == label;
     return GestureDetector(
       onTap: () {
-        _viewModel.selectTeamSize(label);
+        ref.read(registrationViewModelProvider.notifier).selectTeamSize(label);
       },
       child: Container(
         height: 46,
@@ -782,7 +781,7 @@ class _StartupRegistrationFlowScreenState
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              initialValue: _viewModel.selectedStage,
+              initialValue: ref.watch(registrationViewModelProvider).selectedStage,
               items: const [
                 DropdownMenuItem(value: 'Idea', child: Text('Idea')),
                 DropdownMenuItem(value: 'Prototype', child: Text('Prototype')),
@@ -793,7 +792,7 @@ class _StartupRegistrationFlowScreenState
                 if (value == null) {
                   return;
                 }
-                _viewModel.selectStage(value);
+                ref.read(registrationViewModelProvider.notifier).selectStage(value);
               },
               decoration: const InputDecoration(
                 labelText: 'Startup Stage',
@@ -927,7 +926,7 @@ class _StartupRegistrationFlowScreenState
                   ),
                 ),
                 Text(
-                  '${_viewModel.yearsOfExperience.toInt()} years',
+                  '${ref.watch(registrationViewModelProvider).yearsOfExperience.toInt()} years',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -941,12 +940,12 @@ class _StartupRegistrationFlowScreenState
                 context,
               ).copyWith(activeTrackColor: const Color(0xFF5B21B6)),
               child: Slider(
-                value: _viewModel.yearsOfExperience,
+                value: ref.watch(registrationViewModelProvider).yearsOfExperience,
                 min: 0,
                 max: 30,
                 divisions: 30,
                 onChanged: (value) {
-                  _viewModel.setYearsOfExperience(value);
+                  ref.read(registrationViewModelProvider.notifier).setYearsOfExperience(value);
                 },
               ),
             ),
@@ -966,11 +965,11 @@ class _StartupRegistrationFlowScreenState
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _viewModel.skillTags
+              children: RegistrationState.skillTags
                   .map(
                     (skill) =>
-                        _chip(skill, _viewModel.selectedSkills.contains(skill), () {
-                          _viewModel.toggleSkill(skill);
+                        _chip(skill, ref.watch(registrationViewModelProvider).selectedSkills.contains(skill), () {
+                          ref.read(registrationViewModelProvider.notifier).toggleSkill(skill);
                         }),
                   )
                   .toList(),
@@ -1332,7 +1331,7 @@ class _StartupRegistrationFlowScreenState
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  initialValue: _viewModel.selectedInviteRole,
+                  initialValue: ref.watch(registrationViewModelProvider).selectedInviteRole,
                   items: const [
                     DropdownMenuItem(value: 'Founder', child: Text('Founder')),
                     DropdownMenuItem(
@@ -1353,7 +1352,7 @@ class _StartupRegistrationFlowScreenState
                     if (value == null) {
                       return;
                     }
-                    _viewModel.selectInviteRole(value);
+                    ref.read(registrationViewModelProvider.notifier).selectInviteRole(value);
                   },
                   decoration: const InputDecoration(labelText: 'Role'),
                 ),
@@ -1385,7 +1384,7 @@ class _StartupRegistrationFlowScreenState
             ),
           ),
           const SizedBox(height: 12),
-          ..._viewModel.members.map(_buildMemberTile),
+          ...ref.watch(registrationViewModelProvider).members.map(_buildMemberTile),
         ],
       ),
     );
@@ -1489,25 +1488,25 @@ class _StartupRegistrationFlowScreenState
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   childAspectRatio: 2.1,
-                  children: _viewModel.fundingStages
+                  children: RegistrationState.fundingStages
                       .map(
                         (stage) => GestureDetector(
                           onTap: () {
-                            _viewModel.selectFundingStage(stage);
+                            ref.read(registrationViewModelProvider.notifier).selectFundingStage(stage);
                           },
                           child: Container(
                             alignment: Alignment.centerLeft,
                             padding: const EdgeInsets.symmetric(horizontal: 14),
                             decoration: BoxDecoration(
-                              color: _viewModel.selectedFundingStage == stage
+                              color: ref.watch(registrationViewModelProvider).selectedFundingStage == stage
                                   ? const Color(0xFFE4DAFF)
                                   : Colors.white,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: _viewModel.selectedFundingStage == stage
+                                color: ref.watch(registrationViewModelProvider).selectedFundingStage == stage
                                     ? const Color(0xFF5B21B6)
                                     : const Color(0xFFD4D6E2),
-                                width: _viewModel.selectedFundingStage == stage ? 1.8 : 1,
+                                width: ref.watch(registrationViewModelProvider).selectedFundingStage == stage ? 1.8 : 1,
                               ),
                             ),
                             child: Text(
@@ -1515,7 +1514,7 @@ class _StartupRegistrationFlowScreenState
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: _viewModel.selectedFundingStage == stage
+                                color: ref.watch(registrationViewModelProvider).selectedFundingStage == stage
                                     ? const Color(0xFF5B21B6)
                                     : const Color(0xFF30384A),
                               ),
@@ -1528,7 +1527,7 @@ class _StartupRegistrationFlowScreenState
                 const SizedBox(height: 16),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  value: _viewModel.currentlyRaising,
+                  value: ref.watch(registrationViewModelProvider).currentlyRaising,
                   title: const Text(
                     'Currently Raising?',
                     style: TextStyle(fontWeight: FontWeight.w800),
@@ -1536,7 +1535,7 @@ class _StartupRegistrationFlowScreenState
                   subtitle: const Text('Activate to input round details'),
                   activeThumbColor: const Color(0xFF5B21B6),
                   onChanged: (value) {
-                    _viewModel.toggleRaising(value);
+                    ref.read(registrationViewModelProvider.notifier).toggleRaising(value);
                   },
                 ),
                 const SizedBox(height: 16),
@@ -1572,7 +1571,7 @@ class _StartupRegistrationFlowScreenState
           _reviewCard('Brand Assets', 'Logo, Color Palette, Typography', 3),
           _reviewCard(
             'Team Members',
-            '${_viewModel.members.length} active members invited',
+            '${ref.watch(registrationViewModelProvider).members.length} active members invited',
             5,
           ),
           _reviewCard('Funding', 'Seed stage, capital raised', 6),
@@ -1594,17 +1593,17 @@ class _StartupRegistrationFlowScreenState
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
-              children: _viewModel.visibilityOptions
+              children: RegistrationState.visibilityOptions
                   .map(
                     (option) => Expanded(
                       child: GestureDetector(
                         onTap: () {
-                          _viewModel.selectVisibility(option);
+                          ref.read(registrationViewModelProvider.notifier).selectVisibility(option);
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: _viewModel.selectedVisibility == option
+                            color: ref.watch(registrationViewModelProvider).selectedVisibility == option
                                 ? const Color(0xFF5B21B6)
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
@@ -1615,7 +1614,7 @@ class _StartupRegistrationFlowScreenState
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: _viewModel.selectedVisibility == option
+                              color: ref.watch(registrationViewModelProvider).selectedVisibility == option
                                   ? Colors.white
                                   : const Color(0xFF44495A),
                             ),

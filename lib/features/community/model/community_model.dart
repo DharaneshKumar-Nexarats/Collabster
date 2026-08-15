@@ -42,6 +42,7 @@ class MyCommunityItem {
   final List<Color> gradientColors;
   final IconData logoIcon;
   final String categoryId;
+  final String? imageUrl;
   bool isJoined;
 
   MyCommunityItem({
@@ -55,6 +56,25 @@ class MyCommunityItem {
     required this.logoIcon,
     required this.categoryId,
     this.isJoined = true,
+    this.imageUrl,
+  });
+}
+
+class CommunityRoom {
+  final String id;
+  final String communityId;
+  final String communityTitle;
+  final String name;
+  final String memberCount;
+  bool isJoined;
+
+  CommunityRoom({
+    required this.id,
+    required this.communityId,
+    required this.communityTitle,
+    required this.name,
+    required this.memberCount,
+    this.isJoined = false,
   });
 }
 

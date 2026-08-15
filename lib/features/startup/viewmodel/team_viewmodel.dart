@@ -1,99 +1,29 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/startup_models.dart';
 import '../model/team_chat_message.dart';
+import 'team_state.dart';
 
-class TeamViewModel extends ChangeNotifier {
-  int _selectedCategoryIndex = 0;
-  int get selectedCategoryIndex => _selectedCategoryIndex;
+class TeamViewModel extends StateNotifier<TeamState> {
+  TeamViewModel() : super(const TeamState());
 
-  final Map<String, bool> _isTyping = {};
-  bool isTypingFor(String name) => _isTyping[name] ?? false;
-
-  final Map<String, int> _unreadCounts = {};
-  int unreadCountFor(String name) => _unreadCounts[name] ?? 0;
-  int get totalUnread => _unreadCounts.values.fold(0, (a, b) => a + b);
-
-  final List<TeamMember> _members = [
-    const TeamMember(
-      name: 'Rahul Verma',
-      role: 'Founder & CEO',
-      department: 'Executive / Strategy',
-      badge: 'FOUNDER',
-      badgeColorKey: 'founder',
-      initials: 'RV',
-      email: 'rahul.verma@collabster.io',
-    ),
-    const TeamMember(
-      name: 'Sneha Iyer',
-      role: 'Co-Founder & CTO',
-      department: 'Engineering / Tech',
-      badge: 'CO-FOUNDER',
-      badgeColorKey: 'cofounder',
-      initials: 'SI',
-      email: 'sneha.iyer@collabster.io',
-    ),
-    const TeamMember(
-      name: 'Vikram Singh',
-      role: 'Marketing Lead',
-      department: 'Growth / Comms',
-      badge: 'CORE TEAM',
-      badgeColorKey: 'coreTeam',
-      initials: 'VS',
-      email: 'vikram.singh@collabster.io',
-    ),
-    const TeamMember(
-      name: 'Anika Patel',
-      role: 'Product Designer',
-      department: 'Design / UX',
-      badge: 'CORE TEAM',
-      badgeColorKey: 'coreTeam',
-      initials: 'AP',
-      email: 'anika.patel@collabster.io',
-    ),
-  ];
-
-  List<TeamMember> get allMembers => List.unmodifiable(_members);
-
-  List<TeamMember> get filteredMembers {
-    switch (_selectedCategoryIndex) {
-      case 1:
-        return _members
-            .where((m) => m.badge == 'FOUNDER' || m.badge == 'CO-FOUNDER')
-            .toList();
-      case 2:
-        return _members.where((m) => m.badge == 'CORE TEAM').toList();
-      case 3:
-        return _members
-            .where((m) =>
-                m.badge != 'FOUNDER' &&
-                m.badge != 'CO-FOUNDER' &&
-                m.badge != 'CORE TEAM')
-            .toList();
-      default:
-        return _members;
-    }
-  }
-
-  final Map<String, List<TeamChatMessage>> _chatMessages = {};
-
-  static final Map<String, List<TeamChatMessage>> _starterMessages = {
+  static const Map<String, List<TeamChatMessage>> _starterMessages = {
     'Rahul Verma': [
-      const TeamChatMessage(
+      TeamChatMessage(
         sender: 'Rahul Verma',
         text: 'Hey! How\'s everything going with the current sprint?',
         time: '9:00 AM',
         isMe: false,
         status: MessageStatus.seen,
       ),
-      const TeamChatMessage(
+      TeamChatMessage(
         sender: 'You',
         text: 'Going well! Just finalizing the investor deck for next week.',
         time: '9:02 AM',
         isMe: true,
         status: MessageStatus.seen,
       ),
-      const TeamChatMessage(
+      TeamChatMessage(
         sender: 'Rahul Verma',
         text: 'Great. Let me know if you need any data points from my end.',
         time: '9:04 AM',
@@ -102,14 +32,14 @@ class TeamViewModel extends ChangeNotifier {
       ),
     ],
     'Sneha Iyer': [
-      const TeamChatMessage(
+      TeamChatMessage(
         sender: 'Sneha Iyer',
-        text: 'The API latency issue is fixed in staging. Want me to push to prod?',
+        text: 'The API latency issue is fixed in staging.',
         time: '10:15 AM',
         isMe: false,
         status: MessageStatus.delivered,
       ),
-      const TeamChatMessage(
+      TeamChatMessage(
         sender: 'You',
         text: 'Not yet — let QA finish by EOD first.',
         time: '10:18 AM',
@@ -118,7 +48,7 @@ class TeamViewModel extends ChangeNotifier {
       ),
     ],
     'Vikram Singh': [
-      const TeamChatMessage(
+      TeamChatMessage(
         sender: 'Vikram Singh',
         text: 'LinkedIn campaign is live! First 6 hours — 420 impressions',
         time: 'Yesterday',
@@ -127,14 +57,14 @@ class TeamViewModel extends ChangeNotifier {
       ),
     ],
     'Anika Patel': [
-      const TeamChatMessage(
+      TeamChatMessage(
         sender: 'Anika Patel',
-        text: 'New onboarding flow mockups are uploaded to Figma. Please review!',
+        text: 'New onboarding flow mockups are uploaded to Figma.',
         time: 'Yesterday',
         isMe: false,
         status: MessageStatus.seen,
       ),
-      const TeamChatMessage(
+      TeamChatMessage(
         sender: 'You',
         text: 'Looks clean — love the new color palette',
         time: 'Yesterday',
@@ -143,29 +73,6 @@ class TeamViewModel extends ChangeNotifier {
       ),
     ],
   };
-
-  List<TeamChatMessage> getMessagesFor(String memberName) {
-    if (!_chatMessages.containsKey(memberName)) {
-      _chatMessages[memberName] =
-          List.from(_starterMessages[memberName] ?? [
-            TeamChatMessage(
-              sender: memberName,
-              text: 'Hello! Thanks for reaching out. How can I help?',
-              time: '10:42 AM',
-              isMe: false,
-              status: MessageStatus.seen,
-            ),
-          ]);
-    }
-    return List.unmodifiable(_chatMessages[memberName]!);
-  }
-
-  TeamChatMessage? lastMessageFor(String memberName) {
-    final msgs = _chatMessages[memberName] ??
-        (_starterMessages[memberName] ?? []);
-    if (msgs.isEmpty) return null;
-    return msgs.last;
-  }
 
   static const List<String> _autoReplies = [
     'Got it, thanks!',
@@ -176,36 +83,113 @@ class TeamViewModel extends ChangeNotifier {
     'Noted. Will circle back with feedback.',
   ];
 
-  int _replyIndex = 0;
+  void loadInitialData() {
+    state = state.copyWith(
+      members: const [
+        TeamMember(
+          name: 'Rahul Verma',
+          role: 'Founder & CEO',
+          department: 'Executive / Strategy',
+          badge: 'FOUNDER',
+          badgeColorKey: 'founder',
+          initials: 'RV',
+          email: 'rahul.verma@collabster.io',
+        ),
+        TeamMember(
+          name: 'Sneha Iyer',
+          role: 'Co-Founder & CTO',
+          department: 'Engineering / Tech',
+          badge: 'CO-FOUNDER',
+          badgeColorKey: 'cofounder',
+          initials: 'SI',
+          email: 'sneha.iyer@collabster.io',
+        ),
+        TeamMember(
+          name: 'Vikram Singh',
+          role: 'Marketing Lead',
+          department: 'Growth / Comms',
+          badge: 'CORE TEAM',
+          badgeColorKey: 'coreTeam',
+          initials: 'VS',
+          email: 'vikram.singh@collabster.io',
+        ),
+        TeamMember(
+          name: 'Anika Patel',
+          role: 'Product Designer',
+          department: 'Design / UX',
+          badge: 'CORE TEAM',
+          badgeColorKey: 'coreTeam',
+          initials: 'AP',
+          email: 'anika.patel@collabster.io',
+        ),
+      ],
+    );
+  }
+
+  List<TeamChatMessage> getMessagesFor(String memberName) {
+    if (!state.chatMessages.containsKey(memberName)) {
+      final messages = _starterMessages[memberName] ?? [
+        TeamChatMessage(
+          sender: memberName,
+          text: 'Hello! Thanks for reaching out. How can I help?',
+          time: '10:42 AM',
+          isMe: false,
+          status: MessageStatus.seen,
+        ),
+      ];
+      final updatedMessages = Map<String, List<TeamChatMessage>>.from(state.chatMessages);
+      updatedMessages[memberName] = List.from(messages);
+      state = state.copyWith(chatMessages: updatedMessages);
+    }
+    return List.unmodifiable(state.chatMessages[memberName]!);
+  }
+
+  TeamChatMessage? lastMessageFor(String memberName) {
+    final msgs = state.chatMessages[memberName] ??
+        (_starterMessages[memberName] ?? []);
+    if (msgs.isEmpty) return null;
+    return msgs.last;
+  }
 
   void sendMessage(String memberName, String text) {
     if (text.trim().isEmpty) return;
     getMessagesFor(memberName);
 
-    _unreadCounts[memberName] = 0;
-
     final now = DateTime.now();
     final timeStr = _formatTime(now);
-    _chatMessages[memberName]!.add(
-      TeamChatMessage(
-        sender: 'You',
-        text: text.trim(),
-        time: timeStr,
-        isMe: true,
-        status: MessageStatus.sent,
-      ),
+
+    final newMessage = TeamChatMessage(
+      sender: 'You',
+      text: text.trim(),
+      time: timeStr,
+      isMe: true,
+      status: MessageStatus.sent,
     );
-    notifyListeners();
+
+    final updatedMessages = Map<String, List<TeamChatMessage>>.from(state.chatMessages);
+    updatedMessages[memberName] = [...updatedMessages[memberName]!, newMessage];
+
+    final updatedUnread = Map<String, int>.from(state.unreadCounts);
+    updatedUnread[memberName] = 0;
+
+    state = state.copyWith(
+      chatMessages: updatedMessages,
+      unreadCounts: updatedUnread,
+    );
 
     Timer(const Duration(milliseconds: 800), () {
-      _isTyping[memberName] = true;
-      notifyListeners();
+      final updatedTyping = Map<String, bool>.from(state.isTypingMap);
+      updatedTyping[memberName] = true;
+      state = state.copyWith(isTypingMap: updatedTyping);
 
       Timer(const Duration(milliseconds: 2000), () {
-        _isTyping[memberName] = false;
-        final reply = _autoReplies[_replyIndex % _autoReplies.length];
-        _replyIndex++;
-        _chatMessages[memberName]!.add(
+        final updatedTyping2 = Map<String, bool>.from(state.isTypingMap);
+        updatedTyping2[memberName] = false;
+
+        final reply = _autoReplies[state.replyIndex % _autoReplies.length];
+        final updatedMessages2 = Map<String, List<TeamChatMessage>>.from(state.chatMessages);
+        updatedMessages2[memberName] = [
+          ...updatedMessages2[memberName]!,
           TeamChatMessage(
             sender: memberName,
             text: reply,
@@ -213,14 +197,19 @@ class TeamViewModel extends ChangeNotifier {
             isMe: false,
             status: MessageStatus.delivered,
           ),
+        ];
+
+        state = state.copyWith(
+          isTypingMap: updatedTyping2,
+          chatMessages: updatedMessages2,
+          replyIndex: state.replyIndex + 1,
         );
-        notifyListeners();
       });
     });
   }
 
   void addReaction(String memberName, int messageIndex, String emoji) {
-    final msgs = _chatMessages[memberName];
+    final msgs = state.chatMessages[memberName];
     if (msgs == null || messageIndex >= msgs.length) return;
     final msg = msgs[messageIndex];
     final reactions = List<String>.from(msg.reactions);
@@ -229,13 +218,19 @@ class TeamViewModel extends ChangeNotifier {
     } else {
       reactions.add(emoji);
     }
-    msgs[messageIndex] = msg.copyWith(reactions: reactions);
-    notifyListeners();
+
+    final updatedMessages = Map<String, List<TeamChatMessage>>.from(state.chatMessages);
+    final updatedMsgs = List<TeamChatMessage>.from(updatedMessages[memberName]!);
+    updatedMsgs[messageIndex] = msg.copyWith(reactions: reactions);
+    updatedMessages[memberName] = updatedMsgs;
+
+    state = state.copyWith(chatMessages: updatedMessages);
   }
 
   void markAsRead(String memberName) {
-    _unreadCounts[memberName] = 0;
-    notifyListeners();
+    final updatedUnread = Map<String, int>.from(state.unreadCounts);
+    updatedUnread[memberName] = 0;
+    state = state.copyWith(unreadCounts: updatedUnread);
   }
 
   String _formatTime(DateTime dateTime) {
@@ -246,22 +241,20 @@ class TeamViewModel extends ChangeNotifier {
   }
 
   void selectCategory(int index) {
-    _selectedCategoryIndex = index;
-    notifyListeners();
+    state = state.copyWith(selectedCategoryIndex: index);
   }
 
   void toggleFollow(TeamMember member) {
-    final idx = _members.indexWhere((m) => m.name == member.name);
-    if (idx != -1) {
-      _members[idx] = _members[idx].copyWith(
-        isFollowing: !_members[idx].isFollowing,
-      );
-      notifyListeners();
-    }
+    final updated = state.members.map((m) {
+      if (m.name == member.name) {
+        return m.copyWith(isFollowing: !m.isFollowing);
+      }
+      return m;
+    }).toList();
+    state = state.copyWith(members: updated);
   }
 
   void addMember(TeamMember member) {
-    _members.add(member);
-    notifyListeners();
+    state = state.copyWith(members: [...state.members, member]);
   }
 }

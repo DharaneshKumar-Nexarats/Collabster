@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../model/startup_models.dart';
-import '../../viewmodel/team_viewmodel.dart';
+import '../../viewmodel/providers.dart';
 import 'team_chat_screen.dart';
 import 'team_member_profile_screen.dart';
 import '../widgets/startup_color_helper.dart';
 
-class TeamCommandScreen extends StatefulWidget {
+class TeamCommandScreen extends ConsumerStatefulWidget {
   const TeamCommandScreen({
     super.key,
     required this.startupName,
@@ -16,22 +17,20 @@ class TeamCommandScreen extends StatefulWidget {
   final bool autoOpenInviteSheet;
 
   @override
-  State<TeamCommandScreen> createState() => _TeamCommandScreenState();
+  ConsumerState<TeamCommandScreen> createState() => _TeamCommandScreenState();
 }
 
-class _TeamCommandScreenState extends State<TeamCommandScreen>
+class _TeamCommandScreenState extends ConsumerState<TeamCommandScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late final TeamViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _viewModel = TeamViewModel();
     _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        _viewModel.selectCategory(_tabController.index);
+        ref.read(teamViewModelProvider.notifier).selectCategory(_tabController.index);
       }
     });
     if (widget.autoOpenInviteSheet) {
@@ -44,7 +43,6 @@ class _TeamCommandScreenState extends State<TeamCommandScreen>
   @override
   void dispose() {
     _tabController.dispose();
-    _viewModel.dispose();
     super.dispose();
   }
 
@@ -54,7 +52,6 @@ class _TeamCommandScreenState extends State<TeamCommandScreen>
       MaterialPageRoute(
         builder: (_) => TeamMemberProfileScreen(
           member: member,
-          viewModel: _viewModel,
           startupName: widget.startupName,
         ),
       ),
@@ -209,7 +206,6 @@ class _TeamCommandScreenState extends State<TeamCommandScreen>
                         PageRouteBuilder(
                           pageBuilder: (_, a1, a2) => TeamChatScreen(
                             member: member,
-                            viewModel: _viewModel,
                             startupName: widget.startupName,
                           ),
                           transitionsBuilder: (_, anim, __, child) =>
@@ -336,7 +332,6 @@ class _TeamCommandScreenState extends State<TeamCommandScreen>
                     ],
                   ),
                   const SizedBox(height: 18),
-                  // Full Name
                   TextField(
                     controller: nameCtrl,
                     decoration: InputDecoration(
@@ -351,7 +346,6 @@ class _TeamCommandScreenState extends State<TeamCommandScreen>
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // Email Address
                   TextField(
                     controller: emailCtrl,
                     keyboardType: TextInputType.emailAddress,
@@ -367,7 +361,6 @@ class _TeamCommandScreenState extends State<TeamCommandScreen>
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // Role Title
                   TextField(
                     controller: roleCtrl,
                     decoration: InputDecoration(
@@ -382,7 +375,6 @@ class _TeamCommandScreenState extends State<TeamCommandScreen>
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // Department
                   TextField(
                     controller: deptCtrl,
                     decoration: InputDecoration(
@@ -460,7 +452,7 @@ class _TeamCommandScreenState extends State<TeamCommandScreen>
                           email: email,
                         );
 
-                        _viewModel.addMember(newMember);
+                        ref.read(teamViewModelProvider.notifier).addMember(newMember);
 
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -530,267 +522,262 @@ class _TeamCommandScreenState extends State<TeamCommandScreen>
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _viewModel,
-      builder: (context, _) {
-        final members = _viewModel.filteredMembers;
-        final totalMembers = _viewModel.allMembers;
+    final teamState = ref.watch(teamViewModelProvider);
+    final members = teamState.filteredMembers;
+    final totalMembers = teamState.members;
 
-        final smallTeamMembers = [
-          const TeamMember(
-            name: 'Sarah Miller',
-            role: 'Lead Designer',
-            department: 'Design / UX',
-            badge: 'CORE TEAM',
-            badgeColorKey: 'blue',
-            initials: 'SM',
-            email: 'sarah.miller@collabster.io',
-          ),
-          const TeamMember(
-            name: 'David Kim',
-            role: 'Engineer',
-            department: 'Engineering / Backend',
-            badge: 'CORE TEAM',
-            badgeColorKey: 'blue',
-            initials: 'DK',
-            email: 'david.kim@collabster.io',
-          ),
-          const TeamMember(
-            name: 'Emma Wilson',
-            role: 'Product Manager',
-            department: 'Product / Strategy',
-            badge: 'MEMBER',
-            badgeColorKey: 'teal',
-            initials: 'EW',
-            email: 'emma.wilson@collabster.io',
-          ),
-        ];
+    final smallTeamMembers = [
+      const TeamMember(
+        name: 'Sarah Miller',
+        role: 'Lead Designer',
+        department: 'Design / UX',
+        badge: 'CORE TEAM',
+        badgeColorKey: 'blue',
+        initials: 'SM',
+        email: 'sarah.miller@collabster.io',
+      ),
+      const TeamMember(
+        name: 'David Kim',
+        role: 'Engineer',
+        department: 'Engineering / Backend',
+        badge: 'CORE TEAM',
+        badgeColorKey: 'blue',
+        initials: 'DK',
+        email: 'david.kim@collabster.io',
+      ),
+      const TeamMember(
+        name: 'Emma Wilson',
+        role: 'Product Manager',
+        department: 'Product / Strategy',
+        badge: 'MEMBER',
+        badgeColorKey: 'teal',
+        initials: 'EW',
+        email: 'emma.wilson@collabster.io',
+      ),
+    ];
 
-        return Scaffold(
-          backgroundColor: const Color(0xFFF6F3FF),
-          body: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF5B21B6),
-                        Color(0xFF7C3AED),
-                        Color(0xFF4F46E5),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F3FF),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF5B21B6),
+                    Color(0xFF7C3AED),
+                    Color(0xFF4F46E5),
+                  ],
+                ),
+              ),
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 12,
+                left: 20,
+                right: 20,
+                bottom: 24,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Team Members',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2)),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'YOUR TEAM',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                '${totalMembers.length} Team Members',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _statBox(
+                                '${totalMembers.length}', 'FULL-TIME'),
+                            _divider(),
+                            _statBox('6', 'PART-TIME'),
+                            _divider(),
+                            _statBox('${totalMembers.length}', 'ACTIVE'),
+                          ],
+                        ),
                       ],
                     ),
                   ),
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + 12,
-                    left: 20,
-                    right: 20,
-                    bottom: 24,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_back,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'Team Members',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.2)),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                const Text(
-                                  'YOUR TEAM',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                  child: Text(
-                                    '${totalMembers.length} Team Members',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _statBox(
-                                    '${totalMembers.length}', 'FULL-TIME'),
-                                _divider(),
-                                _statBox('6', 'PART-TIME'),
-                                _divider(),
-                                _statBox('${totalMembers.length}', 'ACTIVE'),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Scrollable category bar so NO tab title gets clipped or truncated
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: TabBar(
-                          controller: _tabController,
-                          isScrollable: true,
-                          tabAlignment: TabAlignment.start,
-                          padding: const EdgeInsets.all(2),
-                          labelPadding:
-                              const EdgeInsets.symmetric(horizontal: 16),
-                          indicator: BoxDecoration(
-                            color: const Color(0xFF5B21B6),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          labelColor: Colors.white,
-                          unselectedLabelColor: const Color(0xFF6B7280),
-                          labelStyle: const TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          unselectedLabelStyle: const TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          dividerColor: Colors.transparent,
-                          tabs: const [
-                            Tab(text: 'All'),
-                            Tab(text: 'Founders'),
-                            Tab(text: 'Core Team'),
-                            Tab(text: 'Employees'),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      const Text(
-                        'Leadership',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF12233D),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                  ),
-                ),
-              ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    if (index >= members.length) return null;
-                    final member = members[index];
-                    return Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                      child: _MemberCard(
-                        member: member,
-                        onContact: () => _showContactSheet(context, member),
-                        onFollow: () => _viewModel.toggleFollow(member),
-                        onProfile: () => _openProfile(member),
-                      ),
-                    );
-                  },
-                  childCount: members.length,
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Your Team',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF12233D),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ...smallTeamMembers.map(
-                        (m) => _SmallMemberTile(
-                          name: m.name,
-                          role: m.role,
-                          status:
-                              m.badge == 'MEMBER' ? 'Part-time' : 'Full-time',
-                          initials: m.initials,
-                          onTap: () => _openProfile(m),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
-            ],
+            ),
           ),
-        );
-      },
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: TabBar(
+                      controller: _tabController,
+                      isScrollable: true,
+                      tabAlignment: TabAlignment.start,
+                      padding: const EdgeInsets.all(2),
+                      labelPadding:
+                          const EdgeInsets.symmetric(horizontal: 16),
+                      indicator: BoxDecoration(
+                        color: const Color(0xFF5B21B6),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      labelColor: Colors.white,
+                      unselectedLabelColor: const Color(0xFF6B7280),
+                      labelStyle: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      dividerColor: Colors.transparent,
+                      tabs: const [
+                        Tab(text: 'All'),
+                        Tab(text: 'Founders'),
+                        Tab(text: 'Core Team'),
+                        Tab(text: 'Employees'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Leadership',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF12233D),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            ),
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                if (index >= members.length) return null;
+                final member = members[index];
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: _MemberCard(
+                    member: member,
+                    onContact: () => _showContactSheet(context, member),
+                    onFollow: () => ref.read(teamViewModelProvider.notifier).toggleFollow(member),
+                    onProfile: () => _openProfile(member),
+                  ),
+                );
+              },
+              childCount: members.length,
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Your Team',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF12233D),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...smallTeamMembers.map(
+                    (m) => _SmallMemberTile(
+                      name: m.name,
+                      role: m.role,
+                      status:
+                          m.badge == 'MEMBER' ? 'Part-time' : 'Full-time',
+                      initials: m.initials,
+                      onTap: () => _openProfile(m),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
+      ),
     );
   }
 

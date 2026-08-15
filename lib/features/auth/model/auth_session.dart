@@ -37,6 +37,7 @@ class AuthSession {
     this.startupVision,
     this.startupWebsite,
     this.startupIncorporationDate,
+    this.startupFounderPhotoPath,
     this.startupFounderName,
     this.startupFounderDesignation,
     this.startupFounderEmail,
@@ -90,6 +91,7 @@ class AuthSession {
   final String? startupVision;
   final String? startupWebsite;
   final String? startupIncorporationDate;
+  final String? startupFounderPhotoPath;
   final String? startupFounderName;
   final String? startupFounderDesignation;
   final String? startupFounderEmail;
@@ -153,6 +155,7 @@ class AuthSession {
     String? startupVision,
     String? startupWebsite,
     String? startupIncorporationDate,
+    String? startupFounderPhotoPath,
     String? startupFounderName,
     String? startupFounderDesignation,
     String? startupFounderEmail,
@@ -206,6 +209,7 @@ class AuthSession {
       startupVision: startupVision ?? this.startupVision,
       startupWebsite: startupWebsite ?? this.startupWebsite,
       startupIncorporationDate: startupIncorporationDate ?? this.startupIncorporationDate,
+      startupFounderPhotoPath: startupFounderPhotoPath ?? this.startupFounderPhotoPath,
       startupFounderName: startupFounderName ?? this.startupFounderName,
       startupFounderDesignation: startupFounderDesignation ?? this.startupFounderDesignation,
       startupFounderEmail: startupFounderEmail ?? this.startupFounderEmail,
@@ -261,6 +265,7 @@ class AuthSession {
       'startupVision': startupVision,
       'startupWebsite': startupWebsite,
       'startupIncorporationDate': startupIncorporationDate,
+      'startupFounderPhotoPath': startupFounderPhotoPath,
       'startupFounderName': startupFounderName,
       'startupFounderDesignation': startupFounderDesignation,
       'startupFounderEmail': startupFounderEmail,
@@ -322,6 +327,7 @@ class AuthSession {
       startupVision: json['startupVision'] as String?,
       startupWebsite: json['startupWebsite'] as String?,
       startupIncorporationDate: json['startupIncorporationDate'] as String?,
+      startupFounderPhotoPath: json['startupFounderPhotoPath'] as String?,
       startupFounderName: json['startupFounderName'] as String?,
       startupFounderDesignation: json['startupFounderDesignation'] as String?,
       startupFounderEmail: json['startupFounderEmail'] as String?,

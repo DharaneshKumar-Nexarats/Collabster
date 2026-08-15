@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../model/notification_model.dart';
-import '../../viewmodel/notifications_viewmodel.dart';
-import '../../viewmodel/team_viewmodel.dart';
+import '../../viewmodel/notifications_state.dart';
+import '../../../../core/di/providers.dart';
 import '../widgets/startup_color_helper.dart';
 import 'messages_inbox_screen.dart';
 import 'startup_milestones_screen.dart';
@@ -12,7 +13,7 @@ import 'team_command_screen.dart';
 import 'startup_requests_screen.dart';
 import 'startup_events_screen.dart';
 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   final String startupName;
 
   const NotificationsScreen({
@@ -21,48 +22,39 @@ class NotificationsScreen extends StatefulWidget {
   });
 
   @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  late final NotificationsViewModel _viewModel;
-
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    _viewModel = NotificationsViewModel();
-    _viewModel.loadNotifications(startupName: widget.startupName);
-  }
-
-  @override
-  void dispose() {
-    _viewModel.dispose();
-    super.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(notificationsViewModelProvider.notifier)
+          .loadNotifications(startupName: widget.startupName);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final notificationsState = ref.watch(notificationsViewModelProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F3FF),
-      body: ListenableBuilder(
-        listenable: _viewModel,
-        builder: (context, _) {
-          return CustomScrollView(
-            slivers: [
-              _buildSliverAppBar(),
-              _buildFilterChips(),
-              if (_viewModel.filteredNotifications.isEmpty)
-                _buildEmptyState()
-              else
-                _buildNotificationsList(),
-            ],
-          );
-        },
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(notificationsState),
+          _buildFilterChips(notificationsState),
+          if (notificationsState.filteredNotifications.isEmpty)
+            _buildEmptyState()
+          else
+            _buildNotificationsList(notificationsState),
+        ],
       ),
     );
   }
 
-  Widget _buildSliverAppBar() {
+  Widget _buildSliverAppBar(NotificationsState notificationsState) {
     return SliverAppBar(
       pinned: true,
       centerTitle: true,
@@ -85,12 +77,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
       ),
       actions: [
-        if (_viewModel.hasUnread)
+        if (notificationsState.hasUnread)
           TextButton(
             onPressed: () {
-              setState(() {
-                _viewModel.markAllAsRead();
-              });
+              ref.read(notificationsViewModelProvider.notifier).markAllAsRead();
             },
             child: const Text(
               'Mark all read',
@@ -101,7 +91,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
             ),
           ),
-        if (_viewModel.notifications.isNotEmpty)
+        if (notificationsState.notifications.isNotEmpty)
           IconButton(
             icon: const Icon(
               Icons.delete_outline_rounded,
@@ -123,7 +113,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildFilterChips() {
+  Widget _buildFilterChips(NotificationsState notificationsState) {
     return SliverToBoxAdapter(
       child: Container(
         color: const Color(0xFFF6F3FF),
@@ -131,11 +121,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_viewModel.unreadCount > 0)
+            if (notificationsState.unreadCount > 0)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
-                  '${_viewModel.unreadCount} unread notification${_viewModel.unreadCount > 1 ? 's' : ''}',
+                  '${notificationsState.unreadCount} unread notification${notificationsState.unreadCount > 1 ? 's' : ''}',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -148,21 +138,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
-                  _buildFilterChip('All', null),
+                  _buildFilterChip('All', null, notificationsState.selectedFilter),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Connections', NotificationType.connection),
+                  _buildFilterChip('Connections', NotificationType.connection, notificationsState.selectedFilter),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Messages', NotificationType.message),
+                  _buildFilterChip('Messages', NotificationType.message, notificationsState.selectedFilter),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Milestones', NotificationType.milestone),
+                  _buildFilterChip('Milestones', NotificationType.milestone, notificationsState.selectedFilter),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Funding', NotificationType.funding),
+                  _buildFilterChip('Funding', NotificationType.funding, notificationsState.selectedFilter),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Team', NotificationType.team),
+                  _buildFilterChip('Team', NotificationType.team, notificationsState.selectedFilter),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Documents', NotificationType.document),
+                  _buildFilterChip('Documents', NotificationType.document, notificationsState.selectedFilter),
                   const SizedBox(width: 8),
-                  _buildFilterChip('System', NotificationType.system),
+                  _buildFilterChip('System', NotificationType.system, notificationsState.selectedFilter),
                 ],
               ),
             ),
@@ -172,13 +162,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label, NotificationType? type) {
-    final isSelected = _viewModel.selectedFilter == type;
+  Widget _buildFilterChip(String label, NotificationType? type, NotificationType? currentFilter) {
+    final isSelected = currentFilter == type;
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _viewModel.setFilter(type);
-        });
+        ref.read(notificationsViewModelProvider.notifier).setFilter(type);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -246,15 +234,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildNotificationsList() {
+  Widget _buildNotificationsList(NotificationsState notificationsState) {
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
-            final notification = _viewModel.filteredNotifications[index];
+            final notification = notificationsState.filteredNotifications[index];
             final isFirst = index == 0;
-            final isLast = index == _viewModel.filteredNotifications.length - 1;
+            final isLast = index == notificationsState.filteredNotifications.length - 1;
 
             return _buildNotificationTile(
               notification: notification,
@@ -262,7 +250,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               isLast: isLast,
             );
           },
-          childCount: _viewModel.filteredNotifications.length,
+          childCount: notificationsState.filteredNotifications.length,
         ),
       ),
     );
@@ -280,9 +268,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       key: Key(notification.id),
       direction: DismissDirection.endToStart,
       onDismissed: (_) {
-        setState(() {
-          _viewModel.deleteNotification(notification.id);
-        });
+        ref.read(notificationsViewModelProvider.notifier).deleteNotification(notification.id);
       },
       background: Container(
         alignment: Alignment.centerRight,
@@ -305,9 +291,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       child: GestureDetector(
         onTap: () {
-          setState(() {
-            _viewModel.markAsRead(notification.id);
-          });
+          ref.read(notificationsViewModelProvider.notifier).markAsRead(notification.id);
           _handleNotificationTap(notification);
         },
         child: Container(
@@ -437,9 +421,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   void _handleNotificationTap(AppNotification notification) {
-    setState(() {
-      _viewModel.markAsRead(notification.id);
-    });
+    ref.read(notificationsViewModelProvider.notifier).markAsRead(notification.id);
 
     switch (notification.type) {
       case NotificationType.connection:
@@ -471,7 +453,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => MessagesInboxScreen(
-          viewModel: TeamViewModel(),
           startupName: widget.startupName,
         ),
       ),
@@ -572,9 +553,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              setState(() {
-                _viewModel.clearAll();
-              });
+              ref.read(notificationsViewModelProvider.notifier).clearAll();
             },
             child: const Text(
               'Clear All',

@@ -53,13 +53,13 @@ extension UserRoleIcons on UserRole {
 }
 
 enum UserRole {
-  student('Carrer', 'Learning and building skills'),
-  professional('Carrer', 'Working professional or employee'),
+  student('Career', 'Learning and building skills'),
+  professional('Career', 'Working professional or employee'),
   founder('Startup', 'Building my own startup'),
   company('Startup', 'Managing a company'),
   investor('Investor', 'Investing in opportunities'),
   creator('Community', 'Creating content and value'),
-  mentor('Carrer', 'Guiding and mentoring others'),
+  mentor('Career', 'Guiding and mentoring others'),
   influencer('Community', 'Inspiring and influencing people'),
   serviceProvider('Event', 'Offering professional services'),
   other('Other', 'Something else');
@@ -81,7 +81,7 @@ enum UserRole {
       case UserRole.student:
       case UserRole.professional:
       case UserRole.mentor:
-        return 'Carrer Hub';
+        return 'Career Hub';
       case UserRole.creator:
       case UserRole.influencer:
         return 'Community Hub';

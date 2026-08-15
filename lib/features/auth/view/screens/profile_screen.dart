@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/di/providers.dart';
@@ -41,7 +42,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF4A0E8F), Color(0xFF6D28D9), Color(0xFF5B21B6)],
+                  colors: [Color(0xFFC2410C), Color(0xFFEA580C), Color(0xFFF97316)],
                 ),
                 borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
               ),
@@ -405,7 +406,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (pickedFile == null) return;
 
       final bytes = await pickedFile.readAsBytes();
-      final dir = await Directory.systemTemp.createTemp();
+      final dir = await getApplicationDocumentsDirectory();
       final fileName = 'profile_photo_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final file = File('${dir.path}/$fileName');
       await file.writeAsBytes(bytes);
@@ -634,7 +635,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       applicationIcon: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [AppColors.primary, AppColors.purple]),
+          gradient: const LinearGradient(colors: [AppColors.primary, Color(0xFFF97316)]),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Icon(Icons.rocket_launch_rounded, color: Colors.white, size: 24),

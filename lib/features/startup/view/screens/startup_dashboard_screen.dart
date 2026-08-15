@@ -5,8 +5,7 @@ import '../../../../core/di/providers.dart';
 import '../../../../shared/utils/app_snackbar.dart';
 import '../../../../shared/widgets/role_switcher_sheet.dart';
 import '../../model/startup_models.dart';
-import '../../viewmodel/startup_dashboard_viewmodel.dart';
-import '../../viewmodel/team_viewmodel.dart';
+import '../../viewmodel/startup_dashboard_state.dart';
 import '../../../auth/view/sign_in_screen.dart';
 import '../../../auth/view/screens/profile_screen.dart';
 import 'fundraising_dashboard_screen.dart';
@@ -40,7 +39,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
     with TickerProviderStateMixin {
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnim;
-  final StartupDashboardViewModel _viewModel = StartupDashboardViewModel();
+  StartupDashboardState get _state => ref.read(startupDashboardViewModelProvider);
 
   @override
   void initState() {
@@ -57,7 +56,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
     if (!mounted) return;
     final session = ref.read(authViewModelProvider).session;
     if (session != null && mounted) {
-      _viewModel.loadSessionData(
+      ref.read(startupDashboardViewModelProvider.notifier).loadSessionData(
         startupIndustry: session.startupIndustry,
         startupStage: session.startupStage,
         startupCountry: session.startupCountry,
@@ -79,22 +78,22 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
     super.dispose();
   }
 
-  String get _locationLabel => _viewModel.locationLabel;
+  String get _locationLabel => _state.locationLabel;
 
   int get _profileCompletion {
     final filledFields = [
       widget.startupName,
-      _viewModel.industry,
-      _viewModel.stage,
-      _viewModel.tagline,
-      _viewModel.country,
-      _viewModel.city,
+      _state.industry,
+      _state.stage,
+      _state.tagline,
+      _state.country,
+      _state.city,
     ].where((value) => value.isNotEmpty).length;
     return (filledFields / 6 * 100).round();
   }
 
   String get _greetingName {
-    final name = _viewModel.ownerName.trim();
+    final name = _state.ownerName.trim();
     if (name.isEmpty) return 'there';
     return name.split(RegExp(r'\s+')).first;
   }
@@ -111,7 +110,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
   }
 
   String get _profileInitials {
-    final words = _viewModel.ownerName.trim().split(RegExp(r'\s+'));
+    final words = _state.ownerName.trim().split(RegExp(r'\s+'));
     if (words.isEmpty || words.first.isEmpty) return 'U';
     return words.take(2).map((word) => word[0]).join().toUpperCase();
   }
@@ -121,6 +120,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(startupDashboardViewModelProvider);
     final session = ref.watch(authViewModelProvider).session;
     final logoPath = session?.startupLogoPath ?? '';
     final hasStartupLogo = logoPath.isNotEmpty && File(logoPath).existsSync();
@@ -215,10 +215,10 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
                                       ),
                                     ],
                                   ),
-                                  if (_viewModel.tagline.isNotEmpty) ...[
+                                  if (_state.tagline.isNotEmpty) ...[
                                     const SizedBox(height: 6),
                                     Text(
-                                      _viewModel.tagline,
+                                      _state.tagline,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -235,10 +235,10 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
                                     spacing: 6,
                                     runSpacing: 6,
                                     children: [
-                                      if (_viewModel.industry.isNotEmpty)
-                                        _tagChip(_viewModel.industry),
-                                      if (_viewModel.stage.isNotEmpty)
-                                        _tagChip(_viewModel.stage),
+                                      if (_state.industry.isNotEmpty)
+                                        _tagChip(_state.industry),
+                                      if (_state.stage.isNotEmpty)
+                                        _tagChip(_state.stage),
                                       if (_locationLabel.isNotEmpty)
                                         _tagChip(_locationLabel),
                                     ],
@@ -375,7 +375,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
                                   ),
                                   _divider(),
                                   _scoreStat(
-                                    '${_viewModel.recentActivity.length}',
+                                    '${_state.recentActivity.length}',
                                     'RECENT\nACTIVITIES',
                                   ),
                                   _divider(),
@@ -396,17 +396,17 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
                                     MainAxisAlignment.spaceEvenly,
                                 children: [
                                   _scoreStat(
-                                    _viewModel.stage.isNotEmpty ? '1' : '0',
+                                    _state.stage.isNotEmpty ? '1' : '0',
                                     'STAGE\nSET',
                                   ),
                                   _divider(),
                                   _scoreStat(
-                                    _viewModel.country.isNotEmpty ? '1' : '0',
+                                    _state.country.isNotEmpty ? '1' : '0',
                                     'LOCATION\nSET',
                                   ),
                                   _divider(),
                                   _scoreStat(
-                                    _viewModel.tagline.isNotEmpty ? '1' : '0',
+                                    _state.tagline.isNotEmpty ? '1' : '0',
                                     'TAGLINE\nSET',
                                   ),
                                 ],
@@ -554,7 +554,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
         ),
       ),
       bottomNavigationBar: _BottomNavBar(
-        selectedIndex: _viewModel.selectedNavIndex,
+        selectedIndex: _state.selectedNavIndex,
         onTap: _handleBottomNav,
         messagesUnread: 0,
       ),
@@ -1285,20 +1285,19 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
         break;
       case 2:
         // + button: briefly highlight it then reset after sheet dismissed
-        _viewModel.selectNav(2);
+        ref.read(startupDashboardViewModelProvider.notifier).selectNav(2);
         _showCreateSheet();
         break;
       case 3:
         Navigator.push(
           context,
           _smoothRoute(MessagesInboxScreen(
-            viewModel: TeamViewModel(),
             startupName: widget.startupName,
           )),
         );
         break;
       case 4:
-        _viewModel.selectNav(4);
+        ref.read(startupDashboardViewModelProvider.notifier).selectNav(4);
         _showProfileSheet();
         break;
     }
@@ -1320,7 +1319,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
   }
 
   void _showProfileSheet() {
-    final photoPath = _viewModel.profilePhotoPath;
+    final photoPath = _state.profilePhotoPath;
     final hasPhoto = photoPath.isNotEmpty && File(photoPath).existsSync();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1A1D35) : Colors.white;
@@ -1378,17 +1377,17 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    _viewModel.ownerName.isEmpty ? 'Your profile' : _viewModel.ownerName,
+                    _state.ownerName.isEmpty ? 'Your profile' : _state.ownerName,
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
                       color: textColor,
                     ),
                   ),
-                  if (_viewModel.email.isNotEmpty) ...[
+                  if (_state.email.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(
-                      _viewModel.email,
+                      _state.email,
                       style: TextStyle(
                         fontSize: 13,
                         color: subtitleColor,
@@ -1556,7 +1555,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
         ),
       ),
     ).then((_) {
-      if (mounted) _viewModel.selectNav(0);
+      if (mounted) ref.read(startupDashboardViewModelProvider.notifier).selectNav(0);
     });
   }
 
@@ -1761,7 +1760,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
         ),
       ),
     ).then((_) {
-      if (mounted) _viewModel.selectNav(0);
+      if (mounted) ref.read(startupDashboardViewModelProvider.notifier).selectNav(0);
     });
   }
 
@@ -1933,7 +1932,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
               Icons.rocket_launch_outlined,
               'Startup Hub',
               const Color(0xFF5B21B6),
-              () => _viewModel.selectNav(0),
+              () => ref.read(startupDashboardViewModelProvider.notifier).selectNav(0),
             ),
             _menuItem(
               ctx,
@@ -1946,7 +1945,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
         ),
       ),
     ).then((_) {
-      if (mounted) _viewModel.selectNav(0);
+      if (mounted) ref.read(startupDashboardViewModelProvider.notifier).selectNav(0);
     });
   }
 

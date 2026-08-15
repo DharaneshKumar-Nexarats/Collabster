@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../model/startup_models.dart';
-import '../../viewmodel/products_viewmodel.dart';
+import '../../../../core/di/providers.dart';
 import '../widgets/startup_color_helper.dart';
 
-class StartupProductsScreen extends StatefulWidget {
+class StartupProductsScreen extends ConsumerStatefulWidget {
   const StartupProductsScreen({
     super.key,
     required this.startupName,
@@ -13,11 +14,10 @@ class StartupProductsScreen extends StatefulWidget {
   final bool autoOpenAddProductSheet;
 
   @override
-  State<StartupProductsScreen> createState() => _StartupProductsScreenState();
+  ConsumerState<StartupProductsScreen> createState() => _StartupProductsScreenState();
 }
 
-class _StartupProductsScreenState extends State<StartupProductsScreen> {
-  final ProductsViewModel _viewModel = ProductsViewModel();
+class _StartupProductsScreenState extends ConsumerState<StartupProductsScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -35,9 +35,6 @@ class _StartupProductsScreenState extends State<StartupProductsScreen> {
     _searchController.dispose();
     super.dispose();
   }
-
-  List<StartupProduct> get _filteredProducts =>
-      _viewModel.filterProducts(_searchController.text);
 
   void _showSnack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -198,9 +195,9 @@ class _StartupProductsScreenState extends State<StartupProductsScreen> {
                           tagColorKey: statusKey,
                         );
                         if (isEditing && index != null) {
-                          _viewModel.updateProduct(index, newProduct);
+                          ref.read(productsViewModelProvider.notifier).updateProduct(index, newProduct);
                         } else {
-                          _viewModel.addProduct(newProduct);
+                          ref.read(productsViewModelProvider.notifier).addProduct(newProduct);
                         }
                         Navigator.pop(ctx);
                         _showSnack(isEditing
@@ -232,7 +229,7 @@ class _StartupProductsScreenState extends State<StartupProductsScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () {
                           Navigator.pop(ctx);
-                          _viewModel.removeProduct(index!);
+                          ref.read(productsViewModelProvider.notifier).removeProduct(index!);
                           _showSnack('Product removed.');
                         },
                         style: OutlinedButton.styleFrom(
@@ -509,7 +506,7 @@ class _StartupProductsScreenState extends State<StartupProductsScreen> {
                         OutlinedButton.icon(
                           onPressed: () {
                             Navigator.pop(ctx);
-                            _viewModel.removeProduct(index);
+                            ref.read(productsViewModelProvider.notifier).removeProduct(index);
                             _showSnack('Product removed.');
                           },
                           style: OutlinedButton.styleFrom(
@@ -612,162 +609,158 @@ class _StartupProductsScreenState extends State<StartupProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _viewModel,
-      builder: (context, _) {
-        final filtered = _filteredProducts;
-        final liveCount = _viewModel.products.where((p) => p.status == 'LIVE').length;
-        final totalDownloads = _viewModel.products.fold<int>(0, (sum, p) => sum + p.downloads);
+    final productsState = ref.watch(productsViewModelProvider);
+    final filtered = productsState.filteredProducts;
+    final liveCount = productsState.products.where((p) => p.status == 'LIVE').length;
+    final totalDownloads = productsState.products.fold<int>(0, (sum, p) => sum + p.downloads);
 
-        return Scaffold(
-          backgroundColor: const Color(0xFFF6F3FF),
-          body: CustomScrollView(
-            slivers: [
-              // Header
-              SliverToBoxAdapter(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF5B21B6),
-                        Color(0xFF7C3AED),
-                        Color(0xFF4338CA),
-                      ],
-                    ),
-                  ),
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + 12,
-                    left: 20,
-                    right: 20,
-                    bottom: 20,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F3FF),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF5B21B6),
+                    Color(0xFF7C3AED),
+                    Color(0xFF4338CA),
+                  ],
+                ),
+              ),
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 12,
+                left: 20,
+                right: 20,
+                bottom: 20,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(Icons.arrow_back,
-                                  color: Colors.white, size: 20),
-                            ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'Our Products',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800),
-                          ),
-                          const Spacer(),
-                          Text(
-                            '${_viewModel.products.length} products',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.7),
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
+                          child: const Icon(Icons.arrow_back,
+                              color: Colors.white, size: 20),
+                        ),
                       ),
-                      const SizedBox(height: 14),
-                      Row(
-                        children: [
-                          _headerChip(Icons.check_circle_outline, '$liveCount Live',
-                              const Color(0xFF059669)),
-                          const SizedBox(width: 8),
-                          _headerChip(Icons.download_outlined,
-                              '${_formatK(totalDownloads)} Downloads',
-                              const Color(0xFF0891B2)),
-                        ],
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Our Products',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800),
                       ),
-                      const SizedBox(height: 14),
-                      TextField(
-                        controller: _searchController,
-                        onChanged: (_) => setState(() {}),
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Search products...',
-                          hintStyle:
-                              TextStyle(color: Colors.white.withValues(alpha: 0.6)),
-                          prefixIcon: Icon(Icons.search,
-                              color: Colors.white.withValues(alpha: 0.7)),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.15),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide.none,
-                          ),
+                      const Spacer(),
+                      Text(
+                        '${productsState.products.length} products',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 13,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-              // Product list
-              filtered.isEmpty
-                  ? SliverFillRemaining(
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.inventory_2_outlined,
-                                size: 64,
-                                color: const Color(0xFF9CA3AF).withValues(alpha: 0.5)),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'No products found',
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF9CA3AF)),
-                            ),
-                            const SizedBox(height: 8),
-                            GestureDetector(
-                              onTap: _showAddProductSheet,
-                              child: const Text(
-                                'Tap + to add your first product',
-                                style: TextStyle(
-                                    color: Color(0xFF7C3AED),
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (ctx, index) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: _ProductCard(
-                              product: filtered[index],
-                              realIndex: _viewModel.products.indexOf(filtered[index]),
-                              onTap: () => _showProductDetail(
-                                  filtered[index], _viewModel.products.indexOf(filtered[index])),
-                              onEdit: () => _showEditSheet(
-                                  filtered[index], _viewModel.products.indexOf(filtered[index])),
-                            ),
-                          ),
-                          childCount: filtered.length,
-                        ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _headerChip(Icons.check_circle_outline, '$liveCount Live',
+                          const Color(0xFF059669)),
+                      const SizedBox(width: 8),
+                      _headerChip(Icons.download_outlined,
+                          '${_formatK(totalDownloads)} Downloads',
+                          const Color(0xFF0891B2)),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: _searchController,
+                    onChanged: (value) => ref
+                        .read(productsViewModelProvider.notifier)
+                        .setSearchQuery(value),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Search products...',
+                      hintStyle:
+                          TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+                      prefixIcon: Icon(Icons.search,
+                          color: Colors.white.withValues(alpha: 0.7)),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.15),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
                       ),
                     ),
-            ],
+                  ),
+                ],
+              ),
+            ),
           ),
-        );
-      },
+          filtered.isEmpty
+              ? SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.inventory_2_outlined,
+                            size: 64,
+                            color: const Color(0xFF9CA3AF).withValues(alpha: 0.5)),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'No products found',
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF9CA3AF)),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: _showAddProductSheet,
+                          child: const Text(
+                            'Tap + to add your first product',
+                            style: TextStyle(
+                                color: Color(0xFF7C3AED),
+                                fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (ctx, index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _ProductCard(
+                          product: filtered[index],
+                          realIndex: productsState.products.indexOf(filtered[index]),
+                          onTap: () => _showProductDetail(
+                              filtered[index], productsState.products.indexOf(filtered[index])),
+                          onEdit: () => _showEditSheet(
+                              filtered[index], productsState.products.indexOf(filtered[index])),
+                        ),
+                      ),
+                      childCount: filtered.length,
+                    ),
+                  ),
+                ),
+        ],
+      ),
     );
   }
 

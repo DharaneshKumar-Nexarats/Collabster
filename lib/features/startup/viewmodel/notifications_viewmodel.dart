@@ -1,63 +1,47 @@
-import 'package:flutter/foundation.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/notification_model.dart';
+import 'notifications_state.dart';
 
-class NotificationsViewModel extends ChangeNotifier {
-  final List<AppNotification> _notifications = [];
-  NotificationType? _selectedFilter;
-
-  List<AppNotification> get notifications => List.unmodifiable(_notifications);
-
-  List<AppNotification> get filteredNotifications {
-    if (_selectedFilter == null) {
-      return List.unmodifiable(_notifications);
-    }
-    return _notifications.where((n) => n.type == _selectedFilter).toList();
-  }
-
-  int get unreadCount => _notifications.where((n) => !n.isRead).length;
-
-  bool get hasUnread => unreadCount > 0;
-
-  NotificationType? get selectedFilter => _selectedFilter;
+class NotificationsViewModel extends StateNotifier<NotificationsState> {
+  NotificationsViewModel() : super(const NotificationsState());
 
   void loadNotifications({String? startupName}) {
-    _notifications.clear();
-    _notifications.addAll(_generateSampleNotifications(startupName));
-    _notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    notifyListeners();
+    final notifications = _generateSampleNotifications(startupName);
+    final sorted = [...notifications]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    state = state.copyWith(notifications: sorted);
   }
 
   void markAsRead(String notificationId) {
-    final index = _notifications.indexWhere((n) => n.id == notificationId);
-    if (index != -1) {
-      _notifications[index] = _notifications[index].copyWith(isRead: true);
-      notifyListeners();
-    }
+    final updated = state.notifications.map((n) {
+      if (n.id == notificationId) {
+        return n.copyWith(isRead: true);
+      }
+      return n;
+    }).toList();
+    state = state.copyWith(notifications: updated);
   }
 
   void markAllAsRead() {
-    for (int i = 0; i < _notifications.length; i++) {
-      if (!_notifications[i].isRead) {
-        _notifications[i] = _notifications[i].copyWith(isRead: true);
+    final updated = state.notifications.map((n) {
+      if (!n.isRead) {
+        return n.copyWith(isRead: true);
       }
-    }
-    notifyListeners();
+      return n;
+    }).toList();
+    state = state.copyWith(notifications: updated);
   }
 
   void deleteNotification(String notificationId) {
-    _notifications.removeWhere((n) => n.id == notificationId);
-    notifyListeners();
+    final updated = state.notifications.where((n) => n.id != notificationId).toList();
+    state = state.copyWith(notifications: updated);
   }
 
   void clearAll() {
-    _notifications.clear();
-    notifyListeners();
+    state = state.copyWith(notifications: []);
   }
 
   void setFilter(NotificationType? type) {
-    _selectedFilter = type;
-    notifyListeners();
+    state = state.copyWith(selectedFilter: type, clearFilter: type == null);
   }
 
   List<AppNotification> _generateSampleNotifications(String? startupName) {
@@ -67,7 +51,7 @@ class NotificationsViewModel extends ChangeNotifier {
         id: '1',
         title: 'Connection Request',
         subtitle: 'Sarah Miller wants to connect with you',
-        body: 'Lead Designer at Design Studio with 8 years of experience in UI/UX design.',
+        body: 'Lead Designer at Design Studio with 8 years of experience.',
         type: NotificationType.connection,
         iconKey: 'person_add',
         colorKey: 'primary',
@@ -101,7 +85,7 @@ class NotificationsViewModel extends ChangeNotifier {
         id: '4',
         title: 'Funding Update',
         subtitle: 'Vertex Capital is interested',
-        body: 'Vertex Capital has reviewed your pitch deck and scheduled a meeting for tomorrow.',
+        body: 'Vertex Capital has reviewed your pitch deck and scheduled a meeting.',
         type: NotificationType.funding,
         iconKey: 'money',
         colorKey: 'amber',

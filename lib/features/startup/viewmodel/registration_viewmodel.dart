@@ -1,145 +1,82 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/startup_models.dart';
+import 'registration_state.dart';
 
-class RegistrationViewModel extends ChangeNotifier {
-  static const int totalSteps = 8;
+class RegistrationViewModel extends StateNotifier<RegistrationState> {
+  RegistrationViewModel() : super(const RegistrationState());
 
-  int _currentStep = 0;
-  int get currentStep => _currentStep;
-  double get progress => (_currentStep + 1) / totalSteps;
-
-  String _selectedStage = 'Seed';
-  String get selectedStage => _selectedStage;
-
-  String _selectedTeamSize = '1-5';
-  String get selectedTeamSize => _selectedTeamSize;
-
-  String _selectedFundingStage = 'Seed';
-  String get selectedFundingStage => _selectedFundingStage;
-
-  String _selectedInviteRole = 'Founder';
-  String get selectedInviteRole => _selectedInviteRole;
-
-  String _selectedVisibility = 'Public';
-  String get selectedVisibility => _selectedVisibility;
-
-  bool _currentlyRaising = true;
-  bool get currentlyRaising => _currentlyRaising;
-
-  double _yearsOfExperience = 5;
-  double get yearsOfExperience => _yearsOfExperience;
-
-  final Set<String> _selectedSkills = {'Leadership', 'AI', 'Product'};
-  Set<String> get selectedSkills => _selectedSkills;
-
-  final List<String> _skillTags = const [
-    'Leadership',
-    'AI',
-    'Marketing',
-    'Sales',
-    'Engineering',
-    'Finance',
-    'Design',
-    'Operations',
-    'Product',
-  ];
-  List<String> get skillTags => _skillTags;
-
-  final List<StartupMember> _members = [
-    StartupMember(
-      name: 'Sarah Jenkins',
-      role: 'CEO & Co-founder',
-      status: 'Active',
-      initials: 'SJ',
-    ),
-    StartupMember(
-      name: 'Marcus Zhao',
-      role: 'Lead Developer',
-      status: 'Invite Sent',
-      initials: 'MZ',
-    ),
-  ];
-  List<StartupMember> get members => _members;
-
-  final List<String> _fundingStages = const [
-    'Bootstrapped',
-    'Angel',
-    'Pre-Seed',
-    'Seed',
-    'Series A',
-    'Series B',
-  ];
-  List<String> get fundingStages => _fundingStages;
-
-  final List<String> _visibilityOptions = const [
-    'Public',
-    'Private',
-    'Invite Only',
-  ];
-  List<String> get visibilityOptions => _visibilityOptions;
+  void loadInitialData() {
+    state = state.copyWith(
+      members: const [
+        StartupMember(
+          name: 'Sarah Jenkins',
+          role: 'CEO & Co-founder',
+          status: 'Active',
+          initials: 'SJ',
+        ),
+        StartupMember(
+          name: 'Marcus Zhao',
+          role: 'Lead Developer',
+          status: 'Invite Sent',
+          initials: 'MZ',
+        ),
+      ],
+    );
+  }
 
   void selectStage(String stage) {
-    _selectedStage = stage;
-    notifyListeners();
+    state = state.copyWith(selectedStage: stage);
   }
 
   void selectTeamSize(String size) {
-    _selectedTeamSize = size;
-    notifyListeners();
+    state = state.copyWith(selectedTeamSize: size);
   }
 
   void selectFundingStage(String stage) {
-    _selectedFundingStage = stage;
-    notifyListeners();
+    state = state.copyWith(selectedFundingStage: stage);
   }
 
   void selectInviteRole(String role) {
-    _selectedInviteRole = role;
-    notifyListeners();
+    state = state.copyWith(selectedInviteRole: role);
   }
 
   void selectVisibility(String visibility) {
-    _selectedVisibility = visibility;
-    notifyListeners();
+    state = state.copyWith(selectedVisibility: visibility);
   }
 
   void toggleRaising(bool value) {
-    _currentlyRaising = value;
-    notifyListeners();
+    state = state.copyWith(currentlyRaising: value);
   }
 
   void setYearsOfExperience(double years) {
-    _yearsOfExperience = years;
-    notifyListeners();
+    state = state.copyWith(yearsOfExperience: years);
   }
 
   void toggleSkill(String skill) {
-    if (_selectedSkills.contains(skill)) {
-      _selectedSkills.remove(skill);
+    final updatedSkills = Set<String>.from(state.selectedSkills);
+    if (updatedSkills.contains(skill)) {
+      updatedSkills.remove(skill);
     } else {
-      _selectedSkills.add(skill);
+      updatedSkills.add(skill);
     }
-    notifyListeners();
+    state = state.copyWith(selectedSkills: updatedSkills);
   }
 
   void setCurrentStep(int step) {
-    _currentStep = step;
-    notifyListeners();
+    state = state.copyWith(currentStep: step);
   }
 
   bool goToNextStep() {
-    if (_currentStep < totalSteps - 1) {
-      _currentStep++;
-      notifyListeners();
+    if (state.currentStep < RegistrationState.totalSteps - 1) {
+      state = state.copyWith(currentStep: state.currentStep + 1);
       return true;
     }
     return false;
   }
 
   bool goToPreviousStep() {
-    if (_currentStep > 0) {
-      _currentStep--;
-      notifyListeners();
+    if (state.currentStep > 0) {
+      state = state.copyWith(currentStep: state.currentStep - 1);
       return true;
     }
     return false;
@@ -147,17 +84,14 @@ class RegistrationViewModel extends ChangeNotifier {
 
   bool inviteTeamMember(String email, {String? role}) {
     if (email.isEmpty) return false;
-    final assignedRole = role ?? _selectedInviteRole;
-    _members.insert(
-      0,
-      StartupMember(
-        name: email.split('@').first,
-        role: assignedRole,
-        status: 'Invite Sent',
-        initials: email.isNotEmpty ? email[0].toUpperCase() : 'U',
-      ),
+    final assignedRole = role ?? state.selectedInviteRole;
+    final newMember = StartupMember(
+      name: email.split('@').first,
+      role: assignedRole,
+      status: 'Invite Sent',
+      initials: email.isNotEmpty ? email[0].toUpperCase() : 'U',
     );
-    notifyListeners();
+    state = state.copyWith(members: [newMember, ...state.members]);
     return true;
   }
 }

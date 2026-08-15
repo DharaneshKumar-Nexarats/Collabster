@@ -1,14 +1,157 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/di/providers.dart';
 
-class StartupInfoScreen extends ConsumerWidget {
+class StartupInfoScreen extends ConsumerStatefulWidget {
   const StartupInfoScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StartupInfoScreen> createState() => _StartupInfoScreenState();
+}
+
+class _StartupInfoScreenState extends ConsumerState<StartupInfoScreen> {
+
+  void _showPhotoOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE5E7EB),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Update Founder Photo',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF12233D)),
+            ),
+            const SizedBox(height: 16),
+            _photoOption(Icons.photo_library_outlined, 'Choose from Gallery', () => _pickPhoto(ImageSource.gallery)),
+            _photoOption(Icons.camera_alt_outlined, 'Take a Photo', () => _pickPhoto(ImageSource.camera)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _photoOption(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.primary, size: 22),
+            const SizedBox(width: 14),
+            Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF12233D))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickPhoto(ImageSource source) async {
+    Navigator.pop(context);
+
+    if (!kIsWeb) {
+      PermissionStatus status;
+      if (source == ImageSource.camera) {
+        status = await Permission.camera.status;
+        if (status.isDenied || status.isPermanentlyDenied) {
+          status = await Permission.camera.request();
+        }
+      } else {
+        status = await Permission.photos.status;
+        if (status.isDenied || status.isPermanentlyDenied) {
+          status = await Permission.photos.request();
+        }
+        if (status.isPermanentlyDenied || status.isDenied) {
+          status = await Permission.storage.status;
+          if (status.isDenied || status.isPermanentlyDenied) {
+            status = await Permission.storage.request();
+          }
+        }
+      }
+      if (status.isPermanentlyDenied) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Permission permanently denied. Please enable it in Settings.'),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Settings',
+              textColor: Colors.white,
+              onPressed: () => openAppSettings(),
+            ),
+          ),
+        );
+        return;
+      }
+      if (status.isDenied) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Permission is required to access the photo library.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+    }
+
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: source, imageQuality: 85, maxWidth: 1200);
+      if (pickedFile == null) return;
+
+      final bytes = await pickedFile.readAsBytes();
+      final dir = await getApplicationDocumentsDirectory();
+      final ts = DateTime.now().millisecondsSinceEpoch.toString();
+      final fileName = 'founder_photo_$ts.jpg';
+      final file = File('${dir.path}/$fileName');
+      await file.writeAsBytes(bytes);
+
+      await ref.read(authViewModelProvider.notifier).updateFounderPhoto(file.path);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Founder photo updated'), behavior: SnackBarBehavior.floating),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to process the selected photo. Please try again.'), behavior: SnackBarBehavior.floating),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final session = ref.watch(authViewModelProvider).session;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -42,6 +185,8 @@ class StartupInfoScreen extends ConsumerWidget {
 
     final logoPath = session?.startupLogoPath ?? '';
     final hasLogo = logoPath.isNotEmpty && File(logoPath).existsSync();
+    final founderPhotoPath = session?.startupFounderPhotoPath ?? '';
+    final hasFounderPhoto = founderPhotoPath.isNotEmpty && File(founderPhotoPath).existsSync();
 
     final initials = startupName.isNotEmpty
         ? startupName.substring(0, 1).toUpperCase()
@@ -236,35 +381,141 @@ class StartupInfoScreen extends ConsumerWidget {
           // ── Founder ──
           if (founderName.isNotEmpty || founderEmail.isNotEmpty)
             SliverToBoxAdapter(
-              child: _buildSection(
-                title: 'FOUNDER',
-                isDark: isDark,
-                children: [
-                  if (founderName.isNotEmpty) ...[
-                    _buildInfoRow(Icons.person_outline_rounded, 'Name', founderName, isDark),
-                    _divider(isDark),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text(
+                        'FOUNDER',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : AppColors.border,
+                          width: 0.5,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          // Founder photo with camera badge — always visible
+                          const SizedBox(height: 20),
+                          Center(
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  width: 88,
+                                  height: 88,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: const Color(0xFF6D28D9).withValues(alpha: 0.35),
+                                      width: 2.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF6D28D9).withValues(alpha: 0.15),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                    color: isDark ? AppColors.darkSurface : const Color(0xFFF3F0FF),
+                                  ),
+                                  child: hasFounderPhoto
+                                      ? ClipOval(
+                                          child: Image.file(
+                                            File(founderPhotoPath),
+                                            width: 88,
+                                            height: 88,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.person_rounded,
+                                          size: 44,
+                                          color: Color(0xFF6D28D9),
+                                        ),
+                                ),
+                                // Camera badge
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: GestureDetector(
+                                    onTap: _showPhotoOptions,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(7),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF6D28D9),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.white, width: 2),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.18),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.camera_alt_rounded,
+                                        color: Colors.white,
+                                        size: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Divider(
+                            height: 1,
+                            color: isDark ? AppColors.darkBorder : AppColors.border,
+                          ),
+
+                          if (founderName.isNotEmpty) ...[
+                            _buildInfoRow(Icons.person_outline_rounded, 'Name', founderName, isDark),
+                            _divider(isDark),
+                          ],
+                          if (founderDesignation.isNotEmpty) ...[
+                            _buildInfoRow(Icons.badge_outlined, 'Designation', founderDesignation, isDark),
+                            _divider(isDark),
+                          ],
+                          if (founderEmail.isNotEmpty) ...[
+                            _buildInfoRow(Icons.email_outlined, 'Email', founderEmail, isDark),
+                            _divider(isDark),
+                          ],
+                          if (founderPhone.isNotEmpty) ...[
+                            _buildInfoRow(Icons.phone_outlined, 'Phone', founderPhone, isDark),
+                            _divider(isDark),
+                          ],
+                          if (founderLinkedin.isNotEmpty) ...[
+                            _buildInfoRow(Icons.link_rounded, 'LinkedIn', founderLinkedin, isDark),
+                            _divider(isDark),
+                          ],
+                          if (founderBio.isNotEmpty)
+                            _buildLabelRow('Bio', founderBio, isDark),
+                        ],
+                      ),
+                    ),
                   ],
-                  if (founderDesignation.isNotEmpty) ...[
-                    _buildInfoRow(Icons.badge_outlined, 'Designation', founderDesignation, isDark),
-                    _divider(isDark),
-                  ],
-                  if (founderEmail.isNotEmpty) ...[
-                    _buildInfoRow(Icons.email_outlined, 'Email', founderEmail, isDark),
-                    _divider(isDark),
-                  ],
-                  if (founderPhone.isNotEmpty) ...[
-                    _buildInfoRow(Icons.phone_outlined, 'Phone', founderPhone, isDark),
-                    _divider(isDark),
-                  ],
-                  if (founderLinkedin.isNotEmpty) ...[
-                    _buildInfoRow(Icons.link_rounded, 'LinkedIn', founderLinkedin, isDark),
-                    _divider(isDark),
-                  ],
-                  if (founderBio.isNotEmpty)
-                    _buildLabelRow('Bio', founderBio, isDark),
-                ],
+                ),
               ),
             ),
+
 
           // ── Social Links ──
           if (socialWebsite.isNotEmpty || socialLinkedin.isNotEmpty || socialProductHunt.isNotEmpty)

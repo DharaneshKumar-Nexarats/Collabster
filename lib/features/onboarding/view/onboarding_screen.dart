@@ -30,7 +30,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     ('Event', Icons.event_rounded, Color(0xFF2563EB)),
     ('Community', Icons.groups_rounded, Color(0xFF059669)),
     ('Investor', Icons.trending_up_rounded, Color(0xFFD97706)),
-    ('Carrer', Icons.work_rounded, Color(0xFFDC2626)),
+    ('Career', Icons.work_rounded, Color(0xFFDC2626)),
   ];
 
   @override

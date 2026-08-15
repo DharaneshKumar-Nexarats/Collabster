@@ -1,85 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/di/providers.dart';
+import '../../model/job_model.dart';
 import '../widgets/career_search_bar.dart';
 import 'internships_screen.dart';
 import 'job_detail_screen.dart';
 
 
-class JobsScreen extends StatefulWidget {
+class JobsScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
   const JobsScreen({super.key, this.onBack});
 
   @override
-  State<JobsScreen> createState() => _JobsScreenState();
+  ConsumerState<JobsScreen> createState() => _JobsScreenState();
 }
 
-class _JobsScreenState extends State<JobsScreen> {
-  int _selectedFilter = 0;
+class _JobsScreenState extends ConsumerState<JobsScreen> {
   final List<String> _filters = ['All Roles', 'Remote', 'Paid', 'Hybrid'];
-  final TextEditingController _searchController = TextEditingController();
 
-  static const _jobs = [
-    _JobItem(
-      logo: Icons.code_rounded,
-      title: 'Senior Software Engineer',
-      company: 'Google',
-      location: 'Mountain View (Hybrid)',
-      salaryTag: '24 - 32 LPA',
-      tags: ['React', 'Node.js', 'Go'],
-      timeAgo: '2 hours ago',
-      showNew: true,
-    ),
-    _JobItem(
-      logo: Icons.design_services_outlined,
-      title: 'Product Designer',
-      company: 'Stripe',
-      location: 'Remote',
-      salaryTag: '18 - 25 LPA',
-      tags: ['Figma', 'Prototyping', 'Design Systems'],
-      timeAgo: '5 hours ago',
-      showNew: false,
-    ),
-    _JobItem(
-      logo: Icons.analytics_outlined,
-      title: 'Data Analyst',
-      company: 'Microsoft',
-      location: 'Bangalore (On-site)',
-      salaryTag: '15 - 22 LPA',
-      tags: ['Python', 'SQL', 'Tableau'],
-      timeAgo: '1 day ago',
-      showNew: false,
-    ),
-  ];
-
-  List<_JobItem> get _filteredJobs {
-    final query = _searchController.text.trim().toLowerCase();
-    final filter = _filters[_selectedFilter].toLowerCase();
-
-    return _jobs.where((job) {
-      // Filter by chip category
-      if (filter == 'remote' && !job.location.toLowerCase().contains('remote')) {
-        return false;
-      }
-      if (filter == 'hybrid' && !job.location.toLowerCase().contains('hybrid')) {
-        return false;
-      }
-      if (filter == 'paid' && !job.salaryTag.isNotEmpty) {
-        return false;
-      }
-
-      // Filter by search query
-      if (query.isEmpty) return true;
-      final titleMatch = job.title.toLowerCase().contains(query);
-      final companyMatch = job.company.toLowerCase().contains(query);
-      final locationMatch = job.location.toLowerCase().contains(query);
-      final tagMatch = job.tags.any((t) => t.toLowerCase().contains(query));
-
-      return titleMatch || companyMatch || locationMatch || tagMatch;
-    }).toList();
+  @override
+  void initState() {
+    super.initState();
+    ref.read(careerViewModelProvider.notifier).loadInitialData();
   }
 
   @override
   Widget build(BuildContext context) {
+    final careerState = ref.watch(careerViewModelProvider);
+    final filtered = careerState.filteredJobs;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -88,8 +38,8 @@ class _JobsScreenState extends State<JobsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(context),
-              _buildBody(),
+              _buildHeader(context, careerState),
+              _buildBody(careerState, filtered),
             ],
           ),
         ),
@@ -97,7 +47,7 @@ class _JobsScreenState extends State<JobsScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, dynamic careerState) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
       child: Column(
@@ -146,14 +96,13 @@ class _JobsScreenState extends State<JobsScreen> {
 
           // Search bar
           CareerSearchBar(
-            controller: _searchController,
+            controller: TextEditingController(text: careerState.searchQuery),
             hintText: 'Search jobs, skills, or companies...',
-            hasActiveFilter: _selectedFilter != 0,
-            onChanged: (value) => setState(() {}),
+            hasActiveFilter: careerState.selectedFilter != 0,
+            onChanged: (value) => ref.read(careerViewModelProvider.notifier).setSearchQuery(value),
             onFilterTap: () {
-              setState(() {
-                _selectedFilter = (_selectedFilter + 1) % _filters.length;
-              });
+              final next = (careerState.selectedFilter + 1) % _filters.length;
+              ref.read(careerViewModelProvider.notifier).setFilter(next);
             },
           ),
           const SizedBox(height: 16),
@@ -163,9 +112,9 @@ class _JobsScreenState extends State<JobsScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: List.generate(_filters.length, (i) {
-                final selected = _selectedFilter == i;
+                final selected = careerState.selectedFilter == i;
                 return GestureDetector(
-                  onTap: () => setState(() => _selectedFilter = i),
+                  onTap: () => ref.read(careerViewModelProvider.notifier).setFilter(i),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     margin: const EdgeInsets.only(right: 10),
@@ -197,9 +146,7 @@ class _JobsScreenState extends State<JobsScreen> {
     );
   }
 
-  Widget _buildBody() {
-    final filtered = _filteredJobs;
-
+  Widget _buildBody(dynamic careerState, List<JobItem> filtered) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: Column(
@@ -210,7 +157,7 @@ class _JobsScreenState extends State<JobsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _searchController.text.isNotEmpty || _selectedFilter != 0
+                careerState.searchQuery.isNotEmpty || careerState.selectedFilter != 0
                     ? 'Search Results (${filtered.length})'
                     : 'Popular Jobs',
                 style: const TextStyle(
@@ -222,10 +169,8 @@ class _JobsScreenState extends State<JobsScreen> {
               ),
               GestureDetector(
                 onTap: () {
-                  setState(() {
-                    _searchController.clear();
-                    _selectedFilter = 0;
-                  });
+                  ref.read(careerViewModelProvider.notifier).setSearchQuery('');
+                  ref.read(careerViewModelProvider.notifier).setFilter(0);
                 },
                 child: const Text(
                   'Reset',
@@ -310,252 +255,262 @@ class _JobsScreenState extends State<JobsScreen> {
     );
   }
 
-  Widget _buildJobCard(_JobItem item) {
-    void openDetails() {
-      final isProductDesigner = item.title.contains('Product Designer') || item.company == 'Stripe';
-      final isDataAnalyst = item.title.contains('Data Analyst') || item.company == 'Microsoft';
-      final isFrontend = item.title.contains('Senior Software') || item.title.contains('Frontend') || item.company == 'Google';
-
-      String title = item.title;
-      String company = item.company;
-      String location = item.location;
-      String salary = item.salaryTag;
-      List<String> tags = item.tags;
-      String? about;
-      List<String>? requirements;
-      String applied = '320+';
-      String size = '1K+';
-      String views = '4.3k';
-
-      if (isFrontend) {
-        title = 'Frontend Developer';
-        company = 'Google';
-        location = 'Remote (Worldwide)';
-        salary = '\$80k – \$110k USD';
-        tags = const ['React', 'Tailwind'];
-        applied = '450+';
-        size = '2 – 5 yrs';
-        views = '2 hours ago';
-        about = 'As a Frontend Developer at Google, you will build beautiful, responsive, and accessible user interfaces that power millions of users worldwide. You\'ll work with cross-functional teams to deliver high-quality products using modern web technologies.';
-      } else if (isProductDesigner) {
-        title = 'Product Designer';
-        company = 'Stripe';
-        location = 'Remote (Worldwide)';
-        salary = '\$80k – \$110k USD';
-        tags = const ['Full-time', 'Remote', 'Mid Level'];
-        applied = '320+';
-        size = '1K+';
-        views = '4.3k';
-        about = 'We’re looking for a Product Designer to join our design team and help create intuitive, beautiful experiences for millions of businesses worldwide. You’ll own the end-to-end design process from user research to high-fidelity designs and work closely with product managers and engineers to ship impactful products.';
-        requirements = const [
-          'Proficiency in Figma and design tools.',
-          'Strong portfolio showcasing product design projects and design thinking.',
-          'Experience with user research, wireframing, prototyping, and design systems.',
-        ];
-      } else if (isDataAnalyst) {
-        title = 'Data Analyst Intern';
-        company = 'Microsoft';
-        location = 'Bangalore, KA (On-site)';
-        salary = '₹15 – ₹22 LPA';
-        tags = const ['Full-time', 'On-site', 'Entry Level'];
-        applied = '280+';
-        size = '1K+';
-        views = '3.8k';
-        about = 'Join our data team to collect, clean, analyze, and visualize data that helps drive business decisions. You’ll work on real-world datasets, build insightful dashboards, and collaborate with cross-functional teams to solve meaningful problems.';
-        requirements = const [
-          'Proficiency in SQL and Excel.',
-          'Knowledge of Python, Power BI, or Tableau is a plus.',
-          'Strong analytical and problem-solving skills.',
-          'Good understanding of statistics and data visualization.',
-        ];
-      }
-
-      Navigator.push(
-        context,
-        SmoothRightToLeftPageRoute(
-          builder: (context) => JobDetailsScreen(
-            title: title,
-            company: company,
-            location: location,
-            salary: salary,
-            tags: tags,
-            about: about,
-            requirements: requirements,
-            applied: applied,
-            size: size,
-            views: views,
-          ),
-        ),
-      );
+  IconData _logoFromString(String logo) {
+    switch (logo) {
+      case 'code_rounded':
+        return Icons.code_rounded;
+      case 'design_services_outlined':
+        return Icons.design_services_outlined;
+      case 'analytics_outlined':
+        return Icons.analytics_outlined;
+      default:
+        return Icons.work_rounded;
     }
+  }
 
-    return GestureDetector(
-      onTap: openDetails,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F9FF),
-                    borderRadius: BorderRadius.circular(11),
-                  ),
-                  child: Icon(item.logo, color: AppColors.primary, size: 20),
+  Widget _buildJobCard(JobItem item) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0F9FF),
+                  borderRadius: BorderRadius.circular(11),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 15,
+                child: Icon(_logoFromString(item.logo), color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF111827),
+                            ),
+                          ),
+                        ),
+                        if (item.showNew) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE0F2FE),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'NEW',
+                              style: TextStyle(
+                                fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF111827),
+                                color: Color(0xFF0369A1),
+                                letterSpacing: 0.2,
                               ),
                             ),
                           ),
-                          if (item.showNew) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE0F2FE),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Text(
-                                'NEW',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0369A1),
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        '${item.company} • ${item.location}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0F2FE),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    item.salaryTag,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0369A1),
+                      ],
                     ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${item.company} • ${item.location}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE0F2FE),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  item.salaryTag,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0369A1),
                   ),
                 ),
-                ...item.tags.map((tag) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F9FF),
-                        borderRadius: BorderRadius.circular(20),
+              ),
+              ...item.tags.map((tag) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F9FF),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      tag,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
                       ),
-                      child: Text(
-                        tag,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    )),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Icon(Icons.access_time_rounded, size: 14, color: Colors.grey.shade400),
-                const SizedBox(width: 4),
-                Text(
-                  item.timeAgo,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
-                  ),
+                    ),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Icon(Icons.access_time_rounded, size: 14, color: Colors.grey.shade400),
+              const SizedBox(width: 4),
+              Text(
+                item.timeAgo,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade500,
                 ),
-                const Spacer(),
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: const Color(0xFFBAE6FD)),
+              ),
+              const Spacer(),
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFBAE6FD)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.bookmark_border_rounded, size: 18, color: AppColors.primary),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: () {
+                  ref.read(careerViewModelProvider.notifier).applyToJob(item.title);
+                  
+                  final isProductDesigner = item.title.contains('Product Designer') || item.company == 'Stripe';
+                  final isDataAnalyst = item.title.contains('Data Analyst') || item.company == 'Microsoft';
+                  final isFrontend = item.title.contains('Senior Software') || item.title.contains('Frontend') || item.company == 'Google';
+
+                  String title = item.title;
+                  String company = item.company;
+                  String location = item.location;
+                  String salary = item.salaryTag;
+                  List<String> tags = item.tags;
+                  String? about;
+                  List<String>? requirements;
+                  String applied = '320+';
+                  String size = '1K+';
+                  String views = '4.3k';
+
+                  if (isFrontend) {
+                    title = 'Frontend Developer';
+                    company = 'Google';
+                    location = 'Remote (Worldwide)';
+                    salary = '\$80k – \$110k USD';
+                    tags = const ['React', 'Tailwind'];
+                    applied = '450+';
+                    size = '2 – 5 yrs';
+                    views = '2 hours ago';
+                    about = 'As a Frontend Developer at Google, you will build beautiful, responsive, and accessible user interfaces that power millions of users worldwide. You\'ll work with cross-functional teams to deliver high-quality products using modern web technologies.';
+                  } else if (isProductDesigner) {
+                    title = 'Product Designer';
+                    company = 'Stripe';
+                    location = 'Remote (Worldwide)';
+                    salary = '\$80k – \$110k USD';
+                    tags = const ['Full-time', 'Remote', 'Mid Level'];
+                    applied = '320+';
+                    size = '1K+';
+                    views = '4.3k';
+                    about = 'We’re looking for a Product Designer to join our design team and help create intuitive, beautiful experiences for millions of businesses worldwide. You’ll own the end-to-end design process from user research to high-fidelity designs and work closely with product managers and engineers to ship impactful products.';
+                    requirements = const [
+                      'Proficiency in Figma and design tools.',
+                      'Strong portfolio showcasing product design projects and design thinking.',
+                      'Experience with user research, wireframing, prototyping, and design systems.',
+                    ];
+                  } else if (isDataAnalyst) {
+                    title = 'Data Analyst Intern';
+                    company = 'Microsoft';
+                    location = 'Bangalore, KA (On-site)';
+                    salary = '₹15 – ₹22 LPA';
+                    tags = const ['Full-time', 'On-site', 'Entry Level'];
+                    applied = '280+';
+                    size = '1K+';
+                    views = '3.8k';
+                    about = 'Join our data team to collect, clean, analyze, and visualize data that helps drive business decisions. You’ll work on real-world datasets, build insightful dashboards, and collaborate with cross-functional teams to solve meaningful problems.';
+                    requirements = const [
+                      'Proficiency in SQL and Excel.',
+                      'Knowledge of Python, Power BI, or Tableau is a plus.',
+                      'Strong analytical and problem-solving skills.',
+                      'Good understanding of statistics and data visualization.',
+                    ];
+                  }
+
+                  Navigator.push(
+                    context,
+                    SmoothRightToLeftPageRoute(
+                      builder: (context) => JobDetailsScreen(
+                        title: title,
+                        company: company,
+                        location: location,
+                        salary: salary,
+                        tags: tags,
+                        about: about,
+                        requirements: requirements,
+                        applied: applied,
+                        size: size,
+                        views: views,
+                      ),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  minimumSize: const Size(80, 38),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.bookmark_border_rounded, size: 18, color: AppColors.primary),
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: openDetails,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0284C7),
-                    minimumSize: const Size(80, 38),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Apply',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                  ),
+                child: const Text(
+                  'Apply',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -689,21 +644,4 @@ class _JobsScreenState extends State<JobsScreen> {
       ),
     );
   }
-}
-
-class _JobItem {
-  final IconData logo;
-  final String title, company, location, salaryTag, timeAgo;
-  final List<String> tags;
-  final bool showNew;
-  const _JobItem({
-    required this.logo,
-    required this.title,
-    required this.company,
-    required this.location,
-    required this.salaryTag,
-    required this.tags,
-    required this.timeAgo,
-    required this.showNew,
-  });
 }
