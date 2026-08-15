@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/di/providers.dart';
 import '../../../../core/bridge/bridge_models.dart';
-import '../../../../shared/widgets/role_switcher_sheet.dart';
+import '../../../../shared/enums/app_enums.dart';
+import '../../../community/view/screens/community_home_screen.dart';
 import '../../model/startup_models.dart';
 
 class StartupPostsFeedScreen extends ConsumerStatefulWidget {
@@ -49,25 +50,24 @@ class _StartupPostsFeedScreenState
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F3FF),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(context),
-            _buildCategoryChips(),
-            Expanded(
-              child: posts.isEmpty
-                  ? _buildOnlyCommunityTalks()
-                  : _buildPostsList(_filteredPosts(posts)),
-            ),
-          ],
-        ),
+      body: Column(
+        children: [
+          _buildHeader(context),
+          _buildCategoryChips(),
+          Expanded(
+            child: posts.isEmpty
+                ? _buildOnlyCommunityTalks()
+                : _buildPostsList(_filteredPosts(posts)),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      padding: EdgeInsets.fromLTRB(20, topPadding + 12, 20, 14),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -299,7 +299,17 @@ class _StartupPostsFeedScreenState
               ),
             ),
             GestureDetector(
-              onTap: () => RoleSwitcherSheet.show(context),
+              onTap: () {
+                ref
+                    .read(authViewModelProvider.notifier)
+                    .switchRole(UserRole.creator);
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (_) => const CommunityHomeScreen(),
+                  ),
+                  (_) => false,
+                );
+              },
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,

@@ -5,7 +5,7 @@ import '../model/team_chat_message.dart';
 import 'team_state.dart';
 
 class TeamViewModel extends StateNotifier<TeamState> {
-  TeamViewModel() : super(const TeamState());
+  TeamViewModel() : super(TeamState(chatMessages: Map.from(_starterMessages)));
 
   static const Map<String, List<TeamChatMessage>> _starterMessages = {
     'Rahul Verma': [
@@ -85,6 +85,7 @@ class TeamViewModel extends StateNotifier<TeamState> {
 
   void loadInitialData() {
     state = state.copyWith(
+      chatMessages: state.chatMessages.isEmpty ? Map.from(_starterMessages) : state.chatMessages,
       members: const [
         TeamMember(
           name: 'Rahul Verma',
@@ -127,21 +128,17 @@ class TeamViewModel extends StateNotifier<TeamState> {
   }
 
   List<TeamChatMessage> getMessagesFor(String memberName) {
-    if (!state.chatMessages.containsKey(memberName)) {
-      final messages = _starterMessages[memberName] ?? [
-        TeamChatMessage(
-          sender: memberName,
-          text: 'Hello! Thanks for reaching out. How can I help?',
-          time: '10:42 AM',
-          isMe: false,
-          status: MessageStatus.seen,
-        ),
-      ];
-      final updatedMessages = Map<String, List<TeamChatMessage>>.from(state.chatMessages);
-      updatedMessages[memberName] = List.from(messages);
-      state = state.copyWith(chatMessages: updatedMessages);
-    }
-    return List.unmodifiable(state.chatMessages[memberName]!);
+    final msgs = state.chatMessages[memberName] ?? _starterMessages[memberName];
+    if (msgs != null) return List.unmodifiable(msgs);
+    return [
+      TeamChatMessage(
+        sender: memberName,
+        text: 'Hello! Thanks for reaching out. How can I help?',
+        time: '10:42 AM',
+        isMe: false,
+        status: MessageStatus.seen,
+      ),
+    ];
   }
 
   TeamChatMessage? lastMessageFor(String memberName) {
@@ -153,7 +150,7 @@ class TeamViewModel extends StateNotifier<TeamState> {
 
   void sendMessage(String memberName, String text) {
     if (text.trim().isEmpty) return;
-    getMessagesFor(memberName);
+    final existing = state.chatMessages[memberName] ?? _starterMessages[memberName] ?? [];
 
     final now = DateTime.now();
     final timeStr = _formatTime(now);
@@ -167,7 +164,7 @@ class TeamViewModel extends StateNotifier<TeamState> {
     );
 
     final updatedMessages = Map<String, List<TeamChatMessage>>.from(state.chatMessages);
-    updatedMessages[memberName] = [...updatedMessages[memberName]!, newMessage];
+    updatedMessages[memberName] = [...(updatedMessages[memberName] ?? existing), newMessage];
 
     final updatedUnread = Map<String, int>.from(state.unreadCounts);
     updatedUnread[memberName] = 0;

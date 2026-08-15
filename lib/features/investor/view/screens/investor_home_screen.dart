@@ -1739,7 +1739,7 @@ class _InvestorHomeScreenState extends ConsumerState<InvestorHomeScreen> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const ConnectScreen()),
+            MaterialPageRoute(builder: (_) => const ConnectScreen(modeTheme: 'investor')),
           );
         },
       ),
@@ -1930,7 +1930,7 @@ class _InvestorHomeScreenState extends ConsumerState<InvestorHomeScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const ConnectScreen()),
+          MaterialPageRoute(builder: (_) => const ConnectScreen(modeTheme: 'investor')),
         );
       },
       child: Container(

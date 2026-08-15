@@ -18,7 +18,7 @@ class _StartupRequestsScreenState extends ConsumerState<StartupRequestsScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration.zero, () {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref.read(requestsViewModelProvider.notifier).loadInitialData();
     });

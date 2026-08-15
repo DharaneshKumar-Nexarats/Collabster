@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/di/providers.dart';
+import '../../../startup/model/startup_models.dart';
 import '../../model/chat_model.dart';
 import '../screens/chat_screen.dart';
 
@@ -12,13 +13,25 @@ class MessagesTab extends ConsumerStatefulWidget {
   ConsumerState<MessagesTab> createState() => _MessagesTabState();
 }
 
-class _MessagesTabState extends ConsumerState<MessagesTab> {
+class _MessagesTabState extends ConsumerState<MessagesTab>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
   final _searchController = TextEditingController();
 
   static const _filters = ['All', 'Unread', 'Rooms'];
 
   @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(requestsViewModelProvider.notifier).loadInitialData();
+    });
+  }
+
+  @override
   void dispose() {
+    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -93,6 +106,8 @@ class _MessagesTabState extends ConsumerState<MessagesTab> {
   @override
   Widget build(BuildContext context) {
     final messageState = ref.watch(messageViewModelProvider);
+    final requestsState = ref.watch(requestsViewModelProvider);
+    final pendingRequests = requestsState.pending;
 
     return SafeArea(
       bottom: false,
@@ -155,120 +170,347 @@ class _MessagesTabState extends ConsumerState<MessagesTab> {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
-            child: Container(
-              height: 46,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+          const SizedBox(height: 8),
+          TabBar(
+            controller: _tabController,
+            indicatorColor: const Color(0xFFEA580C),
+            indicatorWeight: 3,
+            labelColor: const Color(0xFFEA580C),
+            unselectedLabelColor: const Color(0xFF64748B),
+            labelStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+            tabs: [
+              const Tab(text: 'Chats'),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Requests'),
+                    if (pendingRequests.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEA580C),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${pendingRequests.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 14),
-                  const Icon(
-                    Icons.search_rounded,
-                    color: Color(0xFF94A3B8),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (value) {
-                        ref
-                            .read(messageViewModelProvider.notifier)
-                            .setSearchQuery(value);
-                        setState(() {});
-                      },
-                      style: const TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      decoration: const InputDecoration(
-                        hintText: 'Search chats and rooms...',
-                        hintStyle: TextStyle(
-                          color: Color(0xFF94A3B8),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        border: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                        isDense: true,
-                      ),
-                    ),
-                  ),
-                  if (_searchController.text.isNotEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        _searchController.clear();
-                        ref
-                            .read(messageViewModelProvider.notifier)
-                            .setSearchQuery('');
-                        setState(() {});
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        margin: const EdgeInsets.only(right: 8),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFF1F5F9),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close_rounded,
-                          color: Color(0xFF64748B),
-                          size: 14,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildChatsContent(messageState),
+                _buildRequestsContent(pendingRequests),
+              ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+        ],
+      ),
+    );
+  }
+
+  // ── Chats Tab View ───────────────────────────────────────────────────
+  Widget _buildChatsContent(dynamic messageState) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+          child: Container(
+            height: 46,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
             child: Row(
               children: [
-                for (final filter in _filters)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: _FilterChip(
-                      label: filter,
-                      selected: messageState.selectedFilter == filter,
-                      onTap: () {
-                        ref
-                            .read(messageViewModelProvider.notifier)
-                            .setFilter(filter);
-                      },
+                const SizedBox(width: 14),
+                const Icon(
+                  Icons.search_rounded,
+                  color: Color(0xFF94A3B8),
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      ref
+                          .read(messageViewModelProvider.notifier)
+                          .setSearchQuery(value);
+                      setState(() {});
+                    },
+                    style: const TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: 'Search chats and rooms...',
+                      hintStyle: TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                if (_searchController.text.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      _searchController.clear();
+                      ref
+                          .read(messageViewModelProvider.notifier)
+                          .setSearchQuery('');
+                      setState(() {});
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF1F5F9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        color: Color(0xFF64748B),
+                        size: 14,
+                      ),
                     ),
                   ),
               ],
             ),
           ),
-          const SizedBox(height: 6),
-          Expanded(
-            child: messageState.filteredConversations.isEmpty
-                ? _buildEmptyState()
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                    itemCount: messageState.filteredConversations.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final conversation =
-                          messageState.filteredConversations[index];
-                      return _ConversationTile(
-                        conversation: conversation,
-                        onTap: () => _openChat(conversation),
-                      );
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              for (final filter in _filters)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _FilterChip(
+                    label: filter,
+                    selected: messageState.selectedFilter == filter,
+                    onTap: () {
+                      ref
+                          .read(messageViewModelProvider.notifier)
+                          .setFilter(filter);
                     },
                   ),
+                ),
+            ],
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 6),
+        Expanded(
+          child: messageState.filteredConversations.isEmpty
+              ? _buildEmptyState()
+              : ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                  itemCount: messageState.filteredConversations.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final conversation =
+                        messageState.filteredConversations[index];
+                    return _ConversationTile(
+                      conversation: conversation,
+                      onTap: () => _openChat(conversation),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  // ── Requests Tab View ─────────────────────────────────────────────────
+  Widget _buildRequestsContent(List<ConnectionRequest> requests) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      children: [
+        if (requests.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: const Column(
+              children: [
+                Icon(
+                  Icons.check_circle_outline_rounded,
+                  size: 44,
+                  color: Color(0xFF10B981),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'All caught up!',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'No pending connection requests right now.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                ),
+              ],
+            ),
+          )
+        else
+          ...requests.map(
+            (r) => Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: const Color(0xFFFFF7ED),
+                    child: Text(
+                      r.initials,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFFEA580C),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                r.name,
+                                style: const TextStyle(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                            ),
+                            Text(
+                              r.time,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          r.role,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                        if (r.note.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            r.note,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              color: Color(0xFF475569),
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () => ref
+                                    .read(requestsViewModelProvider.notifier)
+                                    .ignore(r.name),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(
+                                    color: Color(0xFFE2E8F0),
+                                  ),
+                                  foregroundColor: const Color(0xFF64748B),
+                                  minimumSize: const Size(0, 36),
+                                  padding: EdgeInsets.zero,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: const Text('Ignore'),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () => ref
+                                    .read(requestsViewModelProvider.notifier)
+                                    .accept(r.name),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFEA580C),
+                                  foregroundColor: Colors.white,
+                                  minimumSize: const Size(0, 36),
+                                  padding: EdgeInsets.zero,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: const Text('Accept'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 

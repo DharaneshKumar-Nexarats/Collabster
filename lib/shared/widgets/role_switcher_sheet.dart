@@ -199,23 +199,14 @@ class RoleSwitcherSheet extends ConsumerWidget {
     final updatedSession = ref.read(authViewModelProvider).session;
     if (updatedSession == null) return;
 
-    // Defer navigation until the frame settles so the provider-driven
-    // rebuild of this sheet (which watches auth state) cannot race the
-    // route transition.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
-      try {
-        final nav = Navigator.of(context, rootNavigator: true);
-        if (nav.canPop()) nav.pop();
-        nav.pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => buildDashboardForRole(updatedSession),
-          ),
-          (_) => false,
-        );
-      } catch (_) {
-        // Swallow: user can retry from the profile sheet.
-      }
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => buildDashboardForRole(updatedSession),
+        ),
+        (_) => false,
+      );
     });
   }
 }

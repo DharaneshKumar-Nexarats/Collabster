@@ -178,10 +178,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                               color: AppColors.secondary,
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: const Icon(
-                              Icons.lock_person_rounded,
-                              color: AppColors.primary,
-                              size: 34,
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Image.asset(
+                                'assets/logo/logo.png',
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.lock_person_rounded,
+                                  color: AppColors.primary,
+                                  size: 34,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 20),

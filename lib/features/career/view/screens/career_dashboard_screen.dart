@@ -545,8 +545,8 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
       _QuickAction(Icons.bookmark_outline_rounded, 'Saved Jobs', const Color(0xFF0284C7), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => SavedJobsScreen(onBack: () => Navigator.pop(context))));
       }),
-      _QuickAction(Icons.alt_route_rounded, 'Connect', const Color(0xFF6D28D9), () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectScreen()));
+      _QuickAction(Icons.alt_route_rounded, 'Connect', const Color(0xFF0284C7), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectScreen(modeTheme: 'career')));
       }),
     ];
 

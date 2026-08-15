@@ -26,18 +26,18 @@ class _TeamCommandScreenState extends ConsumerState<TeamCommandScreen>
   @override
   void initState() {
     super.initState();
-    ref.read(teamViewModelProvider.notifier).loadInitialData();
     _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         ref.read(teamViewModelProvider.notifier).selectCategory(_tabController.index);
       }
     });
-    if (widget.autoOpenInviteSheet) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(teamViewModelProvider.notifier).loadInitialData();
+      if (widget.autoOpenInviteSheet) {
         showInviteSheet(context);
-      });
-    }
+      }
+    });
   }
 
   @override
