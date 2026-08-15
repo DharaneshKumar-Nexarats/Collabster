@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/di/providers.dart';
+import '../../../../shared/enums/app_enums.dart';
 import '../sign_in_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -17,18 +18,63 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  List<Color> _getHeaderGradient(UserRole role) {
+    if (role.isStartupRole) {
+      return const [Color(0xFF4C1D95), Color(0xFF5B21B6), Color(0xFF6B21D9)]; // Violet for Startup
+    }
+    switch (role) {
+      case UserRole.investor:
+        return const [Color(0xFF064E3B), Color(0xFF059669), Color(0xFF10B981)]; // Green for Investor
+      case UserRole.student:
+      case UserRole.professional:
+      case UserRole.mentor:
+        return const [Color(0xFF0369A1), Color(0xFF0284C7), Color(0xFF0EA5E9)]; // Sky Blue for Career
+      case UserRole.creator:
+      case UserRole.influencer:
+        return const [Color(0xFFC2410C), Color(0xFFEA580C), Color(0xFFF97316)]; // Orange for Community
+      case UserRole.serviceProvider:
+        return const [Color(0xFF064E3B), Color(0xFF059669), Color(0xFF10B981)]; // Green for Event
+      default:
+        return const [Color(0xFF4C1D95), Color(0xFF5B21B6), Color(0xFF6B21D9)];
+    }
+  }
+
+  Color _getPrimaryAccentColor(UserRole role) {
+    if (role.isStartupRole) {
+      return const Color(0xFF6B21D9);
+    }
+    switch (role) {
+      case UserRole.investor:
+        return const Color(0xFF059669);
+      case UserRole.student:
+      case UserRole.professional:
+      case UserRole.mentor:
+        return const Color(0xFF0284C7); // Sky Blue for Career
+      case UserRole.creator:
+      case UserRole.influencer:
+        return const Color(0xFFF97316); // Orange for Community
+      case UserRole.serviceProvider:
+        return const Color(0xFF059669);
+      default:
+        return const Color(0xFF6B21D9);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(authViewModelProvider).session;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final activeUserRole = session?.activeUserRole ?? UserRole.professional;
     final name = session?.fullName ?? 'User';
     final email = session?.email ?? '';
     final username = session?.username ?? '';
     final phone = session?.phone ?? '';
-    final role = session?.activeUserRole.label ?? '';
+    final role = activeUserRole.label;
     final photoPath = session?.profilePhotoPath;
     final initials = _getInitials(name);
+    final headerGradient = _getHeaderGradient(activeUserRole);
+    final primaryAccent = _getPrimaryAccentColor(activeUserRole);
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
@@ -39,10 +85,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFFC2410C), Color(0xFFEA580C), Color(0xFFF97316)],
+                  colors: headerGradient,
                 ),
                 borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
               ),
@@ -76,7 +122,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     // Avatar
-                    _buildProfileAvatar(photoPath, initials, isDark),
+                    _buildProfileAvatar(photoPath, initials, isDark, primaryAccent),
                     const SizedBox(height: 16),
                     // Name
                     Text(
@@ -93,7 +139,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         email,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.white.withValues(alpha: 0.8),
+                          color: Colors.white.withOpacity(0.8),
                         ),
                       ),
                     ],
@@ -102,9 +148,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                          border: Border.all(color: Colors.white.withOpacity(0.3)),
                         ),
                         child: Text(
                           role,
@@ -129,17 +175,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               title: 'ACCOUNT INFORMATION',
               isDark: isDark,
               children: [
-                _buildInfoRow(Icons.person_outline_rounded, 'Full Name', name, isDark),
+                _buildInfoRow(Icons.person_outline_rounded, 'Full Name', name, isDark, primaryAccent),
                 _divider(isDark),
-                _buildInfoRow(Icons.email_outlined, 'Email', email, isDark),
+                _buildInfoRow(Icons.email_outlined, 'Email', email, isDark, primaryAccent),
                 if (username.isNotEmpty) ...[
                   _divider(isDark),
-                  _buildInfoRow(Icons.alternate_email, 'Username', '@$username', isDark),
+                  _buildInfoRow(Icons.alternate_email, 'Username', '@$username', isDark, primaryAccent),
                 ],
                 _divider(isDark),
-                _buildInfoRow(Icons.phone_outlined, 'Phone', phone, isDark),
+                _buildInfoRow(Icons.phone_outlined, 'Phone', phone, isDark, primaryAccent),
                 _divider(isDark),
-                _buildInfoRow(Icons.badge_outlined, 'Role', role, isDark),
+                _buildInfoRow(Icons.badge_outlined, 'Role', role, isDark, primaryAccent),
               ],
             ),
           ),
@@ -155,6 +201,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   'Help & Support',
                   'FAQ, contact us',
                   isDark,
+                  primaryAccent,
                   () => _showHelpSheet(context, isDark),
                 ),
                 _divider(isDark),
@@ -163,6 +210,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   'About',
                   'v1.0.0',
                   isDark,
+                  primaryAccent,
                   () => _showAboutDialog(context, isDark),
                 ),
               ],
@@ -180,6 +228,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   'Terms & Conditions',
                   '',
                   isDark,
+                  primaryAccent,
                   () => _showTermsSheet(context, isDark),
                 ),
                 _divider(isDark),
@@ -188,6 +237,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   'Privacy Policy',
                   '',
                   isDark,
+                  primaryAccent,
                   () => _showPrivacySheet(context, isDark),
                 ),
               ],
@@ -239,7 +289,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileAvatar(String? photoPath, String initials, bool isDark) {
+  Widget _buildProfileAvatar(String? photoPath, String initials, bool isDark, Color primaryAccent) {
     final hasPhoto = photoPath != null && File(photoPath).existsSync();
     return Stack(
       children: [
@@ -247,11 +297,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
+            border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
           ),
           child: CircleAvatar(
             radius: 48,
-            backgroundColor: Colors.white.withValues(alpha: 0.15),
+            backgroundColor: Colors.white.withOpacity(0.15),
             backgroundImage: hasPhoto ? FileImage(File(photoPath)) : null,
             child: hasPhoto
                 ? null
@@ -277,15 +327,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
+                    color: Colors.black.withOpacity(0.2),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.camera_alt_rounded,
-                color: AppColors.primary,
+                color: primaryAccent,
                 size: 16,
               ),
             ),
@@ -469,7 +519,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   // ── Info Row ──
-  Widget _buildInfoRow(IconData icon, String label, String value, bool isDark) {
+  Widget _buildInfoRow(IconData icon, String label, String value, bool isDark, Color accentColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
@@ -478,10 +528,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: accentColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 18, color: AppColors.primary),
+            child: Icon(icon, size: 18, color: accentColor),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -506,7 +556,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   // ── Menu Tile ──
-  Widget _buildMenuTile(IconData icon, String label, String subtitle, bool isDark, VoidCallback onTap) {
+  Widget _buildMenuTile(IconData icon, String label, String subtitle, bool isDark, Color accentColor, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -518,10 +568,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: accentColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, size: 18, color: AppColors.primary),
+              child: Icon(icon, size: 18, color: accentColor),
             ),
             const SizedBox(width: 14),
             Expanded(

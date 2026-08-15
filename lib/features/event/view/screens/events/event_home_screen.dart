@@ -247,8 +247,6 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
               child: const Icon(Icons.notifications_outlined, color: _textPrimary, size: 20),
             ),
           ),
-          const SizedBox(width: 10),
-          const Text('Events', style: TextStyle(color: _textPrimary, fontSize: 18, fontWeight: FontWeight.w800)),
         ],
       ),
     );
@@ -261,25 +259,32 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
         height: 44,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: _surface,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: _borderColor),
         ),
         child: Row(
           children: [
-            const Icon(Icons.search_rounded, color: _textSecondary, size: 18),
-            const SizedBox(width: 8),
+            const Icon(Icons.search_rounded, color: _textSecondary, size: 20),
+            const SizedBox(width: 10),
             Expanded(
               child: TextField(
                 controller: _searchController,
                 onChanged: (q) =>
                     ref.read(eventViewModelProvider.notifier).setSearchQuery(q),
-                style: const TextStyle(color: _textPrimary, fontSize: 13),
+                style: const TextStyle(color: _textPrimary, fontSize: 14),
                 decoration: const InputDecoration(
                   hintText: 'Search events, workshops...',
-                  hintStyle: TextStyle(color: _textSecondary, fontSize: 13),
+                  hintStyle: TextStyle(color: _textSecondary, fontSize: 14),
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  errorBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  filled: false,
+                  fillColor: Colors.transparent,
                   isDense: true,
+                  contentPadding: EdgeInsets.zero,
                 ),
               ),
             ),

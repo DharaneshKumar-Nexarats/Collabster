@@ -91,4 +91,25 @@ void main() {
     expect(find.text('Write a short description'), findsOneWidget);
     expect(find.text('Pick start and end dates'), findsOneWidget);
   });
+
+  testWidgets('Event mode Messages bottom nav opens Inbox', (tester) async {
+    await pumpPhoneLoaded(tester, const EventHomeScreen());
+    await tester.tap(find.text('Messages'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Inbox'), findsOneWidget);
+    expect(find.text('Chats'), findsOneWidget);
+    expect(find.text('Requests'), findsOneWidget);
+    expect(find.text('Community Chats'), findsOneWidget);
+
+    await tester.tap(find.text('Requests'));
+    await tester.pumpAndSettle();
+    expect(find.text('Connection Requests'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+    await tester.pumpAndSettle();
+    expect(find.text('Inbox'), findsNothing);
+    expect(find.text('Explore by Category'), findsOneWidget);
+  });
 }

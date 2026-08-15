@@ -142,29 +142,6 @@ class _MeetupsScreenState extends ConsumerState<MeetupsScreen> {
             child: Text('Meetups',
                 style: TextStyle(color: _textPrimary, fontSize: 22, fontWeight: FontWeight.w900)),
           ),
-          Container(
-            width: 36, height: 36,
-            decoration: BoxDecoration(
-              color: _surface, shape: BoxShape.circle,
-              border: Border.all(color: _borderColor),
-            ),
-            child: const Icon(Icons.notifications_outlined, color: _textPrimary, size: 18),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            width: 36, height: 36,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [_accentLight, _accent],
-                begin: Alignment.topLeft, end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Text('R',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-            ),
-          ),
         ],
       ),
     );
@@ -184,7 +161,24 @@ class _MeetupsScreenState extends ConsumerState<MeetupsScreen> {
         children: [
           Icon(Icons.search_rounded, color: _textSecondary, size: 18),
           SizedBox(width: 8),
-          Text('Search Meetups...', style: TextStyle(color: _textSecondary, fontSize: 13)),
+          Expanded(
+            child: TextField(
+              style: TextStyle(color: _textPrimary, fontSize: 13),
+              decoration: InputDecoration(
+                hintText: 'Search Meetups...',
+                hintStyle: TextStyle(color: _textSecondary, fontSize: 13),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                filled: false,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -174,29 +174,6 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
             child: Text('Conferences',
                 style: TextStyle(color: _textPrimary, fontSize: 22, fontWeight: FontWeight.w900)),
           ),
-          Container(
-            width: 36, height: 36,
-            decoration: BoxDecoration(
-              color: _surface, shape: BoxShape.circle,
-              border: Border.all(color: _borderColor),
-            ),
-            child: const Icon(Icons.notifications_outlined, color: _textPrimary, size: 18),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            width: 36, height: 36,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [_accentLight, _accent],
-                begin: Alignment.topLeft, end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Text('R',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-            ),
-          ),
         ],
       ),
     );
@@ -225,7 +202,14 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
                 hintText: 'Search conferences...',
                 hintStyle: TextStyle(color: _textSecondary, fontSize: 13),
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                filled: false,
                 isDense: true,
+                contentPadding: EdgeInsets.zero,
               ),
             ),
           ),

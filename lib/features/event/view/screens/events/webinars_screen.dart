@@ -6,8 +6,6 @@ import '../event_home_screen.dart';
 import 'event_detail_screen.dart';
 import 'my_events_screen.dart';
 
-void _ignoreImageError(Object exception, StackTrace? stackTrace) {}
-
 class WebinarsScreen extends ConsumerStatefulWidget {
   const WebinarsScreen({super.key});
 
@@ -100,69 +98,37 @@ class _WebinarsScreenState extends ConsumerState<WebinarsScreen> {
           children: [
             // Top App Bar
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(
-                      Icons.arrow_back_rounded,
-                      color: Color(0xFF059669),
-                      size: 24,
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: const Icon(Icons.arrow_back_rounded, color: Color(0xFF0F172A), size: 18),
                     ),
                   ),
-                  Row(
-                    children: [
-                      Stack(
-                        alignment: Alignment.topRight,
-                        children: [
-                          const Icon(
-                            Icons.notifications_none_rounded,
-                            color: Color(0xFF059669),
-                            size: 24,
-                          ),
-                          Positioned(
-                            top: 2,
-                            right: 2,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF059669),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                        ],
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Webinars',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF0F172A),
                       ),
-                      const SizedBox(width: 14),
-                      const CircleAvatar(
-                        radius: 16,
-                        backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=34'),
-                        onBackgroundImageError: _ignoreImageError,
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
-
-            // Left-aligned Webinars Title
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'Webinars',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-              ),
-            ),
+            const SizedBox(height: 8),
 
             // Search Bar
             Padding(
@@ -193,6 +159,12 @@ class _WebinarsScreenState extends ConsumerState<WebinarsScreen> {
                             color: Color(0xFF64748B),
                           ),
                           border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          filled: false,
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
                         ),

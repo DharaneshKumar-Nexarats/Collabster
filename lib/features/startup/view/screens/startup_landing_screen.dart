@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/view/secondary_goal_screen.dart';
 import 'join_startup_screen.dart';
+import 'startup_dashboard_screen.dart';
 import 'startup_registration_flow_screen.dart';
 
-class StartupLandingScreen extends StatelessWidget {
+class StartupLandingScreen extends ConsumerWidget {
   const StartupLandingScreen({super.key, this.selectedRole = 'Startup'});
 
   final String selectedRole;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.watch(authViewModelProvider).session;
+    final existingStartupName = (session?.startupName?.isNotEmpty == true)
+        ? session!.startupName!
+        : (session?.joinedStartupName?.isNotEmpty == true)
+            ? session!.joinedStartupName!
+            : null;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F1FA),
       body: SafeArea(
@@ -30,12 +40,16 @@ class StartupLandingScreen extends StatelessWidget {
                           children: [
                             IconButton(
                               onPressed: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const SecondaryGoalScreen(),
-                                  ),
-                                );
+                                if (Navigator.canPop(context)) {
+                                  Navigator.pop(context);
+                                } else {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const SecondaryGoalScreen(),
+                                    ),
+                                  );
+                                }
                               },
                               icon: const Icon(Icons.arrow_back_rounded),
                               color: const Color(0xFF6B21D9),
@@ -88,6 +102,29 @@ class StartupLandingScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 22),
+                        if (existingStartupName != null) ...[
+                          _StartupActionCard(
+                            icon: Icons.dashboard_rounded,
+                            iconBackground: const Color(0xFFD1FAE5),
+                            title: 'Open $existingStartupName Dashboard',
+                            description:
+                                'Access your active workspace for $existingStartupName to manage team, pitch decks, and posts.',
+                            buttonLabel: 'Go to Dashboard',
+                            buttonIcon: Icons.arrow_forward_rounded,
+                            buttonFilled: true,
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => StartupDashboardScreen(
+                                    startupName: existingStartupName,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                        ],
                         _StartupActionCard(
                           icon: Icons.rocket_launch_rounded,
                           iconBackground: const Color(0xFFE9DDFF),
@@ -96,7 +133,7 @@ class StartupLandingScreen extends StatelessWidget {
                               'Build your startup profile, invite your team, showcase your products, raise funding and grow your company.',
                           buttonLabel: 'Create Startup',
                           buttonIcon: Icons.arrow_forward_rounded,
-                          buttonFilled: true,
+                          buttonFilled: existingStartupName == null,
                           onPressed: () {
                             Navigator.push(
                               context,
