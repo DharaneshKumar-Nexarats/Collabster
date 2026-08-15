@@ -1,24 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/di/providers.dart';
 import '../widgets/career_search_bar.dart';
 import 'job_detail_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InternshipsScreen — opened when user taps "Internships" chip on Dashboard.
-// Pixel-perfect match to the provided screenshot.
+// Shows career board listings + internships published by startups.
 // ═══════════════════════════════════════════════════════════════════════════
-class InternshipsScreen extends StatefulWidget {
+class InternshipsScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
   const InternshipsScreen({super.key, this.onBack});
 
   @override
-  State<InternshipsScreen> createState() => _InternshipsScreenState();
+  ConsumerState<InternshipsScreen> createState() => _InternshipsScreenState();
 }
 
-class _InternshipsScreenState extends State<InternshipsScreen> {
+class _InternshipsScreenState extends ConsumerState<InternshipsScreen> {
   int _selectedFilter = 0; // 0=All Roles, 1=Remote, 2=Paid, 3=Hybrid
   final List<String> _filters = ['All Roles', 'Remote', 'Paid', 'Hybrid'];
   final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(hiringViewModelProvider.notifier).loadInitialData();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // ── Startup internships bridged from the Startup hiring board ──────────
+  List<_Internship> get _startupInternships {
+    final roles = ref.watch(hiringViewModelProvider).roles
+        .where((r) => r.roleType == 'internship' && r.status == 'HIRING')
+        .toList();
+    if (roles.isEmpty) return const [];
+
+    final session = ref.watch(authViewModelProvider).session;
+    final startupName = (session?.startupName?.isNotEmpty == true)
+        ? session!.startupName!
+        : session?.joinedStartupName;
+
+    return roles
+        .map(
+          (r) => _Internship(
+            logo: Icons.rocket_launch_rounded,
+            title: r.title,
+            salary: r.salaryLpa ?? 'Stipend on apply',
+            company: startupName ?? 'Startup',
+            location: r.location ?? 'On-site',
+            tags: (r.skills ?? '')
+                .split(',')
+                .map((s) => s.trim())
+                .where((s) => s.isNotEmpty)
+                .take(3)
+                .toList(),
+            badge: 'Startup',
+            badgeFg: const Color(0xFF6D28D9),
+            badgeBg: const Color(0xFFEDE9FE),
+          ),
+        )
+        .toList();
+  }
 
   // ── Internship listings ─────────────────────────────────────────────────
   static const _internships = [
@@ -61,7 +111,8 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
     final query = _searchController.text.trim().toLowerCase();
     final filter = _filters[_selectedFilter].toLowerCase();
 
-    return _internships.where((item) {
+    return [..._startupInternships, ..._internships]
+        .where((item) {
       if (filter == 'remote' && item.badge != 'REMOTE' && !item.location.toLowerCase().contains('remote')) {
         return false;
       }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/di/providers.dart';
+import '../../../../core/bridge/bridge_models.dart';
 import '../../model/job_model.dart';
 import '../widgets/career_search_bar.dart';
 import 'internships_screen.dart';
@@ -24,6 +25,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(careerViewModelProvider.notifier).loadInitialData();
+      ref.read(hiringViewModelProvider.notifier).loadInitialData();
     });
   }
 
@@ -31,6 +33,15 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
   Widget build(BuildContext context) {
     final careerState = ref.watch(careerViewModelProvider);
     final filtered = careerState.filteredJobs;
+
+    final isSearching =
+        careerState.searchQuery.isNotEmpty || careerState.selectedFilter != 0;
+    final displayJobs = isSearching
+        ? filtered
+        : [
+            ..._startupJobs().map(_toJobItem),
+            ...filtered,
+          ];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -41,11 +52,38 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(context, careerState),
-              _buildBody(careerState, filtered),
+              _buildBody(careerState, displayJobs),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  List<BridgeOpportunity> _startupJobs() {
+    final roles = ref.watch(hiringViewModelProvider).roles;
+    final session = ref.watch(authViewModelProvider).session;
+    final startupName = (session?.startupName?.isNotEmpty == true)
+        ? session!.startupName!
+        : session?.joinedStartupName;
+    return startupHiringOpportunities(
+      roles.where((r) => r.roleType == 'job').toList(),
+      startupName: startupName ?? 'Startup',
+    );
+  }
+
+  JobItem _toJobItem(BridgeOpportunity o) {
+    return JobItem(
+      logo: o.fromStartup ? 'rocket_launch' : 'work_rounded',
+      title: o.title,
+      company: o.company,
+      location: o.location,
+      salaryTag: o.salary,
+      tags: o.tags,
+      timeAgo: o.fromStartup
+          ? (o.experience.isEmpty ? 'Open Now' : o.experience)
+          : o.experience,
+      showNew: o.fromStartup,
     );
   }
 
@@ -265,6 +303,8 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
         return Icons.design_services_outlined;
       case 'analytics_outlined':
         return Icons.analytics_outlined;
+      case 'rocket_launch':
+        return Icons.rocket_launch_rounded;
       default:
         return Icons.work_rounded;
     }

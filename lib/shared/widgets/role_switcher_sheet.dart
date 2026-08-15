@@ -26,7 +26,6 @@ class RoleSwitcherSheet extends ConsumerWidget {
 
     final currentRole = session.activeUserRole;
     final userRoles = session.userRoles;
-    final allRoles = UserRole.values;
 
     return Container(
       constraints: BoxConstraints(
@@ -105,26 +104,44 @@ class RoleSwitcherSheet extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Container(
                     height: 1,
-                    color: Color(0xFFF3F4F6),
+                    color: const Color(0xFFF3F4F6),
                   ),
                   const SizedBox(height: 16),
                 ],
-                const Text(
-                  'ADD NEW ROLE',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ...allRoles
-                    .where((role) => !userRoles.contains(role))
-                    .map((role) => _RoleAddTile(
-                          role: role,
-                          onTap: () => _addAndNavigate(context, ref, role),
-                        )),
+                Builder(builder: (context) {
+                  final ownedLabels = userRoles
+                      .where((r) => !r.isStartupRole)
+                      .map((r) => r.label)
+                      .toSet();
+
+                  final addableRoles = UserRole.values.where((role) {
+                    if (userRoles.contains(role)) return false; 
+                    if (role.isStartupRole) return true;        
+                    return !ownedLabels.contains(role.label);   
+                  }).toList();
+
+                  if (addableRoles.isEmpty) return const SizedBox.shrink();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'ADD NEW ROLE',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textSecondary,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ...addableRoles.map((role) => _RoleAddTile(
+                            role: role,
+                            onTap: () => _addAndNavigate(context, ref, role),
+                          )),
+                    ],
+                  );
+                }),
                 const SizedBox(height: 20),
               ],
             ),

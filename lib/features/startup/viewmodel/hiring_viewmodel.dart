@@ -6,6 +6,7 @@ class HiringViewModel extends StateNotifier<HiringState> {
   HiringViewModel() : super(const HiringState());
 
   void loadInitialData() {
+    if (state.roles.isNotEmpty) return;
     state = state.copyWith(
       roles: const [
         OpenRole(

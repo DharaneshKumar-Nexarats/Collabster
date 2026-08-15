@@ -26,11 +26,32 @@ class _HiringCommandScreenState extends ConsumerState<HiringCommandScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.autoOpenCreateSheet) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(hiringViewModelProvider.notifier).loadInitialData();
+      if (widget.autoOpenCreateSheet) {
         showCreateJobSheet(context);
-      });
-    }
+      }
+    });
+  }
+
+  Widget _kindChip(
+    String value,
+    String label,
+    String selectedKind,
+    void Function(String) onSelect,
+  ) {
+    final selected = value == selectedKind;
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      selectedColor: const Color(0xFF5B21B6),
+      labelStyle: TextStyle(
+        color: selected ? Colors.white : const Color(0xFF374151),
+        fontWeight: FontWeight.w700,
+        fontSize: 12,
+      ),
+      onSelected: (_) => onSelect(value),
+    );
   }
 
   List<OpenRole> _filteredRoles(HiringState state) {
@@ -51,6 +72,7 @@ class _HiringCommandScreenState extends ConsumerState<HiringCommandScreen> {
 
     String selectedDept = 'Engineering';
     String selectedStatus = 'HIRING';
+    String selectedKind = 'job';
 
     final depts = [
       'Engineering',
@@ -118,6 +140,19 @@ class _HiringCommandScreenState extends ConsumerState<HiringCommandScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _kindChip('job', 'Full-time Job', selectedKind, (k) {
+                        setModalState(() => selectedKind = k);
+                      }),
+                      _kindChip('internship', 'Internship', selectedKind, (k) {
+                        setModalState(() => selectedKind = k);
+                      }),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: titleCtrl,
                     decoration: InputDecoration(
@@ -257,9 +292,12 @@ class _HiringCommandScreenState extends ConsumerState<HiringCommandScreen> {
                           shortlisted: 0,
                           status: selectedStatus,
                           statusColorKey: 'live',
-                          salaryLpa: salaryCtrl.text.trim().isNotEmpty
-                              ? salaryCtrl.text.trim()
-                              : '18-25 LPA',
+                          roleType: selectedKind,
+                          salaryLpa: selectedKind == 'internship'
+                              ? 'Stipend'
+                              : salaryCtrl.text.trim().isNotEmpty
+                                  ? salaryCtrl.text.trim()
+                                  : '18-25 LPA',
                           skills: skillsCtrl.text.trim().isNotEmpty
                               ? skillsCtrl.text.trim()
                               : 'Flutter, Firebase, REST APIs',
@@ -276,7 +314,9 @@ class _HiringCommandScreenState extends ConsumerState<HiringCommandScreen> {
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('"$title" role published & active!'),
+                            content: Text(
+                              '"$title" ${selectedKind == 'internship' ? 'internship' : 'role'} published — now live on Career & Community hubs!',
+                            ),
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
@@ -290,9 +330,11 @@ class _HiringCommandScreenState extends ConsumerState<HiringCommandScreen> {
                         ),
                       ),
                       icon: const Icon(Icons.check_circle_rounded, size: 18),
-                      label: const Text(
-                        'Publish Job',
-                        style: TextStyle(fontWeight: FontWeight.w700),
+                      label: Text(
+                        selectedKind == 'internship'
+                            ? 'Publish Internship'
+                            : 'Publish Job',
+                        style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
