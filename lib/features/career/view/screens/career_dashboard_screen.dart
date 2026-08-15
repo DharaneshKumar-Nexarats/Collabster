@@ -14,6 +14,7 @@ import 'notifications_screen.dart';
 import 'saved_jobs_screen.dart';
 import 'submission_details_screen.dart';
 import 'applied_applications_screen.dart';
+import '../../../inbox/view/inbox_screen.dart';
 import 'booked_sessions_screen.dart';
 import 'job_detail_screen.dart';
 import 'explore_screen.dart';
@@ -34,7 +35,9 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    ref.read(careerViewModelProvider.notifier).loadInitialData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(careerViewModelProvider.notifier).loadInitialData();
+    });
   }
 
   String get _timeBasedGreeting {
@@ -320,6 +323,30 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
                             ],
                           ),
                         ),
+                        GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const InboxScreen(),
+                            ),
+                          ),
+                          child: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.forum_outlined,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
                         GestureDetector(
                           onTap: () => _openNotifications(),
                           child: Container(

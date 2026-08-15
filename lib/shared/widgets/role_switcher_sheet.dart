@@ -26,7 +26,6 @@ class RoleSwitcherSheet extends ConsumerWidget {
 
     final currentRole = session.activeUserRole;
     final userRoles = session.userRoles;
-    final allRoles = UserRole.values;
 
     return Container(
       constraints: BoxConstraints(
@@ -105,26 +104,44 @@ class RoleSwitcherSheet extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Container(
                     height: 1,
-                    color: Color(0xFFF3F4F6),
+                    color: const Color(0xFFF3F4F6),
                   ),
                   const SizedBox(height: 16),
                 ],
-                const Text(
-                  'ADD NEW ROLE',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ...allRoles
-                    .where((role) => !userRoles.contains(role))
-                    .map((role) => _RoleAddTile(
-                          role: role,
-                          onTap: () => _addAndNavigate(context, ref, role),
-                        )),
+                Builder(builder: (context) {
+                  final ownedLabels = userRoles
+                      .where((r) => !r.isStartupRole)
+                      .map((r) => r.label)
+                      .toSet();
+
+                  final addableRoles = UserRole.values.where((role) {
+                    if (userRoles.contains(role)) return false; 
+                    if (role.isStartupRole) return true;        
+                    return !ownedLabels.contains(role.label);   
+                  }).toList();
+
+                  if (addableRoles.isEmpty) return const SizedBox.shrink();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'ADD NEW ROLE',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textSecondary,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ...addableRoles.map((role) => _RoleAddTile(
+                            role: role,
+                            onTap: () => _addAndNavigate(context, ref, role),
+                          )),
+                    ],
+                  );
+                }),
                 const SizedBox(height: 20),
               ],
             ),
@@ -139,18 +156,21 @@ class RoleSwitcherSheet extends ConsumerWidget {
     WidgetRef ref,
     UserRole role,
   ) async {
-    await ref.read(authViewModelProvider.notifier).switchRole(role);
+    try {
+      await ref.read(authViewModelProvider.notifier).switchRole(role);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not switch role. Please try again.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     if (!context.mounted) return;
 
-    final updatedSession = ref.read(authViewModelProvider).session;
-    if (updatedSession == null) return;
-
-    final nav = Navigator.of(context);
-    nav.pop();
-    nav.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => buildDashboardForRole(updatedSession)),
-      (_) => false,
-    );
+    _replaceWithDashboard(context, ref);
   }
 
   Future<void> _addAndNavigate(
@@ -158,18 +178,45 @@ class RoleSwitcherSheet extends ConsumerWidget {
     WidgetRef ref,
     UserRole role,
   ) async {
-    await ref.read(authViewModelProvider.notifier).addRole(role);
+    try {
+      await ref.read(authViewModelProvider.notifier).addRole(role);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not add role. Please try again.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     if (!context.mounted) return;
 
+    _replaceWithDashboard(context, ref);
+  }
+
+  void _replaceWithDashboard(BuildContext context, WidgetRef ref) {
     final updatedSession = ref.read(authViewModelProvider).session;
     if (updatedSession == null) return;
 
-    final nav = Navigator.of(context);
-    nav.pop();
-    nav.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => buildDashboardForRole(updatedSession)),
-      (_) => false,
-    );
+    // Defer navigation until the frame settles so the provider-driven
+    // rebuild of this sheet (which watches auth state) cannot race the
+    // route transition.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      try {
+        final nav = Navigator.of(context, rootNavigator: true);
+        if (nav.canPop()) nav.pop();
+        nav.pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => buildDashboardForRole(updatedSession),
+          ),
+          (_) => false,
+        );
+      } catch (_) {
+        // Swallow: user can retry from the profile sheet.
+      }
+    });
   }
 }
 

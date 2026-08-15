@@ -25,6 +25,7 @@ import 'startup_products_screen.dart';
 import 'startup_requests_screen.dart';
 import 'notifications_screen.dart';
 import 'team_command_screen.dart';
+import '../../../inbox/view/inbox_screen.dart';
 
 class StartupDashboardScreen extends ConsumerStatefulWidget {
   const StartupDashboardScreen({super.key, required this.startupName});
@@ -246,6 +247,31 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
                                 ],
                               ),
                             ),
+                            GestureDetector(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const InboxScreen(),
+                                ),
+                              ),
+                              child: Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color:
+                                      Colors.white.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.forum_outlined,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
                             GestureDetector(
                               onTap: () => _openNotifications(),
                               child: Container(

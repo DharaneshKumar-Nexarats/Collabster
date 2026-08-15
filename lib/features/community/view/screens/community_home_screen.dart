@@ -3,11 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/di/providers.dart';
+import '../../../../core/bridge/bridge_models.dart';
 import '../../../../shared/widgets/role_switcher_sheet.dart';
 import '../../../auth/view/screens/profile_screen.dart';
 import '../../../auth/view/sign_in_screen.dart';
 import '../../../career/view/screens/notifications_screen.dart';
+import '../../../career/view/screens/jobs_screen.dart';
 import '../../../event/view/screens/event_home_screen.dart';
+import '../../../inbox/view/inbox_screen.dart';
+import '../../../startup/view/screens/startup_posts_feed_screen.dart';
 import '../../model/community_model.dart';
 import '../../model/post_model.dart';
 import 'create_post_screen.dart';
@@ -46,6 +50,8 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
       ref.read(communityViewModelProvider.notifier).loadInitialData();
       ref.read(postViewModelProvider.notifier).loadPosts();
       ref.read(eventViewModelProvider.notifier).loadEvents();
+      ref.read(hiringViewModelProvider.notifier).loadInitialData();
+      ref.read(careerViewModelProvider.notifier).loadInitialData();
     });
   }
 
@@ -420,6 +426,230 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
     );
   }
 
+  void _openInbox() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const InboxScreen()),
+    );
+  }
+
+  void _openStartupFeed() {
+    final session = ref.read(authViewModelProvider).session;
+    final startupName = (session?.startupName?.isNotEmpty == true)
+        ? session!.startupName!
+        : session?.joinedStartupName;
+    if (startupName == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No startup linked yet — create one from Startup mode.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => StartupPostsFeedScreen(startupName: startupName),
+      ),
+    );
+  }
+
+  void _openJobsBoard() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const JobsScreen()),
+    );
+  }
+
+  List<BridgePost> _startupUpdates() {
+    final session = ref.watch(authViewModelProvider).session;
+    final posts = session?.posts ?? const [];
+    if (posts.isEmpty) return const [];
+    final label = (session?.startupName?.isNotEmpty == true)
+        ? session!.startupName!
+        : session?.joinedStartupName;
+    return posts
+        .map((p) => startupPostToBridge(p, startupName: label ?? 'Startup'))
+        .toList();
+  }
+
+  List<BridgeOpportunity> _hiringNow() {
+    final hiringRoles = ref.watch(hiringViewModelProvider).roles;
+    final careerJobs = ref.watch(careerViewModelProvider).jobs;
+    final session = ref.watch(authViewModelProvider).session;
+    final label = (session?.startupName?.isNotEmpty == true)
+        ? session!.startupName!
+        : session?.joinedStartupName;
+    return [
+      ...startupHiringOpportunities(
+        hiringRoles.where((r) => r.roleType == 'job').toList(),
+        startupName: label ?? 'Startup',
+      ),
+      ...careerJobOpportunities(careerJobs),
+    ].take(8).toList();
+  }
+
+  Widget _buildStartupUpdateCard(BridgePost post) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDE9FE), width: 1.2),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4A0E8F), Color(0xFF6D28D9)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.rocket_launch_rounded,
+                color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  post.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${post.sourceLabel} • ${post.authorRole}',
+                  style: TextStyle(fontSize: 11.5, color: Colors.grey.shade500),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.arrow_forward_ios_rounded,
+              size: 14, color: Color(0xFF9CA3AF)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHiringNowCard(BridgeOpportunity opp) {
+    return Container(
+      width: 250,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: opp.fromStartup
+              ? const Color(0xFFEDE9FE)
+              : const Color(0xFFE0F2FE),
+          width: 1.2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: opp.fromStartup
+                      ? const Color(0xFFF3E8FF)
+                      : const Color(0xFFE0F2FE),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  opp.fromStartup
+                      ? Icons.rocket_launch_rounded
+                      : Icons.work_rounded,
+                  color: opp.fromStartup
+                      ? const Color(0xFF6D28D9)
+                      : const Color(0xFF0284C7),
+                  size: 18,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: opp.fromStartup
+                      ? const Color(0xFFEDE9FE)
+                      : const Color(0xFFE0F2FE),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  opp.fromStartup ? 'STARTUP' : 'CAREER',
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            opp.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 14.5,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${opp.company} • ${opp.location}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 11.5, color: Colors.grey.shade500),
+          ),
+          const Spacer(),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  opp.salary,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF15803D),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showProfileSheet() {
     final session = ref.read(authViewModelProvider).session;
     final userName = session?.fullName ?? 'Member';
@@ -713,6 +943,25 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
                           ),
                         ),
                         GestureDetector(
+                          onTap: _openInbox,
+                          child: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.forum_outlined,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        GestureDetector(
                           onTap: _openNotificationsScreen,
                           child: Container(
                             width: 42,
@@ -822,6 +1071,40 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
               ),
               const SizedBox(height: 12),
               _buildHomeQuickActions(),
+              const SizedBox(height: 24),
+
+              // Startup Updates (bridged from Startup hub posts)
+              if (_startupUpdates().isNotEmpty) ...[
+                _buildSectionHeader(
+                  title: 'Startup Updates',
+                  onViewAll: _openStartupFeed,
+                ),
+                const SizedBox(height: 12),
+                ..._startupUpdates().take(3).map(
+                      (post) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _buildStartupUpdateCard(post),
+                      ),
+                    ),
+                const SizedBox(height: 24),
+              ],
+
+              // Hiring Now (bridged from Startup hiring + Career board)
+              _buildSectionHeader(
+                title: 'Hiring Now',
+                onViewAll: _openJobsBoard,
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 168,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _hiringNow().length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) =>
+                      _buildHiringNowCard(_hiringNow()[index]),
+                ),
+              ),
               const SizedBox(height: 24),
 
               // Trending Posts

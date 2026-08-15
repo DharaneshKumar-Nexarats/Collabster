@@ -111,6 +111,7 @@ class OpenRole {
   final String? skills;
   final String? location;
   final String? experience;
+  final String roleType; // 'job' | 'internship'
 
   const OpenRole({
     required this.title,
@@ -123,6 +124,7 @@ class OpenRole {
     this.skills,
     this.location,
     this.experience,
+    this.roleType = 'job',
   });
 }
 

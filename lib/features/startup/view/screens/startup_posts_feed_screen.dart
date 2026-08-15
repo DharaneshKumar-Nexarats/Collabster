@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/di/providers.dart';
+import '../../../../core/bridge/bridge_models.dart';
+import '../../../../shared/widgets/role_switcher_sheet.dart';
 import '../../model/startup_models.dart';
 
 class StartupPostsFeedScreen extends ConsumerStatefulWidget {
@@ -16,6 +18,14 @@ class StartupPostsFeedScreen extends ConsumerStatefulWidget {
 class _StartupPostsFeedScreenState
     extends ConsumerState<StartupPostsFeedScreen> {
   String _selectedCategory = 'All';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(postViewModelProvider.notifier).loadPosts();
+    });
+  }
 
   static const Map<String, _CategoryChip> _categories = {
     'All': _CategoryChip(color: Color(0xFF5B21B6), icon: Icons.grid_view_rounded),
@@ -46,7 +56,7 @@ class _StartupPostsFeedScreenState
             _buildCategoryChips(),
             Expanded(
               child: posts.isEmpty
-                  ? _buildEmptyState()
+                  ? _buildOnlyCommunityTalks()
                   : _buildPostsList(_filteredPosts(posts)),
             ),
           ],
@@ -255,8 +265,150 @@ class _StartupPostsFeedScreenState
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-      itemCount: posts.length,
-      itemBuilder: (context, index) => _PostCard(post: posts[index]),
+      itemCount: posts.length + 1,
+      itemBuilder: (context, index) {
+        if (index == posts.length) {
+          return _buildCommunityTalksSection();
+        }
+        return _PostCard(post: posts[index]);
+      },
+    );
+  }
+
+  // ── Bridge: community discussions surfaced inside the startup feed ─────
+  Widget _buildCommunityTalksSection() {
+    final communityPosts = ref
+        .watch(postViewModelProvider)
+        .posts
+        .map(careerPostToBridge)
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Community Talks',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF12233D),
+              ),
+            ),
+            GestureDetector(
+              onTap: () => RoleSwitcherSheet.show(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF5B21B6),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'Open Community',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Trending discussions across the CollabSphere community',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+        ),
+        const SizedBox(height: 14),
+        if (communityPosts.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: const Text(
+              'No community discussions yet.',
+              style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+            ),
+          )
+        else
+          ...communityPosts.take(3).map(
+                (post) => Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFE0E7FF)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEEF2FF),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.forum_rounded,
+                          color: Color(0xFF4F46E5),
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              post.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF111827),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${post.authorName} • ${post.authorRole} • ${post.likes} likes',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildOnlyCommunityTalks() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      children: [
+        _buildEmptyState(),
+        const SizedBox(height: 8),
+        _buildCommunityTalksSection(),
+      ],
     );
   }
 }
