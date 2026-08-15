@@ -247,8 +247,6 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
               child: const Icon(Icons.notifications_outlined, color: _textPrimary, size: 20),
             ),
           ),
-          const SizedBox(width: 10),
-          const Text('Events', style: TextStyle(color: _textPrimary, fontSize: 18, fontWeight: FontWeight.w800)),
         ],
       ),
     );
