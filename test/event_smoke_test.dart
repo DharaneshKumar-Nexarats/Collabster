@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:collabsphere/core/di/providers.dart';
 import 'package:collabsphere/features/event/view/screens/events/conferences_screen.dart';
 import 'package:collabsphere/features/event/view/screens/events/event_create_screen.dart';
 import 'package:collabsphere/features/event/view/screens/events/event_home_screen.dart';
