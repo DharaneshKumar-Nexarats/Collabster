@@ -139,18 +139,21 @@ class RoleSwitcherSheet extends ConsumerWidget {
     WidgetRef ref,
     UserRole role,
   ) async {
-    await ref.read(authViewModelProvider.notifier).switchRole(role);
+    try {
+      await ref.read(authViewModelProvider.notifier).switchRole(role);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not switch role. Please try again.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     if (!context.mounted) return;
 
-    final updatedSession = ref.read(authViewModelProvider).session;
-    if (updatedSession == null) return;
-
-    final nav = Navigator.of(context);
-    nav.pop();
-    nav.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => buildDashboardForRole(updatedSession)),
-      (_) => false,
-    );
+    _replaceWithDashboard(context, ref);
   }
 
   Future<void> _addAndNavigate(
@@ -158,18 +161,45 @@ class RoleSwitcherSheet extends ConsumerWidget {
     WidgetRef ref,
     UserRole role,
   ) async {
-    await ref.read(authViewModelProvider.notifier).addRole(role);
+    try {
+      await ref.read(authViewModelProvider.notifier).addRole(role);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not add role. Please try again.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     if (!context.mounted) return;
 
+    _replaceWithDashboard(context, ref);
+  }
+
+  void _replaceWithDashboard(BuildContext context, WidgetRef ref) {
     final updatedSession = ref.read(authViewModelProvider).session;
     if (updatedSession == null) return;
 
-    final nav = Navigator.of(context);
-    nav.pop();
-    nav.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => buildDashboardForRole(updatedSession)),
-      (_) => false,
-    );
+    // Defer navigation until the frame settles so the provider-driven
+    // rebuild of this sheet (which watches auth state) cannot race the
+    // route transition.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      try {
+        final nav = Navigator.of(context, rootNavigator: true);
+        if (nav.canPop()) nav.pop();
+        nav.pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => buildDashboardForRole(updatedSession),
+          ),
+          (_) => false,
+        );
+      } catch (_) {
+        // Swallow: user can retry from the profile sheet.
+      }
+    });
   }
 }
 

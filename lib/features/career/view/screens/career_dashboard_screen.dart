@@ -34,7 +34,9 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    ref.read(careerViewModelProvider.notifier).loadInitialData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(careerViewModelProvider.notifier).loadInitialData();
+    });
   }
 
   String get _timeBasedGreeting {
