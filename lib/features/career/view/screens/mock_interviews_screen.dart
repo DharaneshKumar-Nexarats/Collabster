@@ -166,7 +166,7 @@ class _MockInterviewsScreenState extends State<MockInterviewsScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+                border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.02),
@@ -501,7 +501,7 @@ class _TrendingMockCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -667,7 +667,7 @@ class _CoachRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
       ),
       child: Row(
         children: [

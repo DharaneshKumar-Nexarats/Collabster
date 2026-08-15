@@ -1,128 +1,167 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
-import '../../../../core/theme/app_colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/di/providers.dart';
 import 'ats_score_screen.dart';
 
-class CheckResumeScoreScreen extends StatelessWidget {
+class CheckResumeScoreScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
   const CheckResumeScoreScreen({super.key, this.onBack});
 
   @override
+  ConsumerState<CheckResumeScoreScreen> createState() => _CheckResumeScoreScreenState();
+}
+
+class _CheckResumeScoreScreenState extends ConsumerState<CheckResumeScoreScreen> {
+  bool _hasSelectedFile = false;
+  String _selectedFileName = 'Alex_Senior_Designer_Resume.pdf';
+
+  void _pickFile() {
+    setState(() {
+      _hasSelectedFile = true;
+      _selectedFileName = 'Alex_Senior_Designer_Resume.pdf';
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Selected "Alex_Senior_Designer_Resume.pdf" for ATS Analysis!'),
+        backgroundColor: Color(0xFF0284C7),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authViewModelProvider);
+    final session = authState.session;
+    final userName = session?.fullName ?? 'Alex Rivera';
+    final userInitials = userName.isNotEmpty ? userName.split(' ').map((e) => e.isEmpty ? '' : e[0]).take(2).join() : 'AR';
+
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF0284C7)),
+          onPressed: () {
+            if (widget.onBack != null) {
+              widget.onBack!();
+            } else {
+              Navigator.pop(context);
+            }
+          },
+        ),
+        title: const Text(
+          'Check Resume Score',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF0F172A),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF0284C7)),
+            onPressed: () {},
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: const Color(0xFF0284C7),
+              child: Text(
+                userInitials,
+                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header row
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        if (onBack != null) {
-                          onBack!();
-                        } else {
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: const Icon(
-                        Icons.arrow_back_rounded,
-                        color: AppColors.primary,
-                        size: 22,
-                      ),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. AI Resume Analysis Section Header
+              Row(
+                children: const [
+                  Icon(Icons.auto_awesome_rounded, color: Color(0xFF0284C7), size: 18),
+                  SizedBox(width: 6),
+                  Text(
+                    'AI Resume Analysis',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0284C7),
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Check Resume Score',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF111827),
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    const Spacer(),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // AI Resume Analysis badge + description
-                Row(
-                  children: const [
-                    Icon(Icons.auto_awesome_rounded,
-                        color: AppColors.primary, size: 18),
-                    SizedBox(width: 6),
-                    Text(
-                      'AI Resume Analysis',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Our advanced AI evaluates your resume against industry benchmarks for ATS score, keywords, and formatting to help you land your dream job.',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
-                    height: 1.5,
                   ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Our advanced AI evaluates your resume against industry benchmarks for ATS score, keywords, and formatting to help you land your dream job.',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF64748B),
+                  height: 1.45,
                 ),
-                const SizedBox(height: 24),
+              ),
+              const SizedBox(height: 24),
 
-                // Browse Files card
-                Container(
+              // 2. Browse Files Dashed Container Box
+              GestureDetector(
+                onTap: _pickFile,
+                child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 32, horizontal: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                        color: const Color(0xFFBAE6FD), width: 1.5),
+                      color: const Color(0xFF0284C7),
+                      width: 1.8,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0284C7).withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
                       Container(
-                        width: 64,
-                        height: 64,
+                        width: 60,
+                        height: 60,
                         decoration: const BoxDecoration(
-                          color: Color(0xFFF0F9FF),
+                          color: Color(0xFFE0F2FE),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
-                          Icons.cloud_upload_outlined,
-                          color: AppColors.primary,
+                          Icons.cloud_upload_rounded,
+                          color: Color(0xFF0284C7),
                           size: 30,
                         ),
                       ),
                       const SizedBox(height: 14),
-                      const Text(
-                        'Browse Files',
-                        style: TextStyle(
+                      Text(
+                        _hasSelectedFile ? _selectedFileName : 'Browse Files',
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF111827),
+                          color: Color(0xFF0F172A),
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
+                      const Text(
                         'Support for PDF, DOC, DOCX',
-                        style: TextStyle(
-                            fontSize: 12, color: Colors.grey.shade500),
+                        style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                       ),
                       const SizedBox(height: 14),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE0F2FE),
                           borderRadius: BorderRadius.circular(20),
@@ -130,208 +169,157 @@ class CheckResumeScoreScreen extends StatelessWidget {
                         child: const Text(
                           'Max file size: 5MB',
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF0284C7),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+              ),
+              const SizedBox(height: 20),
 
-                // Check Score button (Active style matching AppColors.primary)
-                GestureDetector(
-                  onTap: () {
+              // 3. Check Score Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const ATSScoreScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const ATSScoreScreen()),
                     );
                   },
-                  child: Container(
-                    width: double.infinity,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                  icon: const Icon(Icons.bar_chart_rounded, size: 20),
+                  label: const Text('Check Score'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0284C7),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // 4. Why ATS Matters Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(
-                          Icons.insert_chart_outlined_rounded,
-                          color: Colors.white,
-                          size: 20,
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          width: 56,
+                          height: 56,
+                          child: CircularProgressIndicator(
+                            value: 0.85,
+                            strokeWidth: 5,
+                            backgroundColor: const Color(0xFFE0F2FE),
+                            color: const Color(0xFF0284C7),
+                          ),
                         ),
-                        SizedBox(width: 10),
-                        Text(
-                          'Check Score',
+                        const Text(
+                          '85%',
                           style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF0284C7),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Why ATS Matters card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                        color: const Color(0xFFE0F2FE), width: 1.2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      // 85% donut chart
-                      SizedBox(
-                        width: 64,
-                        height: 64,
-                        child: CustomPaint(
-                          painter: _DonutPainter(percentage: 0.85),
-                          child: const Center(
-                            child: Text(
-                              '85%',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            'Why ATS Matters',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Why ATS Matters',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF111827),
-                              ),
+                          SizedBox(height: 4),
+                          Text(
+                            '75% of resumes are rejected by ATS before they reach a human recruiter.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                              height: 1.35,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              '75% of resumes are rejected by ATS before they reach a human recruiter.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
+              ),
+              const SizedBox(height: 20),
 
-                // Pro Tip card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0F2FE),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
+              // 5. Pro Tip Banner Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE0F2FE),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFBAE6FD)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0284C7),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
                         'PRO TIP',
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                          letterSpacing: 1.2,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Use active verbs and quantifiable metrics to boost your ATS compatibility by up to 40%.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF111827),
-                          height: 1.5,
-                        ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Use active verbs and quantifiable metrics to boost your ATS compatibility by up to 40%.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0369A1),
+                        height: 1.4,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-}
-
-class _DonutPainter extends CustomPainter {
-  final double percentage;
-  const _DonutPainter({required this.percentage});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokeWidth = 7.0;
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-
-    // Background track
-    final bgPaint = Paint()
-      ..color = const Color(0xFFBAE6FD)
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawCircle(center, radius, bgPaint);
-
-    // Progress arc
-    final fgPaint = Paint()
-      ..color = AppColors.primary
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi / 2,
-      2 * math.pi * percentage,
-      false,
-      fgPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

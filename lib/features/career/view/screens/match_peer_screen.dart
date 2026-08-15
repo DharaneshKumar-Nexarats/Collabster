@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../widgets/career_search_bar.dart';
 import 'peer_booking_screen.dart';
 
 class MatchPeerScreen extends StatefulWidget {
@@ -11,206 +9,308 @@ class MatchPeerScreen extends StatefulWidget {
 }
 
 class _MatchPeerScreenState extends State<MatchPeerScreen> {
-  int _selectedDomain = 0; // 0 = All, 1 = Frontend, 2 = Backend, 3 = Data Science
+  int _selectedDomain = 0;
   final Set<String> _selectedSkills = {'JavaScript', 'Node.js'};
   final TextEditingController _searchController = TextEditingController();
+
+  // ── Palette (mirrors the dark Events screen) ──────────────────────────────
+  static const _bg = Color(0xFF0D0D1A);
+  static const _surface = Color(0xFF1A1A2E);
+  static const _surfaceAlt = Color(0xFF16213E);
+  static const _purple = Color(0xFF7C3AED);
+  static const _purpleLight = Color(0xFFEDE9FE);
+  static const _purpleSubtle = Color(0xFF2D1B69);
+  static const _textPrimary = Colors.white;
+  static const _textSecondary = Color(0xFF9CA3AF);
+  static const _green = Color(0xFF10B981);
+  static const _divider = Color(0xFF1E1E3A);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _bg,
       body: SafeArea(
         child: Column(
           children: [
-            // Header Row
+            // ── Header ─────────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Row(
                 children: [
+                  // Back button
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(
-                      Icons.arrow_back_rounded,
-                      color: AppColors.primary,
-                      size: 22,
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: _surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _divider, width: 1),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: _textPrimary,
+                        size: 20,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 14),
+                  // Title
                   const Text(
                     'Match your Peer',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF111827),
+                      fontWeight: FontWeight.w800,
+                      color: _textPrimary,
                     ),
                   ),
                   const Spacer(),
+                  // Bell icon (mirrors the Events screen header)
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: _surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: _divider, width: 1),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        const Icon(
+                          Icons.notifications_none_rounded,
+                          color: _textPrimary,
+                          size: 20,
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            width: 7,
+                            height: 7,
+                            decoration: const BoxDecoration(
+                              color: _purple,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            // Scrollable Content
+            // ── Scrollable body ─────────────────────────────────────────────
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Subtitle
-                      const Text(
-                        'Select Skill Focus',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF111827),
-                        ),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Subtitle
+                    const Text(
+                      'Select Skill Focus',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: _textPrimary,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Choose a domain to find peers specializing in that stack.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade500,
-                        ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Choose a domain to find peers specializing in that stack.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: _textSecondary,
+                        height: 1.4,
                       ),
-                      const SizedBox(height: 14),
+                    ),
+                    const SizedBox(height: 16),
 
-                      // Status matching badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE0F2FE),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          children: const [
-                            CircleAvatar(
-                              radius: 3.5,
-                              backgroundColor: Color(0xFF10B981),
+                    // Active-peers badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: _purpleSubtle,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Color(0xFF7C3AED).withValues(alpha: 0.3), width: 1),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: _green,
+                              shape: BoxShape.circle,
                             ),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                '42 active peers matching your profile skills',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0284C7),
-                                ),
+                          ),
+                          const SizedBox(width: 10),
+                          const Expanded(
+                            child: Text(
+                              '42 active peers matching your profile skills',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _purpleLight,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 14),
+                    ),
+                    const SizedBox(height: 16),
 
-                      // Search bar
-                      CareerSearchBar(
-                        controller: _searchController,
-                        hintText: 'Search specific skill, framework, or peer...',
-                        hasActiveFilter: _selectedDomain != 0,
-                        showFilterButton: true,
-                        onChanged: (value) => setState(() {}),
-                        onFilterTap: () {
-                          setState(() {
-                            _selectedDomain = (_selectedDomain + 1) % 4;
-                          });
-                        },
+                    // Search bar (styled like Events screen)
+                    Container(
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: _surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: _divider, width: 1),
                       ),
-                      const SizedBox(height: 16),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 14),
+                          const Icon(Icons.search_rounded, color: _textSecondary, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: _textPrimary,
+                              ),
+                              decoration: const InputDecoration(
+                                hintText: 'Search skill, framework, or peer...',
+                                hintStyle: TextStyle(
+                                  fontSize: 13,
+                                  color: _textSecondary,
+                                ),
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              onChanged: (v) => setState(() {}),
+                            ),
+                          ),
+                          // Filter icon button
+                          GestureDetector(
+                            onTap: () => setState(() {
+                              _selectedDomain = (_selectedDomain + 1) % 4;
+                            }),
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              margin: const EdgeInsets.only(right: 5),
+                              decoration: BoxDecoration(
+                                color: _selectedDomain != 0 ? _purple : _surfaceAlt,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.tune_rounded,
+                                color: _textPrimary,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
 
+                    // Domain filter chips (horizontal scroll)
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: [
+                          _buildDomainChip(0, 'All'),
+                          const SizedBox(width: 8),
+                          _buildDomainChip(1, 'Frontend'),
+                          const SizedBox(width: 8),
+                          _buildDomainChip(2, 'Backend'),
+                          const SizedBox(width: 8),
+                          _buildDomainChip(3, 'Data Science'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
 
-                      // Domain Filter chips
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        child: Row(
-                          children: [
-                            _buildDomainChip(0, 'All'),
-                            const SizedBox(width: 8),
-                            _buildDomainChip(1, 'Frontend'),
-                            const SizedBox(width: 8),
-                            _buildDomainChip(2, 'Backend'),
-                            const SizedBox(width: 8),
-                            _buildDomainChip(3, 'Data Science'),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                    // Skill card — Languages
+                    _buildSkillGroupCard(
+                      icon: Icons.code_rounded,
+                      title: 'Languages',
+                      skills: const ['Python', 'JavaScript', 'Java', 'Go', 'C++'],
+                    ),
+                    const SizedBox(height: 14),
 
-                      // Card 1: Languages
-                      _buildSkillGroupCard(
-                        icon: Icons.code_rounded,
-                        title: 'Languages',
-                        skills: const ['Python', 'JavaScript', 'Java', 'Go', 'C++'],
-                      ),
-                      const SizedBox(height: 16),
+                    // Skill card — Backend & Data
+                    _buildSkillGroupCard(
+                      icon: Icons.dns_outlined,
+                      title: 'Backend & Data',
+                      skills: const ['Node.js', 'Python Django', 'PostgreSQL', 'System Design'],
+                    ),
+                    const SizedBox(height: 24),
 
-                      // Card 2: Backend & Data
-                      _buildSkillGroupCard(
-                        icon: Icons.dns_outlined,
-                        title: 'Backend & Data',
-                        skills: const ['Node.js', 'Python Django', 'PostgreSQL', 'System Design'],
+                    // Section label
+                    const Text(
+                      'RECOMMENDED MATCHES BASED ON FOCUS',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        color: _textSecondary,
+                        letterSpacing: 1.0,
                       ),
-                      const SizedBox(height: 24),
+                    ),
+                    const SizedBox(height: 12),
 
-                      // RECOMMENDED MATCHES BASED ON FOCUS title
-                      const Text(
-                        'RECOMMENDED MATCHES BASED ON FOCUS',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Matches lists
-                      _buildMatchRow(
-                        name: 'Sarah Chen',
-                        desc: 'L7 at BigTech • React Expert',
-                        avatarUrl: 'https://i.pravatar.cc/150?img=34',
-                      ),
-                      const SizedBox(height: 10),
-                      _buildMatchRow(
-                        name: 'Marcus Thorne',
-                        desc: 'Backend Lead • Node.js/Go',
-                        avatarUrl: 'https://i.pravatar.cc/150?img=33',
-                      ),
-                      const SizedBox(height: 10),
-                      _buildMatchRow(
-                        name: 'Elena Rodriguez',
-                        desc: 'Systems Arch • PostgreSQL',
-                        avatarUrl: 'https://i.pravatar.cc/150?img=28',
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                    // Match rows
+                    _buildMatchRow(
+                      name: 'Sarah Chen',
+                      desc: 'L7 at BigTech • React Expert',
+                      avatarUrl: 'https://i.pravatar.cc/150?img=34',
+                    ),
+                    const SizedBox(height: 10),
+                    _buildMatchRow(
+                      name: 'Marcus Thorne',
+                      desc: 'Backend Lead • Node.js / Go',
+                      avatarUrl: 'https://i.pravatar.cc/150?img=33',
+                    ),
+                    const SizedBox(height: 10),
+                    _buildMatchRow(
+                      name: 'Elena Rodriguez',
+                      desc: 'Systems Arch • PostgreSQL',
+                      avatarUrl: 'https://i.pravatar.cc/150?img=28',
+                    ),
+                    const SizedBox(height: 28),
+                  ],
                 ),
               ),
             ),
 
-            // Overlap Sticky Bottom panel
+            // ── Sticky bottom panel ─────────────────────────────────────────
             Container(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: _surface,
+                border: Border(top: BorderSide(color: _divider, width: 1)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, -4),
+                    color: Colors.black.withValues(alpha: 0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, -6),
                   ),
                 ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Tags indicator
+                  // Selected skill tags
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -218,22 +318,22 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
                       const SizedBox(width: 6),
                       _buildSelectionTag('React.js'),
                       const SizedBox(width: 6),
-                      Text(
+                      const Text(
                         '+ 1 more',
                         style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade500,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _textSecondary,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
 
-                  // Find Peer Match button
+                  // CTA button — mirrors the "Register Now" button style
                   SizedBox(
                     width: double.infinity,
-                    height: 48,
+                    height: 50,
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.push(
@@ -244,27 +344,27 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0284C7),
+                        backgroundColor: _purple,
                         elevation: 0,
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
+                        children: [
                           Text(
                             'Find Peer Match',
                             style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
                           ),
-                          SizedBox(width: 6),
-                          Icon(Icons.bolt, color: Colors.white, size: 16),
+                          SizedBox(width: 8),
+                          Icon(Icons.bolt_rounded, color: Colors.white, size: 18),
                         ],
                       ),
                     ),
@@ -278,29 +378,35 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
     );
   }
 
+  // ── Domain chip ────────────────────────────────────────────────────────────
   Widget _buildDomainChip(int index, String label) {
     final selected = _selectedDomain == index;
     return GestureDetector(
       onTap: () => setState(() => _selectedDomain = index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        margin: const EdgeInsets.only(right: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFF0284C7) : const Color(0xFFF3F4F6),
-          borderRadius: BorderRadius.circular(20),
+          color: selected ? _purple : _surface,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: selected ? _purple : _divider,
+            width: 1,
+          ),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: selected ? Colors.white : Colors.grey.shade600,
+            fontWeight: FontWeight.w700,
+            color: selected ? Colors.white : _textSecondary,
           ),
         ),
       ),
     );
   }
 
+  // ── Skill group card ───────────────────────────────────────────────────────
   Widget _buildSkillGroupCard({
     required IconData icon,
     required String title,
@@ -310,9 +416,9 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
+        border: Border.all(color: _divider, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,25 +426,26 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF0F9FF),
-                  shape: BoxShape.circle,
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: _purpleSubtle,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: const Color(0xFF0284C7), size: 16),
+                child: Icon(icon, color: _purple, size: 17),
               ),
               const SizedBox(width: 10),
               Text(
                 title,
                 style: const TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  fontWeight: FontWeight.w700,
+                  color: _textPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -349,6 +456,7 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
     );
   }
 
+  // ── Skill chip ─────────────────────────────────────────────────────────────
   Widget _buildSkillChip(String label) {
     final isSelected = _selectedSkills.contains(label);
     return GestureDetector(
@@ -361,13 +469,14 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
           }
         });
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0284C7) : Colors.white,
+          color: isSelected ? _purple : _surfaceAlt,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? Colors.transparent : Colors.grey.shade200,
+            color: isSelected ? _purple : _divider,
             width: 1,
           ),
         ),
@@ -376,42 +485,44 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.grey.shade600,
+            color: isSelected ? Colors.white : _textSecondary,
           ),
         ),
       ),
     );
   }
 
+  // ── Match row ──────────────────────────────────────────────────────────────
   Widget _buildMatchRow({
     required String name,
     required String desc,
     required String avatarUrl,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F9FF),
-        borderRadius: BorderRadius.circular(12),
+        color: _surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _divider, width: 1),
       ),
       child: Row(
         children: [
           Stack(
             children: [
               CircleAvatar(
-                radius: 18,
+                radius: 20,
                 backgroundImage: NetworkImage(avatarUrl),
               ),
               Positioned(
                 right: 0,
                 bottom: 0,
                 child: Container(
-                  width: 8,
-                  height: 8,
+                  width: 9,
+                  height: 9,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981),
+                    color: _green,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1),
+                    border: Border.all(color: _surface, width: 1.5),
                   ),
                 ),
               ),
@@ -425,37 +536,47 @@ class _MatchPeerScreenState extends State<MatchPeerScreen> {
                 Text(
                   name,
                   style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: _textPrimary,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
                   desc,
-                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: _textSecondary,
+                  ),
                 ),
               ],
             ),
+          ),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: _textSecondary,
+            size: 20,
           ),
         ],
       ),
     );
   }
 
+  // ── Selection tag ──────────────────────────────────────────────────────────
   Widget _buildSelectionTag(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFE0F2FE),
-        borderRadius: BorderRadius.circular(6),
+        color: _purpleSubtle,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Color(0xFF7C3AED).withValues(alpha: 0.4), width: 1),
       ),
       child: Text(
         label,
         style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF0284C7),
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: _purpleLight,
         ),
       ),
     );

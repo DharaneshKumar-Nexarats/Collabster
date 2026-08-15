@@ -418,10 +418,80 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
               ElevatedButton(
                 onPressed: () {
                   ref.read(careerViewModelProvider.notifier).applyToJob(item.title);
+                  
+                  final isProductDesigner = item.title.contains('Product Designer') || item.company == 'Stripe';
+                  final isDataAnalyst = item.title.contains('Data Analyst') || item.company == 'Microsoft';
+                  final isFrontend = item.title.contains('Senior Software') || item.title.contains('Frontend') || item.company == 'Google';
+
+                  String title = item.title;
+                  String company = item.company;
+                  String location = item.location;
+                  String salary = item.salaryTag;
+                  List<String> tags = item.tags;
+                  String? about;
+                  List<String>? requirements;
+                  String applied = '320+';
+                  String size = '1K+';
+                  String views = '4.3k';
+
+                  if (isFrontend) {
+                    title = 'Frontend Developer';
+                    company = 'Google';
+                    location = 'Remote (Worldwide)';
+                    salary = '\$80k – \$110k USD';
+                    tags = const ['React', 'Tailwind'];
+                    applied = '450+';
+                    size = '2 – 5 yrs';
+                    views = '2 hours ago';
+                    about = 'As a Frontend Developer at Google, you will build beautiful, responsive, and accessible user interfaces that power millions of users worldwide. You\'ll work with cross-functional teams to deliver high-quality products using modern web technologies.';
+                  } else if (isProductDesigner) {
+                    title = 'Product Designer';
+                    company = 'Stripe';
+                    location = 'Remote (Worldwide)';
+                    salary = '\$80k – \$110k USD';
+                    tags = const ['Full-time', 'Remote', 'Mid Level'];
+                    applied = '320+';
+                    size = '1K+';
+                    views = '4.3k';
+                    about = 'We’re looking for a Product Designer to join our design team and help create intuitive, beautiful experiences for millions of businesses worldwide. You’ll own the end-to-end design process from user research to high-fidelity designs and work closely with product managers and engineers to ship impactful products.';
+                    requirements = const [
+                      'Proficiency in Figma and design tools.',
+                      'Strong portfolio showcasing product design projects and design thinking.',
+                      'Experience with user research, wireframing, prototyping, and design systems.',
+                    ];
+                  } else if (isDataAnalyst) {
+                    title = 'Data Analyst Intern';
+                    company = 'Microsoft';
+                    location = 'Bangalore, KA (On-site)';
+                    salary = '₹15 – ₹22 LPA';
+                    tags = const ['Full-time', 'On-site', 'Entry Level'];
+                    applied = '280+';
+                    size = '1K+';
+                    views = '3.8k';
+                    about = 'Join our data team to collect, clean, analyze, and visualize data that helps drive business decisions. You’ll work on real-world datasets, build insightful dashboards, and collaborate with cross-functional teams to solve meaningful problems.';
+                    requirements = const [
+                      'Proficiency in SQL and Excel.',
+                      'Knowledge of Python, Power BI, or Tableau is a plus.',
+                      'Strong analytical and problem-solving skills.',
+                      'Good understanding of statistics and data visualization.',
+                    ];
+                  }
+
                   Navigator.push(
                     context,
                     SmoothRightToLeftPageRoute(
-                      builder: (context) => const JobDetailsScreen(),
+                      builder: (context) => JobDetailsScreen(
+                        title: title,
+                        company: company,
+                        location: location,
+                        salary: salary,
+                        tags: tags,
+                        about: about,
+                        requirements: requirements,
+                        applied: applied,
+                        size: size,
+                        views: views,
+                      ),
                     ),
                   );
                 },
