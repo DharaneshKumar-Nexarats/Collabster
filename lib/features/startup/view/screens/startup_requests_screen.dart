@@ -18,7 +18,10 @@ class _StartupRequestsScreenState extends ConsumerState<StartupRequestsScreen> {
   @override
   void initState() {
     super.initState();
-    ref.read(requestsViewModelProvider.notifier).loadInitialData();
+    Future.delayed(Duration.zero, () {
+      if (!mounted) return;
+      ref.read(requestsViewModelProvider.notifier).loadInitialData();
+    });
   }
 
   List<ConnectionRequest> get _filtered =>
