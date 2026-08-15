@@ -7,7 +7,6 @@ import '../../features/home/view/home_dashboard_screen.dart';
 import '../../features/investor/view/screens/investor_home_screen.dart';
 import '../../features/community/view/screens/community_home_screen.dart';
 import '../../features/career/view/screens/career_dashboard_screen.dart';
-import '../../features/startup/view/screens/startup_dashboard_screen.dart';
 import '../../features/startup/view/screens/startup_landing_screen.dart';
 import '../../features/event/view/screens/events/event_home_screen.dart';
 
@@ -15,19 +14,6 @@ Widget buildDashboardForRole(AuthSession session) {
   final activeRole = session.activeUserRole;
 
   if (activeRole.isStartupRole) {
-    // Use own startup name first, then fall back to a joined startup name.
-    // Either means the user has already gone through the join/create flow
-    // and should land directly on their dashboard — NOT the landing screen.
-    final effectiveName = (session.startupName?.isNotEmpty == true)
-        ? session.startupName!
-        : (session.joinedStartupName?.isNotEmpty == true)
-            ? session.joinedStartupName!
-            : null;
-
-    if (effectiveName != null) {
-      return StartupDashboardScreen(startupName: effectiveName);
-    }
-    // No startup set up yet → show the join/create landing screen
     return StartupLandingScreen(selectedRole: activeRole.label);
   }
 
