@@ -39,6 +39,10 @@ import '../../features/community/viewmodel/community_viewmodel.dart';
 import '../../features/community/viewmodel/community_state.dart';
 import '../../features/community/viewmodel/post_viewmodel.dart';
 import '../../features/community/viewmodel/post_state.dart';
+import '../../features/community/viewmodel/activity_viewmodel.dart';
+import '../../features/community/viewmodel/activity_state.dart';
+import '../../features/community/viewmodel/message_viewmodel.dart';
+import '../../features/community/viewmodel/message_state.dart';
 import '../../features/event/viewmodel/event_viewmodel.dart';
 import '../../features/event/viewmodel/event_state.dart';
 import '../../features/event/viewmodel/event_create_viewmodel.dart';
@@ -172,6 +176,16 @@ final communityViewModelProvider =
 final postViewModelProvider =
     StateNotifierProvider<PostViewModel, PostState>((ref) {
   return PostViewModel();
+});
+
+final activityViewModelProvider =
+    StateNotifierProvider<ActivityViewModel, ActivityState>((ref) {
+  return ActivityViewModel();
+});
+
+final messageViewModelProvider =
+    StateNotifierProvider<MessageViewModel, MessageState>((ref) {
+  return MessageViewModel();
 });
 
 // ---------------------------------------------------------------------------

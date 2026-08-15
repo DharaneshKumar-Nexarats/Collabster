@@ -6,6 +6,7 @@ class EventViewModel extends StateNotifier<EventState> {
   EventViewModel() : super(const EventState());
 
   void loadEvents() {
+    if (state.events.isNotEmpty) return;
     state = state.copyWith(
       events: [
         Event(
@@ -32,6 +33,7 @@ class EventViewModel extends StateNotifier<EventState> {
           isOnline: true,
         ),
       ],
+      unreadCount: 2,
     );
   }
 
@@ -48,5 +50,13 @@ class EventViewModel extends StateNotifier<EventState> {
     if (!state.myEvents.any((e) => e.id == eventId)) {
       state = state.copyWith(myEvents: [...state.myEvents, event]);
     }
+  }
+
+  void addEvent(Event event) {
+    state = state.copyWith(events: [event, ...state.events]);
+  }
+
+  void markEventsAsRead() {
+    state = state.copyWith(unreadCount: 0);
   }
 }

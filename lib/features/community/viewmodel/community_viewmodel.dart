@@ -7,13 +7,30 @@ class CommunityViewModel extends StateNotifier<CommunityState> {
   CommunityViewModel() : super(const CommunityState());
 
   void loadInitialData() {
+    if (state.myCommunities.isNotEmpty) return;
     state = state.copyWith(
       categories: const [
-        CommunityCategory(id: 'all', label: 'All', icon: Icons.grid_view_rounded),
+        CommunityCategory(
+          id: 'all',
+          label: 'All',
+          icon: Icons.grid_view_rounded,
+        ),
         CommunityCategory(id: 'tech', label: 'Tech', icon: Icons.code_rounded),
-        CommunityCategory(id: 'startup', label: 'Startup', icon: Icons.rocket_launch_outlined),
-        CommunityCategory(id: 'design', label: 'Design', icon: Icons.edit_outlined),
-        CommunityCategory(id: 'ai_ml', label: 'AI / ML', icon: Icons.psychology_outlined),
+        CommunityCategory(
+          id: 'startup',
+          label: 'Startup',
+          icon: Icons.rocket_launch_outlined,
+        ),
+        CommunityCategory(
+          id: 'design',
+          label: 'Design',
+          icon: Icons.edit_outlined,
+        ),
+        CommunityCategory(
+          id: 'ai_ml',
+          label: 'AI / ML',
+          icon: Icons.psychology_outlined,
+        ),
       ],
       whatsHappening: const [
         WhatsHappeningItem(
@@ -97,6 +114,38 @@ class CommunityViewModel extends StateNotifier<CommunityState> {
           iconColor: Colors.white,
         ),
       ],
+      rooms: [
+        CommunityRoom(
+          id: 'room_1',
+          communityId: 'mc_1',
+          communityTitle: 'Flutter Developers',
+          name: 'General',
+          memberCount: '2.1K members',
+          isJoined: true,
+        ),
+        CommunityRoom(
+          id: 'room_2',
+          communityId: 'mc_1',
+          communityTitle: 'Flutter Developers',
+          name: 'Showcase & Wins',
+          memberCount: '864 members',
+        ),
+        CommunityRoom(
+          id: 'room_3',
+          communityId: 'mc_2',
+          communityTitle: 'Startup Founders',
+          name: 'Founder Advice',
+          memberCount: '1.2K members',
+        ),
+        CommunityRoom(
+          id: 'room_4',
+          communityId: 'mc_2',
+          communityTitle: 'Startup Founders',
+          name: 'Investor Talks',
+          memberCount: '648 members',
+        ),
+      ],
+      unreadCount: 2,
     );
   }
 
@@ -126,5 +175,27 @@ class CommunityViewModel extends StateNotifier<CommunityState> {
       return c;
     }).toList();
     state = state.copyWith(recommendedCommunities: updated);
+  }
+
+  void addCommunity(MyCommunityItem community) {
+    state = state.copyWith(myCommunities: [community, ...state.myCommunities]);
+  }
+
+  void addRoom(CommunityRoom room) {
+    state = state.copyWith(rooms: [...state.rooms, room]);
+  }
+
+  void toggleJoinRoom(String id) {
+    final updated = state.rooms.map((room) {
+      if (room.id == id) {
+        room.isJoined = !room.isJoined;
+      }
+      return room;
+    }).toList();
+    state = state.copyWith(rooms: updated);
+  }
+
+  void markCommunitiesAsRead() {
+    state = state.copyWith(unreadCount: 0);
   }
 }

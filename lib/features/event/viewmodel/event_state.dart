@@ -6,12 +6,14 @@ class EventState {
     this.myEvents = const [],
     this.selectedFilter = 'All',
     this.searchQuery = '',
+    this.unreadCount = 2,
   });
 
   final List<Event> events;
   final List<Event> myEvents;
   final String selectedFilter;
   final String searchQuery;
+  final int unreadCount;
 
   List<Event> get filteredEvents {
     return events.where((e) {
@@ -30,12 +32,14 @@ class EventState {
     List<Event>? myEvents,
     String? selectedFilter,
     String? searchQuery,
+    int? unreadCount,
   }) {
     return EventState(
       events: events ?? this.events,
       myEvents: myEvents ?? this.myEvents,
       selectedFilter: selectedFilter ?? this.selectedFilter,
       searchQuery: searchQuery ?? this.searchQuery,
+      unreadCount: unreadCount ?? this.unreadCount,
     );
   }
 }
