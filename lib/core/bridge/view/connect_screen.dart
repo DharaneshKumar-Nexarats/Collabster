@@ -12,17 +12,76 @@ import '../../../features/investor/view/screens/deal_flow_screen.dart';
 import '../../di/providers.dart';
 import '../bridge_models.dart';
 import '../bridge_state.dart';
+import '../../../shared/enums/app_enums.dart';
 
 const _bg = Color(0xFFF8FAFC);
 const _textPrimary = Color(0xFF0F172A);
 const _textSecondary = Color(0xFF64748B);
 const _borderColor = Color(0xFFE2E8F0);
 
+class ConnectTheme {
+  final List<Color> gradientColors;
+  final Color primaryColor;
+
+  const ConnectTheme({
+    required this.gradientColors,
+    required this.primaryColor,
+  });
+
+  static ConnectTheme forRole(UserRole? role, String? modeTheme) {
+    String modeKey = modeTheme?.toLowerCase() ?? '';
+    if (modeKey.isEmpty && role != null) {
+      if (role.isStartupRole) {
+        modeKey = 'startup';
+      } else if (role == UserRole.student || role == UserRole.professional || role == UserRole.mentor) {
+        modeKey = 'career';
+      } else if (role == UserRole.creator || role == UserRole.influencer) {
+        modeKey = 'community';
+      } else if (role == UserRole.serviceProvider) {
+        modeKey = 'event';
+      } else if (role == UserRole.investor) {
+        modeKey = 'investor';
+      }
+    }
+
+    switch (modeKey) {
+      case 'career':
+        return const ConnectTheme(
+          gradientColors: [Color(0xFF1E3A8A), Color(0xFF2563EB), Color(0xFF3B82F6)],
+          primaryColor: Color(0xFF2563EB),
+        );
+      case 'community':
+        return const ConnectTheme(
+          gradientColors: [Color(0xFF9A3412), Color(0xFFEA580C), Color(0xFFF97316)],
+          primaryColor: Color(0xFFEA580C),
+        );
+      case 'event':
+      case 'events':
+        return const ConnectTheme(
+          gradientColors: [Color(0xFF065F46), Color(0xFF059669), Color(0xFF10B981)],
+          primaryColor: Color(0xFF059669),
+        );
+      case 'investor':
+        return const ConnectTheme(
+          gradientColors: [Color(0xFF78350F), Color(0xFFD97706), Color(0xFFF59E0B)],
+          primaryColor: Color(0xFFD97706),
+        );
+      case 'startup':
+      default:
+        return const ConnectTheme(
+          gradientColors: [Color(0xFF4A0E8F), Color(0xFF6D28D9), Color(0xFF4F46E5)],
+          primaryColor: Color(0xFF6D28D9),
+        );
+    }
+  }
+}
+
 /// The Connection Bridge hub: one feed across every mode.
 /// Aggregates Startup hiring, Career jobs, Community & Startup posts,
 /// Event hub events and Investor connections — each tagged with its source.
 class ConnectScreen extends ConsumerStatefulWidget {
-  const ConnectScreen({super.key});
+  const ConnectScreen({super.key, this.modeTheme});
+  final String? modeTheme;
 
   @override
   ConsumerState<ConnectScreen> createState() => _ConnectScreenState();
@@ -31,7 +90,23 @@ class ConnectScreen extends ConsumerStatefulWidget {
 class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   int _tabIndex = 0;
 
-  static const _tabs = ['All', 'Opportunities', 'Posts', 'Events', 'Investors', 'Deals', 'Notifications'];
+  static const _allTabs = ['All', 'Opportunities', 'Posts', 'Events', 'Investors', 'Deals', 'Notifications'];
+
+  ConnectTheme get _theme {
+    final session = ref.watch(authViewModelProvider).session;
+    return ConnectTheme.forRole(session?.activeUserRole, widget.modeTheme);
+  }
+
+  List<String> get _visibleTabs {
+    final session = ref.read(authViewModelProvider).session;
+    final activeRole = session?.activeUserRole ?? UserRole.professional;
+    final showInvestorDeals = activeRole.isStartupRole || activeRole == UserRole.investor;
+
+    if (showInvestorDeals) {
+      return _allTabs;
+    }
+    return _allTabs.where((t) => t != 'Investors' && t != 'Deals').toList();
+  }
 
   @override
   void initState() {
@@ -46,32 +121,36 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   Widget build(BuildContext context) {
     final bridgeState = ref.watch(bridgeViewModelProvider);
 
+    if (_tabIndex >= _visibleTabs.length) {
+      _tabIndex = 0;
+    }
+
     return Scaffold(
       backgroundColor: _bg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(bridgeState),
-            _buildTabBar(),
-            Expanded(
-              child: _buildTabContent(bridgeState),
-            ),
-          ],
-        ),
+      body: Column(
+        children: [
+          _buildHeader(bridgeState),
+          _buildTabBar(),
+          Expanded(
+            child: _buildTabContent(bridgeState),
+          ),
+        ],
       ),
     );
   }
 
   // ─── Header ─────────────────────────────────────────────────
   Widget _buildHeader(BridgeState state) {
+    final topPadding = MediaQuery.of(context).padding.top;
+    final theme = _theme;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
-      decoration: const BoxDecoration(
+      padding: EdgeInsets.fromLTRB(18, topPadding + 12, 18, 18),
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF4A0E8F), Color(0xFF6D28D9), Color(0xFF4F46E5)],
+          colors: theme.gradientColors,
         ),
       ),
       child: Column(
@@ -179,13 +258,14 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 
   // ─── Tabs ───────────────────────────────────────────────────
   Widget _buildTabBar() {
+    final primaryColor = _theme.primaryColor;
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 10),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: List.generate(_tabs.length, (i) {
+          children: List.generate(_visibleTabs.length, (i) {
             final isSelected = _tabIndex == i;
             return GestureDetector(
               onTap: () => setState(() => _tabIndex = i),
@@ -194,11 +274,11 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                 margin: const EdgeInsets.only(right: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF6D28D9) : const Color(0xFFF3F4F6),
+                  color: isSelected ? primaryColor : const Color(0xFFF3F4F6),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  _tabs[i],
+                  _visibleTabs[i],
                   style: TextStyle(
                     color: isSelected ? Colors.white : _textSecondary,
                     fontSize: 12.5,
@@ -216,21 +296,22 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   // ─── Content ────────────────────────────────────────────────
   Widget _buildTabContent(BridgeState state) {
     if (!state.isLoaded) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF6D28D9)),
+      return Center(
+        child: CircularProgressIndicator(color: _theme.primaryColor),
       );
     }
 
     final items = <Widget>[];
-    final showAll = _tabIndex == 0;
+    final selectedTab = _visibleTabs[_tabIndex];
+    final showAll = selectedTab == 'All';
 
-    if (showAll || _tabIndex == 1) {
+    if (showAll || selectedTab == 'Opportunities') {
       final opportunities = state.opportunities;
       if (showAll || opportunities.isNotEmpty) {
         items.add(_sectionHeader(
           'Opportunities',
           'Startup hiring + Career board',
-          onViewAll: () => _openTab(1),
+          onViewAll: () => _openTabByName('Opportunities'),
         ));
         if (opportunities.isEmpty) {
           items.add(_emptyRow('No open opportunities right now'));
@@ -240,13 +321,13 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       }
     }
 
-    if (showAll || _tabIndex == 2) {
+    if (showAll || selectedTab == 'Posts') {
       final posts = state.posts;
       if (showAll || posts.isNotEmpty) {
         items.add(_sectionHeader(
           'Posts',
           'Startup updates + Community talks',
-          onViewAll: () => _openTab(2),
+          onViewAll: () => _openTabByName('Posts'),
         ));
         if (posts.isEmpty) {
           items.add(_emptyRow('No posts yet — create one from Startup or Community'));
@@ -256,13 +337,13 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       }
     }
 
-    if (showAll || _tabIndex == 3) {
+    if (showAll || selectedTab == 'Events') {
       final events = state.events;
       if (showAll || events.isNotEmpty) {
         items.add(_sectionHeader(
           'Events',
           'From the Event hub',
-          onViewAll: () => _openTab(3),
+          onViewAll: () => _openTabByName('Events'),
         ));
         if (events.isEmpty) {
           items.add(_emptyRow('No events scheduled yet'));
@@ -272,13 +353,13 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       }
     }
 
-    if (showAll || _tabIndex == 4) {
+    if (_visibleTabs.contains('Investors') && (showAll || selectedTab == 'Investors')) {
       final investors = state.investors;
       if (showAll || investors.isNotEmpty) {
         items.add(_sectionHeader(
           'Investors',
           'Startup pipeline + Investor network',
-          onViewAll: () => _openTab(4),
+          onViewAll: () => _openTabByName('Investors'),
         ));
         if (investors.isEmpty) {
           items.add(_emptyRow('No investor connections yet'));
@@ -288,13 +369,13 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       }
     }
 
-    if (showAll || _tabIndex == 5) {
+    if (_visibleTabs.contains('Deals') && (showAll || selectedTab == 'Deals')) {
       final deals = state.fundingRounds;
       if (showAll || deals.isNotEmpty) {
         items.add(_sectionHeader(
           'Deals',
           'Live funding rounds + Startup raises',
-          onViewAll: () => _openTab(5),
+          onViewAll: () => _openTabByName('Deals'),
         ));
         if (deals.isEmpty) {
           items.add(_emptyRow('No live deals at the moment'));
@@ -304,13 +385,13 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       }
     }
 
-    if (showAll || _tabIndex == 6) {
+    if (showAll || selectedTab == 'Notifications') {
       final notifications = state.notifications;
       if (showAll || notifications.isNotEmpty) {
         items.add(_sectionHeader(
           'Notifications',
           'Cross-mode alerts & updates',
-          onViewAll: () => _openTab(6),
+          onViewAll: () => _openTabByName('Notifications'),
         ));
         if (notifications.isEmpty) {
           items.add(_emptyRow('No notifications yet'));
@@ -327,8 +408,11 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     );
   }
 
-  void _openTab(int index) {
-    setState(() => _tabIndex = index);
+  void _openTabByName(String tabName) {
+    final index = _visibleTabs.indexOf(tabName);
+    if (index != -1) {
+      setState(() => _tabIndex = index);
+    }
   }
 
   Widget _sectionHeader(String title, String subtitle, {VoidCallback? onViewAll}) {
@@ -359,10 +443,10 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
           if (onViewAll != null)
             GestureDetector(
               onTap: onViewAll,
-              child: const Text(
+              child: Text(
                 'View all',
                 style: TextStyle(
-                  color: Color(0xFF6D28D9),
+                  color: _theme.primaryColor,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),

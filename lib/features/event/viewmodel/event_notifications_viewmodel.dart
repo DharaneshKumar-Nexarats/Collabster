@@ -63,6 +63,18 @@ class EventNotificationsViewModel extends StateNotifier<EventNotificationState> 
         createdAt: now.subtract(const Duration(days: 2)),
         deepLink: '/events/startup-pitch-night',
       ),
+      EventNotification(
+        id: 'evt-6',
+        title: 'Certificate of Attendance',
+        subtitle: 'Your certificate for UI/UX Design Masterclass is ready to download',
+        body: 'Thank you for participating! Click here to download your verified certificate of completion.',
+        type: EventNotificationType.system,
+        iconName: 'notifications_outline',
+        iconColor: 0xFF7C3AED,
+        iconBg: 0xFFF5F3FF,
+        createdAt: now.subtract(const Duration(days: 3)),
+        deepLink: '/events/uiux-masterclass',
+      ),
     ];
 
     final sorted = [...notifications]
@@ -89,6 +101,15 @@ class EventNotificationsViewModel extends StateNotifier<EventNotificationState> 
       return n;
     }).toList();
     state = state.copyWith(notifications: updated);
+  }
+
+  void deleteNotification(String notificationId) {
+    final updated = state.notifications.where((n) => n.id != notificationId).toList();
+    state = state.copyWith(notifications: updated);
+  }
+
+  void clearAll() {
+    state = state.copyWith(notifications: []);
   }
 
   void setFilter(EventNotificationType? type) {

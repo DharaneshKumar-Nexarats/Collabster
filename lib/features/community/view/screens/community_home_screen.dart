@@ -11,7 +11,6 @@ import '../../../auth/view/sign_in_screen.dart';
 import '../../../career/view/screens/notifications_screen.dart';
 import '../../../career/view/screens/jobs_screen.dart';
 import '../../../event/view/screens/event_home_screen.dart';
-import '../../../inbox/view/inbox_screen.dart';
 import '../../../startup/view/screens/startup_posts_feed_screen.dart';
 import '../../model/community_model.dart';
 import '../../model/post_model.dart';
@@ -233,7 +232,6 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
                 ctx,
                 icon: Icons.post_add_rounded,
                 title: 'Create Post',
-                subtitle: 'Share discussions, ideas & articles',
                 color: const Color(0xFFEA580C),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -245,7 +243,6 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
                 ctx,
                 icon: Icons.event_rounded,
                 title: 'Create Event',
-                subtitle: 'Host meetups, workshops & conferences',
                 color: const Color(0xFF059669),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -257,7 +254,6 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
                 ctx,
                 icon: Icons.groups_rounded,
                 title: 'Create Community',
-                subtitle: 'Start a new public or private group',
                 color: const Color(0xFF2563EB),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -269,7 +265,6 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
                 ctx,
                 icon: Icons.forum_rounded,
                 title: 'Create Room',
-                subtitle: 'Launch a chat room inside a community',
                 color: const Color(0xFF7C3AED),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -292,7 +287,7 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
     BuildContext ctx, {
     required IconData icon,
     required String title,
-    required String subtitle,
+    String? subtitle,
     required Color color,
     required VoidCallback onTap,
   }) {
@@ -302,7 +297,7 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(16),
@@ -338,22 +333,24 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 14.5,
+                        fontSize: 15,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF12233D),
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF6B7280),
+                    if (subtitle != null && subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF6B7280),
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -373,13 +370,6 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-    );
-  }
-
-  void _openInbox() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const InboxScreen()),
     );
   }
 
@@ -893,25 +883,6 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: _openInbox,
-                          child: Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.forum_outlined,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        GestureDetector(
                           onTap: _openNotificationsScreen,
                           child: Container(
                             width: 42,
@@ -1224,7 +1195,7 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const ConnectScreen()),
+          MaterialPageRoute(builder: (_) => const ConnectScreen(modeTheme: 'community')),
         );
       },
       child: Container(

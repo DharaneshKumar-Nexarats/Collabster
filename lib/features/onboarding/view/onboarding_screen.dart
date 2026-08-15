@@ -486,11 +486,18 @@ class _GlobeWithOrbit extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Center(
-                  child: Icon(
-                    Icons.language_rounded,
-                    size: 60,
-                    color: Colors.white,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Image.asset(
+                      'assets/logo/logo.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.language_rounded,
+                        size: 60,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ),
