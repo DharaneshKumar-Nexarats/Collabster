@@ -1,17 +1,18 @@
-enum CommunityNotificationType {
-  post,
-  comment,
-  like,
-  mention,
+enum EventNotificationType {
+  reminder,
+  registration,
+  update,
+  cancellation,
+  waitlist,
   system,
 }
 
-class CommunityNotification {
+class EventNotification {
   final String id;
   final String title;
   final String subtitle;
   final String body;
-  final CommunityNotificationType type;
+  final EventNotificationType type;
   final String iconName;
   final int iconColor;
   final int iconBg;
@@ -19,7 +20,7 @@ class CommunityNotification {
   final bool isRead;
   final String? deepLink;
 
-  const CommunityNotification({
+  const EventNotification({
     required this.id,
     required this.title,
     required this.subtitle,
@@ -33,12 +34,12 @@ class CommunityNotification {
     this.deepLink,
   });
 
-  CommunityNotification copyWith({
+  EventNotification copyWith({
     String? id,
     String? title,
     String? subtitle,
     String? body,
-    CommunityNotificationType? type,
+    EventNotificationType? type,
     String? iconName,
     int? iconColor,
     int? iconBg,
@@ -46,7 +47,7 @@ class CommunityNotification {
     bool? isRead,
     String? deepLink,
   }) {
-    return CommunityNotification(
+    return EventNotification(
       id: id ?? this.id,
       title: title ?? this.title,
       subtitle: subtitle ?? this.subtitle,

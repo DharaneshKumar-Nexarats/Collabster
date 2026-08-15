@@ -1,17 +1,18 @@
-enum CommunityNotificationType {
-  post,
-  comment,
-  like,
-  mention,
+enum InvestorNotificationType {
+  deal,
+  pitch,
+  portfolio,
+  meeting,
+  market,
   system,
 }
 
-class CommunityNotification {
+class InvestorNotification {
   final String id;
   final String title;
   final String subtitle;
   final String body;
-  final CommunityNotificationType type;
+  final InvestorNotificationType type;
   final String iconName;
   final int iconColor;
   final int iconBg;
@@ -19,7 +20,7 @@ class CommunityNotification {
   final bool isRead;
   final String? deepLink;
 
-  const CommunityNotification({
+  const InvestorNotification({
     required this.id,
     required this.title,
     required this.subtitle,
@@ -33,12 +34,12 @@ class CommunityNotification {
     this.deepLink,
   });
 
-  CommunityNotification copyWith({
+  InvestorNotification copyWith({
     String? id,
     String? title,
     String? subtitle,
     String? body,
-    CommunityNotificationType? type,
+    InvestorNotificationType? type,
     String? iconName,
     int? iconColor,
     int? iconBg,
@@ -46,7 +47,7 @@ class CommunityNotification {
     bool? isRead,
     String? deepLink,
   }) {
-    return CommunityNotification(
+    return InvestorNotification(
       id: id ?? this.id,
       title: title ?? this.title,
       subtitle: subtitle ?? this.subtitle,

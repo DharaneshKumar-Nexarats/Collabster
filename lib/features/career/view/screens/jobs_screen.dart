@@ -32,7 +32,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
   @override
   Widget build(BuildContext context) {
     final careerState = ref.watch(careerViewModelProvider);
-    final filtered = careerState.filteredJobs;
+    final filtered = careerState.filteredJobs.where((j) => j.roleType == 'job').toList();
 
     final isSearching =
         careerState.searchQuery.isNotEmpty || careerState.selectedFilter != 0;
@@ -460,6 +460,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
               ElevatedButton(
                 onPressed: () {
                   ref.read(careerViewModelProvider.notifier).applyToJob(item.title);
+                  ref.read(hiringViewModelProvider.notifier).incrementApplicantsForRole(item.title);
                   
                   final isProductDesigner = item.title.contains('Product Designer') || item.company == 'Stripe';
                   final isDataAnalyst = item.title.contains('Data Analyst') || item.company == 'Microsoft';

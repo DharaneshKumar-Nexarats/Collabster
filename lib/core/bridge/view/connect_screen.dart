@@ -8,6 +8,7 @@ import '../../../features/event/model/event_model.dart';
 import '../../../features/event/view/screens/events/event_detail_screen.dart';
 import '../../../features/startup/view/screens/investor_pipeline_screen.dart';
 import '../../../features/startup/view/screens/startup_posts_feed_screen.dart';
+import '../../../features/investor/view/screens/deal_flow_screen.dart';
 import '../../di/providers.dart';
 import '../bridge_models.dart';
 import '../bridge_state.dart';
@@ -30,7 +31,7 @@ class ConnectScreen extends ConsumerStatefulWidget {
 class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   int _tabIndex = 0;
 
-  static const _tabs = ['All', 'Opportunities', 'Posts', 'Events', 'Investors'];
+  static const _tabs = ['All', 'Opportunities', 'Posts', 'Events', 'Investors', 'Deals', 'Notifications'];
 
   @override
   void initState() {
@@ -138,6 +139,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
               _statChip(Icons.forum_rounded, '${state.communityCount}', 'Community'),
               _statChip(Icons.event_rounded, '${state.eventCount}', 'Events'),
               _statChip(Icons.trending_up_rounded, '${state.investors.length}', 'Investors'),
+              _statChip(Icons.notifications_rounded, '${state.unreadNotifications}', 'Alerts'),
             ],
           ),
         ],
@@ -282,6 +284,38 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
           items.add(_emptyRow('No investor connections yet'));
         } else {
           items.addAll(investors.take(6).map(_buildInvestorCard));
+        }
+      }
+    }
+
+    if (showAll || _tabIndex == 5) {
+      final deals = state.fundingRounds;
+      if (showAll || deals.isNotEmpty) {
+        items.add(_sectionHeader(
+          'Deals',
+          'Live funding rounds + Startup raises',
+          onViewAll: () => _openTab(5),
+        ));
+        if (deals.isEmpty) {
+          items.add(_emptyRow('No live deals at the moment'));
+        } else {
+          items.addAll(deals.take(6).map(_buildFundingRoundCard));
+        }
+      }
+    }
+
+    if (showAll || _tabIndex == 6) {
+      final notifications = state.notifications;
+      if (showAll || notifications.isNotEmpty) {
+        items.add(_sectionHeader(
+          'Notifications',
+          'Cross-mode alerts & updates',
+          onViewAll: () => _openTab(6),
+        ));
+        if (notifications.isEmpty) {
+          items.add(_emptyRow('No notifications yet'));
+        } else {
+          items.addAll(notifications.take(6).map(_buildNotificationCard));
         }
       }
     }
@@ -643,6 +677,198 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildFundingRoundCard(BridgeFundingRound deal) {
+    final isInvestorMode = deal.source == 'investor-mode';
+    final color = isInvestorMode ? const Color(0xFF0284C7) : const Color(0xFF6D28D9);
+    final bgColor = isInvestorMode ? const Color(0xFFE0F2FE) : const Color(0xFFF3E8FF);
+
+    return _card(
+      onTap: () {
+        if (isInvestorMode) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const DealFlowScreen(embedded: false)),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const InvestorPipelineScreen()),
+          );
+        }
+      },
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(
+              Icons.attach_money_rounded,
+              color: color,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  deal.startup,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '${deal.stage} • ${deal.sector} • ${deal.location}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _textSecondary, fontSize: 11.5),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '${(deal.progress * 100).toStringAsFixed(0)}%',
+              style: const TextStyle(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF15803D),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _sourceBadge(
+            isInvestorMode ? 'DEAL FLOW' : 'STARTUP RAISE',
+            isInvestorMode,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationCard(BridgeNotification notification) {
+    final isUnread = !notification.isRead;
+    final sourceColors = {
+      'startup': const Color(0xFF6D28D9),
+      'career': const Color(0xFF0284C7),
+      'community': const Color(0xFFEA580C),
+      'event': const Color(0xFF059669),
+      'investor': const Color(0xFFF59E0B),
+    };
+    final color = sourceColors[notification.source] ?? _textPrimary;
+    final bgColor = sourceColors[notification.source]?.withValues(alpha: 0.1) ?? const Color(0xFFF3F4F6);
+
+    return _card(
+      onTap: () {
+        // Mark as read logic could be added here
+      },
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(
+              _iconForType(notification.type),
+              color: color,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        notification.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: _textPrimary,
+                          fontSize: 14,
+                          fontWeight: isUnread ? FontWeight.w800 : FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    if (isUnread)
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  notification.subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _textSecondary, fontSize: 11.5),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _sourceBadge(notification.source.toUpperCase(), true),
+        ],
+      ),
+    );
+  }
+
+  IconData _iconForType(String type) {
+    switch (type) {
+      case 'connection':
+        return Icons.person_add_rounded;
+      case 'message':
+        return Icons.message_rounded;
+      case 'milestone':
+        return Icons.flag_rounded;
+      case 'funding':
+        return Icons.attach_money_rounded;
+      case 'team':
+        return Icons.groups_rounded;
+      case 'document':
+        return Icons.description_rounded;
+      case 'system':
+        return Icons.settings_rounded;
+      case 'post':
+        return Icons.article_rounded;
+      case 'event':
+        return Icons.event_rounded;
+      case 'job':
+        return Icons.work_rounded;
+      case 'interview':
+        return Icons.videocam_rounded;
+      default:
+        return Icons.notifications_rounded;
+    }
   }
 
   Widget _sourceBadge(String label, bool purple) {

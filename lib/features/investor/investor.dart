@@ -1,0 +1,24 @@
+// Investor feature exports
+export 'model/investor_model.dart';
+export 'model/investment_model.dart';
+export 'model/funding_round_model.dart';
+export 'model/pitch_deck_model.dart';
+export 'model/cross_conversation_model.dart';
+export 'view/screens/investor_home_screen.dart';
+export 'view/screens/investor_detail_screen.dart';
+export 'view/screens/investor_profile_screen.dart';
+export 'view/screens/pitch_deck_screen.dart';
+export 'view/screens/portfolio_screen.dart';
+export 'view/screens/deal_flow_screen.dart';
+export 'view/screens/investor_messages_screen.dart';
+export 'view/screens/cross_conversation_chat_screen.dart';
+export 'view/widgets/investor_card.dart';
+export 'view/widgets/investment_tile.dart';
+export 'view/widgets/pitch_deck_card.dart';
+export 'viewmodel/investor_viewmodel.dart';
+export 'viewmodel/investor_state.dart';
+export 'viewmodel/pitch_deck_viewmodel.dart';
+export 'viewmodel/pitch_deck_state.dart';
+export 'viewmodel/cross_conversation_viewmodel.dart';
+export 'repository/i_investor_repository.dart';
+export 'repository/investor_repository_impl.dart';

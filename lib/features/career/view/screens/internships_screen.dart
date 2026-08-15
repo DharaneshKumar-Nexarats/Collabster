@@ -70,48 +70,30 @@ class _InternshipsScreenState extends ConsumerState<InternshipsScreen> {
         .toList();
   }
 
-  // ── Internship listings ─────────────────────────────────────────────────
-  static const _internships = [
-    _Internship(
+  // ── Career internships from Career board ──────────────────────────────────
+  List<_Internship> get _careerInternships {
+    final careerState = ref.watch(careerViewModelProvider);
+    final internships = careerState.jobs.where((j) => j.roleType == 'internship').toList();
+    if (internships.isEmpty) return const [];
+
+    return internships.map((j) => _Internship(
       logo: Icons.code_rounded,
-      title: 'Frontend Developer',
-      salary: '₹ 500 - 5,000/mo',
-      company: 'Google',
-      location: 'Full-time',
-      tags: ['React', 'Tailwind'],
-      badge: '95% Match',
-      badgeFg: Color(0xFF15803D),
-      badgeBg: Color(0xFFDCFCE7),
-    ),
-    _Internship(
-      logo: Icons.design_services_outlined,
-      title: 'UI/UX Designer',
-      salary: '₹ 300 - 800/mo',
-      company: 'Figma',
-      location: 'Design',
-      tags: ['Figma', 'Design Systems'],
-      badge: '90% Match',
-      badgeFg: Color(0xFF0369A1),
-      badgeBg: Color(0xFFE0F2FE),
-    ),
-    _Internship(
-      logo: Icons.analytics_outlined,
-      title: 'Data Analyst Intern',
-      salary: '₹ 400 - 800/mo',
-      company: 'Microsoft',
-      location: 'Full-time',
-      tags: ['SQL', 'Excel'],
-      badge: '92% Match',
-      badgeFg: Color(0xFF15803D),
-      badgeBg: Color(0xFFDCFCE7),
-    ),
-  ];
+      title: j.title,
+      salary: j.salaryTag,
+      company: j.company,
+      location: j.location,
+      tags: j.tags,
+      badge: j.showNew ? 'NEW' : 'Career',
+      badgeFg: const Color(0xFF0284C7),
+      badgeBg: const Color(0xFFE0F2FE),
+    )).toList();
+  }
 
   List<_Internship> get _filteredInternships {
     final query = _searchController.text.trim().toLowerCase();
     final filter = _filters[_selectedFilter].toLowerCase();
 
-    return [..._startupInternships, ..._internships]
+    return [..._startupInternships, ..._careerInternships]
         .where((item) {
       if (filter == 'remote' && item.badge != 'REMOTE' && !item.location.toLowerCase().contains('remote')) {
         return false;

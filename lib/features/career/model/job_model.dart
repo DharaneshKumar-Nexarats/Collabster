@@ -7,6 +7,7 @@ class JobItem {
   final List<String> tags;
   final String timeAgo;
   final bool showNew;
+  final String roleType; // 'job' | 'internship'
 
   const JobItem({
     required this.logo,
@@ -17,6 +18,7 @@ class JobItem {
     required this.tags,
     required this.timeAgo,
     this.showNew = false,
+    this.roleType = 'job',
   });
 }
 
