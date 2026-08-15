@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/di/providers.dart';
 import '../../model/startup_models.dart';
-import '../../viewmodel/join_startup_viewmodel.dart';
 import 'join_startup_verification_screen.dart';
 
 
@@ -16,9 +15,14 @@ class JoinStartupScreen extends ConsumerStatefulWidget {
 
 class _JoinStartupScreenState extends ConsumerState<JoinStartupScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final JoinStartupViewModel _viewModel = JoinStartupViewModel();
   bool _showAll = false;
   SuggestedStartup? _selectedStartup;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(joinStartupViewModelProvider.notifier).loadInitialData();
+  }
 
   @override
   void dispose() {
@@ -35,8 +39,8 @@ class _JoinStartupScreenState extends ConsumerState<JoinStartupScreen> {
     );
   }
 
-  String get _searchHint {
-    switch (_viewModel.selectedMode) {
+  String _searchHint(String selectedMode) {
+    switch (selectedMode) {
       case 'Industry':
         return 'Search by industry (AI, Fintech, HealthTech...)';
       case 'Location':
@@ -50,10 +54,10 @@ class _JoinStartupScreenState extends ConsumerState<JoinStartupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Merge user-created startups (from registry) with the hardcoded seeds.
+    final startupState = ref.watch(joinStartupViewModelProvider);
     final registryStartups = ref.watch(startupRegistryProvider);
-    final allStartups = [...registryStartups, ..._viewModel.suggestedStartups];
-    final filtered = _viewModel.filterStartups(_searchController.text, allStartups);
+    final allStartups = [...registryStartups, ...startupState.suggestedStartups];
+    final filtered = ref.read(joinStartupViewModelProvider.notifier).filterStartups(_searchController.text, allStartups);
     final displayed = _showAll ? filtered : filtered.take(3).toList();
 
 
@@ -124,7 +128,7 @@ class _JoinStartupScreenState extends ConsumerState<JoinStartupScreen> {
                         onChanged: (_) => setState(() {}),
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: _searchHint,
+                          hintText: _searchHint(startupState.selectedMode),
                           hintStyle: TextStyle(
                             color: Colors.white.withValues(alpha: 0.6),
                           ),
@@ -182,9 +186,9 @@ class _JoinStartupScreenState extends ConsumerState<JoinStartupScreen> {
                         icon: Icons.domain_add_outlined,
                         label: 'Startup Name',
                         subtitle: 'Search by name',
-                        selected: _viewModel.selectedMode == 'Startup Name',
+                        selected: startupState.selectedMode == 'Startup Name',
                         onTap: () {
-                          _viewModel.selectMode('Startup Name');
+                          ref.read(joinStartupViewModelProvider.notifier).selectMode('Startup Name');
                           _searchController.clear();
                           setState(() {});
                         },
@@ -196,9 +200,9 @@ class _JoinStartupScreenState extends ConsumerState<JoinStartupScreen> {
                         icon: Icons.category_outlined,
                         label: 'Industry',
                         subtitle: 'AI, Fintech, Health...',
-                        selected: _viewModel.selectedMode == 'Industry',
+                        selected: startupState.selectedMode == 'Industry',
                         onTap: () {
-                          _viewModel.selectMode('Industry');
+                          ref.read(joinStartupViewModelProvider.notifier).selectMode('Industry');
                           _searchController.clear();
                           setState(() {});
                         },
@@ -214,9 +218,9 @@ class _JoinStartupScreenState extends ConsumerState<JoinStartupScreen> {
                         icon: Icons.location_on_outlined,
                         label: 'Location',
                         subtitle: 'City or country',
-                        selected: _viewModel.selectedMode == 'Location',
+                        selected: startupState.selectedMode == 'Location',
                         onTap: () {
-                          _viewModel.selectMode('Location');
+                          ref.read(joinStartupViewModelProvider.notifier).selectMode('Location');
                           _searchController.clear();
                           setState(() {});
                         },
@@ -228,9 +232,9 @@ class _JoinStartupScreenState extends ConsumerState<JoinStartupScreen> {
                         icon: Icons.trending_up_rounded,
                         label: 'Stage',
                         subtitle: 'Seed, Series A...',
-                        selected: _viewModel.selectedMode == 'Stage',
+                        selected: startupState.selectedMode == 'Stage',
                         onTap: () {
-                          _viewModel.selectMode('Stage');
+                          ref.read(joinStartupViewModelProvider.notifier).selectMode('Stage');
                           _searchController.clear();
                           setState(() {});
                         },

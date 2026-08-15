@@ -1,144 +1,135 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../model/startup_models.dart';
-import '../../viewmodel/milestones_viewmodel.dart';
+import '../../../../core/di/providers.dart';
 
-class StartupMilestonesScreen extends StatefulWidget {
+class StartupMilestonesScreen extends ConsumerWidget {
   const StartupMilestonesScreen({super.key});
 
   @override
-  State<StartupMilestonesScreen> createState() => _StartupMilestonesScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final milestonesState = ref.watch(milestonesViewModelProvider);
 
-class _StartupMilestonesScreenState extends State<StartupMilestonesScreen> {
-  final MilestonesViewModel _viewModel = MilestonesViewModel();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _viewModel,
-      builder: (context, _) {
-        return Scaffold(
-          backgroundColor: const Color(0xFFF6F3FF),
-          body: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF5B21B6), Color(0xFF7C3AED), Color(0xFF4338CA)],
-                    ),
-                  ),
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + 12,
-                    left: 20, right: 20, bottom: 24,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F3FF),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF5B21B6), Color(0xFF7C3AED), Color(0xFF4338CA)],
+                ),
+              ),
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 12,
+                left: 20, right: 20, bottom: 24,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              width: 40, height: 40,
-                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
-                              child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Text('Milestones', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('YOUR STARTUP JOURNEY', style: TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1)),
-                            const SizedBox(height: 8),
-                            const Text("You're making great progress!", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('${_viewModel.completedCount} of ${_viewModel.totalCount} milestones completed', style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                                Text('${(_viewModel.progress * 100).round()}%', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(999),
-                              child: LinearProgressIndicator(
-                                value: _viewModel.progress,
-                                minHeight: 10,
-                                backgroundColor: Colors.white.withValues(alpha: 0.2),
-                                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF34D399)),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                _statChip('${_viewModel.completedCount}', 'COMPLETED'),
-                                const SizedBox(width: 10),
-                                _statChip('${_viewModel.inProgressCount}', 'IN PROGRESS'),
-                                const SizedBox(width: 10),
-                                _statChip('${_viewModel.upcomingCount}', 'UPCOMING'),
-                              ],
-                            ),
-                          ],
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 40, height: 40,
+                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
+                          child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
                         ),
                       ),
+                      const SizedBox(width: 12),
+                      const Text('Milestones', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
                     ],
                   ),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (ctx, index) => Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                      child: MilestoneItem(
-                        milestone: _viewModel.milestones[index],
-                        isLast: index == _viewModel.milestones.length - 1,
-                      ),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     ),
-                    childCount: _viewModel.milestones.length,
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showAddMilestoneSheet(context),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Add New Milestone', style: TextStyle(fontWeight: FontWeight.w700)),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
-                        backgroundColor: const Color(0xFF5B21B6),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('YOUR STARTUP JOURNEY', style: TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                        const SizedBox(height: 8),
+                        const Text("You're making great progress!", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('${milestonesState.completedCount} of ${milestonesState.totalCount} milestones completed', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                            Text('${(milestonesState.progress * 100).round()}%', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: LinearProgressIndicator(
+                            value: milestonesState.progress,
+                            minHeight: 10,
+                            backgroundColor: Colors.white.withValues(alpha: 0.2),
+                            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF34D399)),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            _statChip('${milestonesState.completedCount}', 'COMPLETED'),
+                            const SizedBox(width: 10),
+                            _statChip('${milestonesState.inProgressCount}', 'IN PROGRESS'),
+                            const SizedBox(width: 10),
+                            _statChip('${milestonesState.upcomingCount}', 'UPCOMING'),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                ),
+                ],
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 60)),
-            ],
+            ),
           ),
-        );
-      },
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (ctx, index) => Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                  child: MilestoneItem(
+                    milestone: milestonesState.milestones[index],
+                    isLast: index == milestonesState.milestones.length - 1,
+                  ),
+                ),
+                childCount: milestonesState.milestones.length,
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _showAddMilestoneSheet(context, ref),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add New Milestone', style: TextStyle(fontWeight: FontWeight.w700)),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                    backgroundColor: const Color(0xFF5B21B6),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 60)),
+        ],
+      ),
     );
   }
 
@@ -158,7 +149,7 @@ class _StartupMilestonesScreenState extends State<StartupMilestonesScreen> {
     );
   }
 
-  void _showAddMilestoneSheet(BuildContext context) {
+  void _showAddMilestoneSheet(BuildContext context, WidgetRef ref) {
     final titleCtrl = TextEditingController();
     final descriptionCtrl = TextEditingController();
     final dateCtrl = TextEditingController();
@@ -472,7 +463,7 @@ class _StartupMilestonesScreenState extends State<StartupMilestonesScreen> {
                           return;
                         }
 
-                        _viewModel.addMilestone(
+                        ref.read(milestonesViewModelProvider.notifier).addMilestone(
                           title: title,
                           category: selectedCategory,
                           targetDate: targetDate,

@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../model/startup_models.dart';
 import '../../model/team_chat_message.dart';
-import '../../viewmodel/team_viewmodel.dart';
+import '../../viewmodel/providers.dart';
 import 'team_chat_screen.dart';
 import '../widgets/startup_color_helper.dart';
 
-class MessagesInboxScreen extends StatefulWidget {
+class MessagesInboxScreen extends ConsumerStatefulWidget {
   const MessagesInboxScreen({
     super.key,
-    required this.viewModel,
     required this.startupName,
   });
 
-  final TeamViewModel viewModel;
   final String startupName;
 
   @override
-  State<MessagesInboxScreen> createState() => _MessagesInboxScreenState();
+  ConsumerState<MessagesInboxScreen> createState() => _MessagesInboxScreenState();
 }
 
-class _MessagesInboxScreenState extends State<MessagesInboxScreen>
+class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchCtrl = TextEditingController();
   late AnimationController _fadeCtrl;
@@ -51,8 +50,9 @@ class _MessagesInboxScreenState extends State<MessagesInboxScreen>
   }
 
   List<TeamMember> get _filtered {
-    if (_query.isEmpty) return widget.viewModel.allMembers;
-    return widget.viewModel.allMembers
+    final teamState = ref.read(teamViewModelProvider);
+    if (_query.isEmpty) return teamState.members;
+    return teamState.members
         .where((m) =>
             m.name.toLowerCase().contains(_query) ||
             m.role.toLowerCase().contains(_query))
@@ -60,13 +60,12 @@ class _MessagesInboxScreenState extends State<MessagesInboxScreen>
   }
 
   void _openChat(TeamMember member) {
-    widget.viewModel.markAsRead(member.name);
+    ref.read(teamViewModelProvider.notifier).markAsRead(member.name);
     Navigator.push(
       context,
       PageRouteBuilder(
         pageBuilder: (_, a1, a2) => TeamChatScreen(
           member: member,
-          viewModel: widget.viewModel,
           startupName: widget.startupName,
         ),
         transitionsBuilder: (_, anim, __, child) => SlideTransition(
@@ -83,209 +82,206 @@ class _MessagesInboxScreenState extends State<MessagesInboxScreen>
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: widget.viewModel,
-      builder: (context, _) {
-        final members = _filtered;
-        return Scaffold(
-          backgroundColor: const Color(0xFFF6F3FF),
-          body: CustomScrollView(
-            slivers: [
-              // ── Gradient header ─────────────────────────────────────────
-              SliverAppBar(
-                pinned: true,
-                centerTitle: true,
-                backgroundColor: const Color(0xFF5B21B6),
-                elevation: 0,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white, size: 20),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                title: const Text(
-                  'Messages',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                actions: [
-                  if (widget.viewModel.totalUnread > 0)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 16),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEF4444),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '${widget.viewModel.totalUnread} unread',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+    final teamState = ref.watch(teamViewModelProvider);
+    final members = _filtered;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F3FF),
+      body: CustomScrollView(
+        slivers: [
+          // ── Gradient header ─────────────────────────────────────────
+          SliverAppBar(
+            pinned: true,
+            centerTitle: true,
+            backgroundColor: const Color(0xFF5B21B6),
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white, size: 20),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: const Text(
+              'Messages',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            actions: [
+              if (teamState.totalUnread > 0)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEF4444),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${teamState.totalUnread} unread',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
-                ],
-                flexibleSpace: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF7C3AED), Color(0xFF4C1D95)],
+                  ),
+                ),
+            ],
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF7C3AED), Color(0xFF4C1D95)],
+                ),
+              ),
+            ),
+          ),
+
+          // ── Search bar ──────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
                     ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchCtrl,
+                  style: const TextStyle(
+                      fontSize: 14, color: Color(0xFF12233D)),
+                  decoration: InputDecoration(
+                    hintText: 'Search conversations...',
+                    hintStyle: const TextStyle(
+                        color: Color(0xFF9CA3AF), fontSize: 14),
+                    prefixIcon: const Icon(Icons.search_rounded,
+                        color: Color(0xFF9CA3AF), size: 20),
+                    suffixIcon: _query.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.close_rounded,
+                                color: Color(0xFF9CA3AF), size: 18),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              setState(() => _query = '');
+                            },
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
               ),
+            ),
+          ),
 
-              // ── Search bar ──────────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
+          // ── Online Now horizontal strip ──────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 0, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: Text(
+                      'ONLINE NOW',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF6B7280),
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 82,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: teamState.members
+                          .where((m) => _onlineMembers.contains(m.name))
+                          .map((m) => _onlineAvatar(m))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Section header ───────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Row(
+                children: [
+                  const Text(
+                    'ALL CONVERSATIONS',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF6B7280),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${members.length} chats',
+                    style: const TextStyle(
+                        fontSize: 12, color: Color(0xFF9CA3AF)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Conversation list ─────────────────────────────────────────
+          members.isEmpty
+              ? SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.search_off_rounded,
+                            size: 52,
+                            color: Colors.grey.withValues(alpha: 0.4)),
+                        const SizedBox(height: 12),
+                        const Text('No results found',
+                            style: TextStyle(
+                                color: Color(0xFF9CA3AF), fontSize: 15)),
                       ],
                     ),
-                    child: TextField(
-                      controller: _searchCtrl,
-                      style: const TextStyle(
-                          fontSize: 14, color: Color(0xFF12233D)),
-                      decoration: InputDecoration(
-                        hintText: 'Search conversations...',
-                        hintStyle: const TextStyle(
-                            color: Color(0xFF9CA3AF), fontSize: 14),
-                        prefixIcon: const Icon(Icons.search_rounded,
-                            color: Color(0xFF9CA3AF), size: 20),
-                        suffixIcon: _query.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.close_rounded,
-                                    color: Color(0xFF9CA3AF), size: 18),
-                                onPressed: () {
-                                  _searchCtrl.clear();
-                                  setState(() => _query = '');
-                                },
-                              )
-                            : null,
-                        border: InputBorder.none,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                    ),
+                  ),
+                )
+              : SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, i) {
+                      return FadeTransition(
+                        opacity: _fadeCtrl,
+                        child: _conversationTile(members[i]),
+                      );
+                    },
+                    childCount: members.length,
                   ),
                 ),
-              ),
 
-              // ── Online Now horizontal strip ──────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 0, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 10),
-                        child: Text(
-                          'ONLINE NOW',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF6B7280),
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 82,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: widget.viewModel.allMembers
-                              .where((m) => _onlineMembers.contains(m.name))
-                              .map((m) => _onlineAvatar(m))
-                              .toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ── Section header ───────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: Row(
-                    children: [
-                      const Text(
-                        'ALL CONVERSATIONS',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF6B7280),
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${members.length} chats',
-                        style: const TextStyle(
-                            fontSize: 12, color: Color(0xFF9CA3AF)),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ── Conversation list ─────────────────────────────────────────
-              members.isEmpty
-                  ? SliverFillRemaining(
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.search_off_rounded,
-                                size: 52,
-                                color: Colors.grey.withValues(alpha: 0.4)),
-                            const SizedBox(height: 12),
-                            const Text('No results found',
-                                style: TextStyle(
-                                    color: Color(0xFF9CA3AF), fontSize: 15)),
-                          ],
-                        ),
-                      ),
-                    )
-                  : SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, i) {
-                          return FadeTransition(
-                            opacity: _fadeCtrl,
-                            child: _conversationTile(members[i]),
-                          );
-                        },
-                        childCount: members.length,
-                      ),
-                    ),
-
-              const SliverToBoxAdapter(child: SizedBox(height: 30)),
-            ],
-          ),
-        );
-      },
+          const SliverToBoxAdapter(child: SizedBox(height: 30)),
+        ],
+      ),
     );
   }
 
@@ -344,10 +340,11 @@ class _MessagesInboxScreenState extends State<MessagesInboxScreen>
 
   // ── Conversation tile ──────────────────────────────────────────────────────
   Widget _conversationTile(TeamMember member) {
-    final lastMsg = widget.viewModel.lastMessageFor(member.name);
-    final unread = widget.viewModel.unreadCountFor(member.name);
+    final teamState = ref.read(teamViewModelProvider);
+    final lastMsg = teamState.chatMessages[member.name]?.lastOrNull;
+    final unread = teamState.unreadCountFor(member.name);
     final isOnline = _onlineMembers.contains(member.name);
-    final isTyping = widget.viewModel.isTypingFor(member.name);
+    final isTyping = teamState.isTypingFor(member.name);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),

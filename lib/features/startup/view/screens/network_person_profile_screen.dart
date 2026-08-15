@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../viewmodel/team_viewmodel.dart';
 import 'messages_inbox_screen.dart';
 
 class NetworkPersonProfileScreen extends StatefulWidget {
@@ -186,12 +185,11 @@ class _NetworkPersonProfileScreenState
                       const SizedBox(width: 10),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {
+                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => MessagesInboxScreen(
-                                  viewModel: TeamViewModel(),
                                   startupName: 'Collabster',
                                 ),
                               ),

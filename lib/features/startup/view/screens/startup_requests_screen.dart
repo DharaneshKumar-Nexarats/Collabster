@@ -1,42 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../model/startup_models.dart';
-import '../../viewmodel/requests_viewmodel.dart';
+import '../../viewmodel/providers.dart';
 
-class StartupRequestsScreen extends StatefulWidget {
+class StartupRequestsScreen extends ConsumerStatefulWidget {
   const StartupRequestsScreen({super.key, required this.startupName});
   final String startupName;
 
   @override
-  State<StartupRequestsScreen> createState() => _StartupRequestsScreenState();
+  ConsumerState<StartupRequestsScreen> createState() =>
+      _StartupRequestsScreenState();
 }
 
-class _StartupRequestsScreenState extends State<StartupRequestsScreen> {
-  final RequestsViewModel _vm = RequestsViewModel.instance;
+class _StartupRequestsScreenState extends ConsumerState<StartupRequestsScreen> {
   String _selectedFilter = 'All';
 
   @override
   void initState() {
     super.initState();
-    _vm.addListener(_onVmChange);
+    ref.read(requestsViewModelProvider.notifier).loadInitialData();
   }
 
-  @override
-  void dispose() {
-    _vm.removeListener(_onVmChange);
-    super.dispose();
-  }
-
-  void _onVmChange() => setState(() {});
-
-  List<ConnectionRequest> get _filtered => _vm.filtered(_selectedFilter);
+  List<ConnectionRequest> get _filtered =>
+      ref.read(requestsViewModelProvider.notifier).filtered(_selectedFilter);
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(requestsViewModelProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F3FF),
       body: CustomScrollView(
         slivers: [
-          // ── Header ──────────────────────────────────────────────────────
           SliverAppBar(
             pinned: true,
             centerTitle: true,
@@ -53,7 +48,7 @@ class _StartupRequestsScreenState extends State<StartupRequestsScreen> {
                   color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800),
             ),
             actions: [
-              if (_vm.pendingCount > 0)
+              if (state.pendingCount > 0)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.only(right: 16),
@@ -65,7 +60,7 @@ class _StartupRequestsScreenState extends State<StartupRequestsScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '${_vm.pendingCount} pending',
+                        '${state.pendingCount} pending',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 11,
@@ -86,8 +81,6 @@ class _StartupRequestsScreenState extends State<StartupRequestsScreen> {
               ),
             ),
           ),
-
-          // ── Stats bar ───────────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Container(
               margin: const EdgeInsets.all(16),
@@ -106,20 +99,18 @@ class _StartupRequestsScreenState extends State<StartupRequestsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _statItem('${_vm.pendingCount}', 'Pending',
+                  _statItem('${state.pendingCount}', 'Pending',
                       const Color(0xFF5B21B6)),
                   _statDivider(),
-                  _statItem('${_vm.connectedCount}', 'Connected',
+                  _statItem('${state.connected}', 'Connected',
                       const Color(0xFF10B981)),
                   _statDivider(),
                   _statItem(
-                      '${_vm.ignoredCount}', 'Ignored', const Color(0xFF6B7280)),
+                      '${state.ignored}', 'Ignored', const Color(0xFF6B7280)),
                 ],
               ),
             ),
           ),
-
-          // ── Filter chips ────────────────────────────────────────────────
           SliverToBoxAdapter(
             child: SizedBox(
               height: 40,
@@ -133,10 +124,7 @@ class _StartupRequestsScreenState extends State<StartupRequestsScreen> {
               ),
             ),
           ),
-
           const SliverToBoxAdapter(child: SizedBox(height: 14)),
-
-          // ── Request cards or empty state ────────────────────────────────
           _filtered.isEmpty
               ? SliverFillRemaining(
                   hasScrollBody: false,
@@ -189,14 +177,11 @@ class _StartupRequestsScreenState extends State<StartupRequestsScreen> {
                     ),
                   ),
                 ),
-
           const SliverToBoxAdapter(child: SizedBox(height: 30)),
         ],
       ),
     );
   }
-
-  // ── Helpers ──────────────────────────────────────────────────────────────
 
   Widget _statItem(String value, String label, Color color) {
     return Column(
@@ -279,7 +264,6 @@ class _StartupRequestsScreenState extends State<StartupRequestsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar + name row
           Row(
             children: [
               CircleAvatar(
@@ -329,7 +313,6 @@ class _StartupRequestsScreenState extends State<StartupRequestsScreen> {
               ),
             ],
           ),
-          // Note bubble
           if (req.note.isNotEmpty) ...[
             const SizedBox(height: 12),
             Container(
@@ -352,7 +335,6 @@ class _StartupRequestsScreenState extends State<StartupRequestsScreen> {
             ),
           ],
           const SizedBox(height: 10),
-          // Mutual connections
           Row(
             children: [
               Icon(Icons.people_outline,
@@ -366,13 +348,12 @@ class _StartupRequestsScreenState extends State<StartupRequestsScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          // Accept / Ignore
           Row(
             children: [
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    _vm.accept(req.name);
+                    ref.read(requestsViewModelProvider.notifier).accept(req.name);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Connected with ${req.name}!'),
@@ -399,7 +380,7 @@ class _StartupRequestsScreenState extends State<StartupRequestsScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    _vm.ignore(req.name);
+                    ref.read(requestsViewModelProvider.notifier).ignore(req.name);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content:

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../model/startup_models.dart';
-import '../../viewmodel/requests_viewmodel.dart';
+import '../../viewmodel/providers.dart';
 import 'network_person_profile_screen.dart';
 import 'network_startup_profile_screen.dart';
 
@@ -17,7 +17,6 @@ class StartupNetworkScreen extends ConsumerStatefulWidget {
 
 class _StartupNetworkScreenState extends ConsumerState<StartupNetworkScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final RequestsViewModel _reqVm = RequestsViewModel.instance;
 
   final Set<String> _connectedStartupNames = {};
   final Set<String> _connectedPersonNames = {};
@@ -113,7 +112,9 @@ class _StartupNetworkScreenState extends ConsumerState<StartupNetworkScreen> {
     return _people.where(_matchesSearch).toList();
   }
 
-  List<_NetworkPerson> get _filteredAcceptedPeople => _reqVm.accepted
+  List<_NetworkPerson> get _filteredAcceptedPeople => ref
+      .read(requestsViewModelProvider)
+      .accepted
       .map(_personFromAcceptedRequest)
       .where(_matchesSearch)
       .toList();
@@ -148,16 +149,7 @@ class _StartupNetworkScreenState extends ConsumerState<StartupNetworkScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _reqVm.addListener(_onReqsChanged);
-  }
-
-  void _onReqsChanged() => setState(() {});
-
-  @override
   void dispose() {
-    _reqVm.removeListener(_onReqsChanged);
     _searchController.dispose();
     super.dispose();
   }
@@ -209,209 +201,206 @@ class _StartupNetworkScreenState extends ConsumerState<StartupNetworkScreen> {
   // ── Build ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _reqVm,
-      builder: (context, _) {
-        return Scaffold(
-          backgroundColor: const Color(0xFFF6F3FF),
-          body: CustomScrollView(
-            slivers: [
-              // ── App Bar ────────────────────────────────────────────────────
-              SliverAppBar(
-                pinned: true,
-                centerTitle: true,
-                backgroundColor: const Color(0xFF5B21B6),
-                elevation: 0,
-                leading: IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                title: const Text(
-                  'Network',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                actions: [],
-                flexibleSpace: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF7C3AED), Color(0xFF4C1D95)],
-                    ),
-                  ),
-                ),
-              ),
+    final state = ref.watch(requestsViewModelProvider);
 
-              // ── Search bar ─────────────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-                  child: Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (_) => setState(() {}),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF12233D),
-                      ),
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'Search people, startups...',
-                        hintStyle: const TextStyle(
-                          color: Color(0xFF9CA3AF),
-                          fontSize: 14,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.search_rounded,
-                          color: Color(0xFF9CA3AF),
-                          size: 20,
-                        ),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(
-                                  Icons.close_rounded,
-                                  color: Color(0xFF9CA3AF),
-                                  size: 18,
-                                ),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {});
-                                },
-                              )
-                            : null,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                        ),
-                      ),
-                    ),
-                  ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F3FF),
+      body: CustomScrollView(
+        slivers: [
+          // ── App Bar ────────────────────────────────────────────────────
+          SliverAppBar(
+            pinned: true,
+            centerTitle: true,
+            backgroundColor: const Color(0xFF5B21B6),
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: const Text(
+              'Network',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            actions: [],
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF7C3AED), Color(0xFF4C1D95)],
                 ),
               ),
-
-              // ── Stats row ──────────────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-                  child: Row(
-                    children: [
-                      _statCard(
-                        '${_reqVm.connectedCount}',
-                        'Connections',
-                        const Color(0xFF5B21B6),
-                        Icons.people_rounded,
-                        null,
-                      ),
-                      const SizedBox(width: 10),
-                      _statCard(
-                        '${_reqVm.pendingCount}',
-                        'Pending',
-                        const Color(0xFFD97706),
-                        Icons.pending_actions_rounded,
-                        null,
-                      ),
-                      const SizedBox(width: 10),
-                      _statCard(
-                        '12',
-                        'Following',
-                        const Color(0xFF059669),
-                        Icons.bookmark_border_rounded,
-                        null,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ── Connection Requests preview ────────────────────────────────
-
-              // ── Suggested Startups ─────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 22, 16, 10),
-                  child: _sectionHeader(
-                    'Suggested Startups',
-                    'Based on your industry',
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 215,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _suggestedStartups.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (_, i) => _startupCard(_suggestedStartups[i]),
-                  ),
-                ),
-              ),
-
-              // ── People You May Know ────────────────────────────────────────
-              if (_filteredAcceptedPeople.isNotEmpty) ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 22, 16, 10),
-                    child: _sectionHeader(
-                      'New Connections',
-                      '${_filteredAcceptedPeople.length} added',
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (_, i) => _personCard(_filteredAcceptedPeople[i]),
-                      childCount: _filteredAcceptedPeople.length,
-                    ),
-                  ),
-                ),
-              ],
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 22, 16, 10),
-                  child: _sectionHeader(
-                    'People You May Know',
-                    '${_filteredPeople.length} people',
-                  ),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (_, i) => _personCard(_filteredPeople[i]),
-                    childCount: _filteredPeople.length,
-                  ),
-                ),
-              ),
-
-              const SliverToBoxAdapter(child: SizedBox(height: 30)),
-            ],
+            ),
           ),
-        );
-      },
+
+          // ── Search bar ─────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (_) => setState(() {}),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF12233D),
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Search people, startups...',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF9CA3AF),
+                      fontSize: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: Color(0xFF9CA3AF),
+                      size: 20,
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color: Color(0xFF9CA3AF),
+                              size: 18,
+                            ),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {});
+                            },
+                          )
+                        : null,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // ── Stats row ──────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              child: Row(
+                children: [
+                  _statCard(
+                    '${state.connected}',
+                    'Connections',
+                    const Color(0xFF5B21B6),
+                    Icons.people_rounded,
+                    null,
+                  ),
+                  const SizedBox(width: 10),
+                  _statCard(
+                    '${state.pendingCount}',
+                    'Pending',
+                    const Color(0xFFD97706),
+                    Icons.pending_actions_rounded,
+                    null,
+                  ),
+                  const SizedBox(width: 10),
+                  _statCard(
+                    '12',
+                    'Following',
+                    const Color(0xFF059669),
+                    Icons.bookmark_border_rounded,
+                    null,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Connection Requests preview ────────────────────────────────
+
+          // ── Suggested Startups ─────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 22, 16, 10),
+              child: _sectionHeader(
+                'Suggested Startups',
+                'Based on your industry',
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 215,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: _suggestedStartups.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (_, i) => _startupCard(_suggestedStartups[i]),
+              ),
+            ),
+          ),
+
+          // ── People You May Know ────────────────────────────────────────
+          if (_filteredAcceptedPeople.isNotEmpty) ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 22, 16, 10),
+                child: _sectionHeader(
+                  'New Connections',
+                  '${_filteredAcceptedPeople.length} added',
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (_, i) => _personCard(_filteredAcceptedPeople[i]),
+                  childCount: _filteredAcceptedPeople.length,
+                ),
+              ),
+            ),
+          ],
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 22, 16, 10),
+              child: _sectionHeader(
+                'People You May Know',
+                '${_filteredPeople.length} people',
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (_, i) => _personCard(_filteredPeople[i]),
+                childCount: _filteredPeople.length,
+              ),
+            ),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 30)),
+        ],
+      ),
     );
   }
 
@@ -687,9 +676,10 @@ class _StartupNetworkScreenState extends ConsumerState<StartupNetworkScreen> {
 
   // ── People card ─────────────────────────────────────────────────────────────
   Widget _personCard(_NetworkPerson person) {
-    final isAccepted = _reqVm.accepted.any(
-      (request) => request.name == person.name,
-    );
+    final isAccepted = ref
+        .read(requestsViewModelProvider)
+        .accepted
+        .any((request) => request.name == person.name);
     final isPending = _connectedPersonNames.contains(person.name);
 
     return Material(
