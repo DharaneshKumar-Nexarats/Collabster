@@ -57,4 +57,27 @@ class HiringViewModel extends StateNotifier<HiringState> {
   void addRole(OpenRole role) {
     state = state.copyWith(roles: [role, ...state.roles]);
   }
+
+  /// Increment applicants for a role by title (called when external applications come in)
+  void incrementApplicantsForRole(String roleTitle) {
+    final updated = state.roles.map((r) {
+      if (r.title == roleTitle && r.status == 'HIRING') {
+        return OpenRole(
+          title: r.title,
+          department: r.department,
+          applicants: r.applicants + 1,
+          shortlisted: r.shortlisted,
+          status: r.status,
+          statusColorKey: r.statusColorKey,
+          salaryLpa: r.salaryLpa,
+          skills: r.skills,
+          location: r.location,
+          experience: r.experience,
+          roleType: r.roleType,
+        );
+      }
+      return r;
+    }).toList();
+    state = state.copyWith(roles: updated);
+  }
 }

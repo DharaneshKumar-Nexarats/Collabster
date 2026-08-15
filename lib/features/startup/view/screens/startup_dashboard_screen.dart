@@ -26,7 +26,6 @@ import 'startup_products_screen.dart';
 import 'startup_requests_screen.dart';
 import 'notifications_screen.dart';
 import 'team_command_screen.dart';
-import '../../../inbox/view/inbox_screen.dart';
 
 class StartupDashboardScreen extends ConsumerStatefulWidget {
   const StartupDashboardScreen({super.key, required this.startupName});
@@ -247,30 +246,6 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
                                     ],
                                   ),
                                 ],
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const InboxScreen(),
-                                ),
-                              ),
-                              child: Container(
-                                width: 42,
-                                height: 42,
-                                decoration: BoxDecoration(
-                                  color:
-                                      Colors.white.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.forum_outlined,
-                                    color: Colors.white,
-                                    size: 22,
-                                  ),
-                                ),
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -1957,13 +1932,6 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
             const SizedBox(height: 14),
             _menuItem(
               ctx,
-              Icons.rocket_launch_outlined,
-              'Startup Hub',
-              const Color(0xFF5B21B6),
-              () => ref.read(startupDashboardViewModelProvider.notifier).selectNav(0),
-            ),
-            _menuItem(
-              ctx,
               Icons.info_outline_rounded,
               'Startup Info',
               const Color(0xFF4A0E8F),
@@ -2135,10 +2103,10 @@ class _QuickActionsGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final actions = [
       _QuickAction(
-        icon: Icons.rocket_launch_outlined,
-        label: 'Startup Hub',
+        icon: Icons.info_outline_rounded,
+        label: 'Startup Info',
         color: const Color(0xFF5B21B6),
-        onTap: startupHubOnTap ?? () {},
+        onTap: () => Navigator.push(context, _smoothRoute(const StartupInfoScreen())),
       ),
       _QuickAction(
         icon: Icons.post_add_outlined,

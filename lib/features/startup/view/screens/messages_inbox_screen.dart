@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/di/providers.dart';
 import '../../model/startup_models.dart';
 import '../../model/team_chat_message.dart';
-import '../../viewmodel/providers.dart';
 import 'team_chat_screen.dart';
 import '../widgets/startup_color_helper.dart';
 

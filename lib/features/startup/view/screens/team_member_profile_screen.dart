@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/di/providers.dart';
 import '../../model/startup_models.dart';
-import '../../viewmodel/providers.dart';
 
 class TeamMemberProfileScreen extends ConsumerWidget {
   const TeamMemberProfileScreen({

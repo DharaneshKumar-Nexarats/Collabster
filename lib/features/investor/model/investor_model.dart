@@ -1,3 +1,5 @@
+export 'pitch_deck_model.dart';
+
 class Investor {
   final String id;
   final String name;
@@ -21,41 +23,5 @@ class Investor {
     required this.initials,
     required this.colorKey,
     this.isFollowing = false,
-  });
-}
-
-class PitchDeck {
-  final String id;
-  final String title;
-  final String description;
-  final DateTime createdAt;
-  final int slideCount;
-  final bool isPublic;
-
-  PitchDeck({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.createdAt,
-    this.slideCount = 0,
-    this.isPublic = false,
-  });
-}
-
-class FundingRound {
-  final String id;
-  final String name;
-  final String targetAmount;
-  final String raisedAmount;
-  final String status;
-  final DateTime startDate;
-
-  const FundingRound({
-    required this.id,
-    required this.name,
-    required this.targetAmount,
-    required this.raisedAmount,
-    required this.status,
-    required this.startDate,
   });
 }

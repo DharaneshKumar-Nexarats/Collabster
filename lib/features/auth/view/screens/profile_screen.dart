@@ -24,7 +24,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
     switch (role) {
       case UserRole.investor:
-        return const [Color(0xFF064E3B), Color(0xFF059669), Color(0xFF10B981)]; // Green for Investor
+        return const [Color(0xFF785412), Color(0xFFB48316), Color(0xFFD4A017)]; // Golden Yellow for Investor
       case UserRole.student:
       case UserRole.professional:
       case UserRole.mentor:
@@ -45,7 +45,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
     switch (role) {
       case UserRole.investor:
-        return const Color(0xFF059669);
+        return const Color(0xFFD4A017);
       case UserRole.student:
       case UserRole.professional:
       case UserRole.mentor:
@@ -103,7 +103,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: () {
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              }
+                            },
                           ),
                           const Expanded(
                             child: Text(

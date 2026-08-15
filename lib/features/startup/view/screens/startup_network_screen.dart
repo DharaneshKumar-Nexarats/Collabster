@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import '../../../../core/di/providers.dart';
 import '../../model/startup_models.dart';
-import '../../viewmodel/providers.dart';
 import 'network_person_profile_screen.dart';
 import 'network_startup_profile_screen.dart';
 

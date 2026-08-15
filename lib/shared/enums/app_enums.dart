@@ -75,7 +75,7 @@ enum UserRole {
     switch (this) {
       case UserRole.founder:
       case UserRole.company:
-        return 'Startup Hub';
+        return 'Startup Info';
       case UserRole.investor:
         return 'Investor Hub';
       case UserRole.student:

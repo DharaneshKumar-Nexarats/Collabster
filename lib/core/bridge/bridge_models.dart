@@ -1,7 +1,13 @@
 import '../../features/career/model/job_model.dart';
+import '../../features/career/model/notification_model.dart';
+import '../../features/community/model/notification_model.dart';
 import '../../features/community/model/post_model.dart';
 import '../../features/event/model/event_model.dart';
+import '../../features/event/model/notification_model.dart';
+import '../../features/investor/model/funding_round_model.dart';
 import '../../features/investor/model/investor_model.dart';
+import '../../features/investor/model/notification_model.dart';
+import '../../features/startup/model/notification_model.dart';
 import '../../features/startup/model/startup_models.dart';
 
 /// Unified cross-mode opportunity (job or internship) surfaced across
@@ -85,13 +91,13 @@ List<BridgeOpportunity> startupHiringOpportunities(
       .toList();
 }
 
-/// Career board jobs → unified opportunities.
+/// Career board jobs & internships → unified opportunities.
 List<BridgeOpportunity> careerJobOpportunities(List<JobItem> jobs) {
   return jobs
       .map(
         (j) => BridgeOpportunity(
           id: 'career-${j.title}',
-          kind: 'job',
+          kind: j.roleType,
           title: j.title,
           company: j.company,
           location: j.location,
@@ -201,6 +207,101 @@ class BridgeInvestor {
   });
 }
 
+/// Unified funding round / deal surfaced across Startup → Investor modes.
+class BridgeFundingRound {
+  final String id;
+  final String startup;
+  final String sector;
+  final String stage;
+  final double targetAmount;
+  final double raisedAmount;
+  final String location;
+  final String source; // 'investor-mode' | 'startup-fundraising'
+  final String sourceLabel;
+  final DateTime closeDate;
+  final int investors;
+
+  const BridgeFundingRound({
+    required this.id,
+    required this.startup,
+    required this.sector,
+    required this.stage,
+    required this.targetAmount,
+    required this.raisedAmount,
+    required this.location,
+    required this.source,
+    required this.sourceLabel,
+    required this.closeDate,
+    required this.investors,
+  });
+
+  double get progress => targetAmount == 0 ? 0 : (raisedAmount / targetAmount).clamp(0.0, 1.0);
+}
+
+/// Investor mode funding rounds → unified funding rounds.
+List<BridgeFundingRound> investorFundingRoundsToBridge(
+  List<FundingRound> rounds, {
+  required String sourceLabel,
+}) {
+  DateTime parseCloseDate(String closeDate) {
+    // closeDate format: "Aug 28" (MMM dd)
+    final now = DateTime.now();
+    final parts = closeDate.split(' ');
+    if (parts.length != 2) return now.add(const Duration(days: 30));
+    final monthStr = parts[0];
+    final dayStr = parts[1];
+    final months = {
+      'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+      'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+    };
+    final month = months[monthStr] ?? now.month;
+    final day = int.tryParse(dayStr) ?? now.day;
+    final year = now.month > month ? now.year + 1 : now.year;
+    return DateTime(year, month, day);
+  }
+
+  return rounds
+      .map(
+        (r) => BridgeFundingRound(
+          id: 'investor-fr-${r.id}',
+          startup: r.startup,
+          sector: r.sector,
+          stage: r.stage,
+          targetAmount: r.targetAmount,
+          raisedAmount: r.raisedAmount,
+          location: r.location,
+          source: 'investor-mode',
+          sourceLabel: sourceLabel,
+          closeDate: parseCloseDate(r.closeDate),
+          investors: r.investors,
+        ),
+      )
+      .toList();
+}
+
+/// Startup fundraising rounds → unified funding rounds.
+List<BridgeFundingRound> startupFundraisingToBridge(
+  double targetAmount,
+  double raisedAmount,
+  String startupName,
+) {
+  return [
+    BridgeFundingRound(
+      id: 'startup-fr-$startupName',
+      startup: startupName,
+      sector: 'Multi-sector',
+      stage: 'Active Raise',
+      targetAmount: targetAmount * 1000000,
+      raisedAmount: raisedAmount * 1000000,
+      location: 'Global',
+      source: 'startup-fundraising',
+      sourceLabel: startupName,
+      closeDate: DateTime.now().add(const Duration(days: 30)),
+      investors: 0,
+    ),
+  ];
+}
+
 /// Startup pipeline investors → unified investors.
 List<BridgeInvestor> startupPipelineToBridge(
   List<InvestorEntry> entries, {
@@ -238,4 +339,183 @@ List<BridgeInvestor> investorModeToBridge(List<Investor> investors) {
         ),
       )
       .toList();
+}
+
+/// Unified cross-mode notification surfaced across all modes.
+class BridgeNotification {
+  final String id;
+  final String title;
+  final String subtitle;
+  final String body;
+  final String type; // 'connection' | 'message' | 'milestone' | 'funding' | 'team' | 'document' | 'system' | 'post' | 'event' | 'job' | 'interview'
+  final String iconKey;
+  final String colorKey;
+  final DateTime createdAt;
+  final bool isRead;
+  final String source; // 'startup' | 'career' | 'community' | 'event' | 'investor'
+  final String sourceLabel;
+  final String? deepLink;
+
+  const BridgeNotification({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.body,
+    required this.type,
+    required this.iconKey,
+    required this.colorKey,
+    required this.createdAt,
+    this.isRead = false,
+    required this.source,
+    required this.sourceLabel,
+    this.deepLink,
+  });
+}
+
+/// Startup notifications → unified notifications.
+List<BridgeNotification> startupNotificationsToBridge(
+  List<AppNotification> notifications, {
+  required String startupName,
+}) {
+  return notifications
+      .map(
+        (n) => BridgeNotification(
+          id: 'startup-${n.id}',
+          title: n.title,
+          subtitle: n.subtitle,
+          body: n.body ?? '',
+          type: n.type.name,
+          iconKey: n.iconKey,
+          colorKey: n.colorKey,
+          createdAt: n.createdAt,
+          isRead: n.isRead,
+          source: 'startup',
+          sourceLabel: startupName,
+          deepLink: n.deepLink,
+        ),
+      )
+      .toList();
+}
+
+/// Community notifications → unified notifications.
+List<BridgeNotification> communityNotificationsToBridge(
+  List<CommunityNotification> notifications,
+) {
+  return notifications
+      .map(
+        (n) => BridgeNotification(
+          id: 'community-${n.id}',
+          title: n.title,
+          subtitle: n.subtitle,
+          body: n.body,
+          type: n.type.name,
+          iconKey: n.iconName,
+          colorKey: '0x${n.iconColor.toRadixString(16).padLeft(8, '0')}',
+          createdAt: n.createdAt,
+          isRead: n.isRead,
+          source: 'community',
+          sourceLabel: 'Community Hub',
+          deepLink: n.deepLink,
+        ),
+      )
+      .toList();
+}
+
+/// Career notifications → unified notifications.
+List<BridgeNotification> careerNotificationsToBridge(
+  List<CareerNotification> notifications,
+) {
+  return notifications
+      .map(
+        (n) => BridgeNotification(
+          id: 'career-${n.id}',
+          title: n.title,
+          subtitle: n.description,
+          body: '',
+          type: n.type.name,
+          iconKey: n.iconName,
+          colorKey: '0x${n.iconColor.toRadixString(16).padLeft(8, '0')}',
+          createdAt: DateTime.now().subtract(_parseCareerTime(n.time)),
+          isRead: n.isRead,
+          source: 'career',
+          sourceLabel: 'Career Hub',
+          deepLink: n.deepLink,
+        ),
+      )
+      .toList();
+}
+
+/// Event notifications → unified notifications.
+List<BridgeNotification> eventNotificationsToBridge(
+  List<EventNotification> notifications,
+) {
+  return notifications
+      .map(
+        (n) => BridgeNotification(
+          id: 'event-${n.id}',
+          title: n.title,
+          subtitle: n.subtitle,
+          body: n.body,
+          type: n.type.name,
+          iconKey: n.iconName,
+          colorKey: '0x${n.iconColor.toRadixString(16).padLeft(8, '0')}',
+          createdAt: n.createdAt,
+          isRead: n.isRead,
+          source: 'event',
+          sourceLabel: 'Event Hub',
+          deepLink: n.deepLink,
+        ),
+      )
+      .toList();
+}
+
+/// Investor notifications → unified notifications.
+List<BridgeNotification> investorNotificationsToBridge(
+  List<InvestorNotification> notifications,
+) {
+  return notifications
+      .map(
+        (n) => BridgeNotification(
+          id: 'investor-${n.id}',
+          title: n.title,
+          subtitle: n.subtitle,
+          body: n.body,
+          type: n.type.name,
+          iconKey: n.iconName,
+          colorKey: '0x${n.iconColor.toRadixString(16).padLeft(8, '0')}',
+          createdAt: n.createdAt,
+          isRead: n.isRead,
+          source: 'investor',
+          sourceLabel: 'Investor Hub',
+          deepLink: n.deepLink,
+        ),
+      )
+      .toList();
+}
+
+Duration _parseCareerTime(String time) {
+  final parts = time.toLowerCase().split(' ');
+  if (parts.length != 2) return Duration.zero;
+  final value = int.tryParse(parts[0]) ?? 0;
+  final unit = parts[1];
+  switch (unit) {
+    case 'm':
+    case 'min':
+    case 'mins':
+    case 'minute':
+    case 'minutes':
+      return Duration(minutes: value);
+    case 'h':
+    case 'hr':
+    case 'hrs':
+    case 'hour':
+    case 'hours':
+      return Duration(hours: value);
+    case 'd':
+    case 'day':
+    case 'days':
+      return Duration(days: value);
+    default:
+      return Duration.zero;
+  }
 }

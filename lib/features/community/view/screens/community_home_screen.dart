@@ -162,200 +162,134 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
   void _showCreateOptionsSheet() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.4),
-      builder: (ctx) => SafeArea(
-        child: Container(
-          margin: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(28)),
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(ctx).size.height * 0.82,
-            ),
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE5E7EB),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
                 children: [
-                  // Handle + close
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 8, 0),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE5E7EB),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Quick Actions',
+                        style: TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF12233D),
                         ),
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: () => Navigator.pop(ctx),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFF1F5F9),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close_rounded,
-                              color: Color(0xFF64748B),
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  // Header
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFEA580C), Color(0xFFF97316)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFEA580C).withValues(alpha: 0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                      SizedBox(height: 2),
+                      Text(
+                        'Select a community action to launch',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: Color(0xFF6B7280),
                         ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.add_rounded,
-                      color: Colors.white,
-                      size: 30,
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(ctx),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3F4F6),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        color: Color(0xFF4B5563),
+                        size: 20,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Create',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1E293B),
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'What would you like to create?',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Options grid
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 1.25,
-                      children: [
-                        _buildCreateOption(
-                          icon: Icons.article_outlined,
-                          title: 'Post',
-                          subtitle: 'Discussion & ideas',
-                          color: const Color(0xFFEA580C),
-                          onTap: () {
-                            Navigator.pop(ctx);
-                            _openCreatePostScreen();
-                          },
-                        ),
-                        _buildCreateOption(
-                          icon: Icons.event_outlined,
-                          title: 'Event',
-                          subtitle: 'Meetup & workshop',
-                          color: const Color(0xFF059669),
-                          onTap: () {
-                            Navigator.pop(ctx);
-                            _openCreateEventScreen();
-                          },
-                        ),
-                        _buildCreateOption(
-                          icon: Icons.people_outline_rounded,
-                          title: 'Community',
-                          subtitle: 'Start a new group',
-                          color: const Color(0xFF2563EB),
-                          onTap: () {
-                            Navigator.pop(ctx);
-                            _openCreateCommunityScreen();
-                          },
-                        ),
-                        _buildCreateOption(
-                          icon: Icons.forum_outlined,
-                          title: 'Room',
-                          subtitle: 'Made in a community',
-                          color: const Color(0xFF7C3AED),
-                          onTap: () {
-                            Navigator.pop(ctx);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const CreateRoomScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  // Footer note
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.lightbulb_outline_rounded,
-                          size: 14,
-                          color: Color(0xFF7C3AED),
-                        ),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            'Rooms are created together with a community',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey.shade500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                 ],
               ),
-            ),
+              const SizedBox(height: 18),
+              _buildCommunityActionTile(
+                ctx,
+                icon: Icons.post_add_rounded,
+                title: 'Create Post',
+                subtitle: 'Share discussions, ideas & articles',
+                color: const Color(0xFFEA580C),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _openCreatePostScreen();
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildCommunityActionTile(
+                ctx,
+                icon: Icons.event_rounded,
+                title: 'Create Event',
+                subtitle: 'Host meetups, workshops & conferences',
+                color: const Color(0xFF059669),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _openCreateEventScreen();
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildCommunityActionTile(
+                ctx,
+                icon: Icons.groups_rounded,
+                title: 'Create Community',
+                subtitle: 'Start a new public or private group',
+                color: const Color(0xFF2563EB),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _openCreateCommunityScreen();
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildCommunityActionTile(
+                ctx,
+                icon: Icons.forum_rounded,
+                title: 'Create Room',
+                subtitle: 'Launch a chat room inside a community',
+                color: const Color(0xFF7C3AED),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const CreateRoomScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildCreateOption({
+  Widget _buildCommunityActionTile(
+    BuildContext ctx, {
     required IconData icon,
     required String title,
     required String subtitle,
@@ -366,53 +300,67 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: color.withValues(alpha: 0.18)),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: color.withValues(alpha: 0.16)),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [color.withValues(alpha: 0.85), color],
+                    colors: [color, color.withValues(alpha: 0.85)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withValues(alpha: 0.25),
+                      color: color.withValues(alpha: 0.28),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
                   ],
                 ),
-                child: Icon(icon, color: Colors.white, size: 20),
+                child: Icon(icon, color: Colors.white, size: 21),
               ),
-              const Spacer(),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1E293B),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF12233D),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 11.5, color: Colors.grey.shade500),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: color.withValues(alpha: 0.5),
+                size: 15,
               ),
             ],
           ),
