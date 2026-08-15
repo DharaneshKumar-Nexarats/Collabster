@@ -1,0 +1,39 @@
+import 'bridge_models.dart';
+
+/// Aggregated cross-mode data surfaced by the Connection Bridge.
+class BridgeState {
+  const BridgeState({
+    this.opportunities = const [],
+    this.posts = const [],
+    this.events = const [],
+    this.investors = const [],
+    this.isLoaded = false,
+  });
+
+  final List<BridgeOpportunity> opportunities;
+  final List<BridgePost> posts;
+  final List<BridgeEvent> events;
+  final List<BridgeInvestor> investors;
+  final bool isLoaded;
+
+  int get startupCount => opportunities.where((o) => o.fromStartup).length;
+  int get careerCount => opportunities.where((o) => !o.fromStartup).length;
+  int get communityCount => posts.where((p) => p.source == 'community').length;
+  int get eventCount => events.where((e) => e.source == 'event').length;
+
+  BridgeState copyWith({
+    List<BridgeOpportunity>? opportunities,
+    List<BridgePost>? posts,
+    List<BridgeEvent>? events,
+    List<BridgeInvestor>? investors,
+    bool? isLoaded,
+  }) {
+    return BridgeState(
+      opportunities: opportunities ?? this.opportunities,
+      posts: posts ?? this.posts,
+      events: events ?? this.events,
+      investors: investors ?? this.investors,
+      isLoaded: isLoaded ?? this.isLoaded,
+    );
+  }
+}

@@ -33,6 +33,7 @@ class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen>
   @override
   void initState() {
     super.initState();
+    ref.read(teamViewModelProvider.notifier).loadInitialData();
     _fadeCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),

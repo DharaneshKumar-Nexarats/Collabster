@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/di/providers.dart';
 import '../../../../core/bridge/bridge_models.dart';
+import '../../../../core/bridge/view/connect_screen.dart';
 import '../../../../shared/widgets/role_switcher_sheet.dart';
 import '../../../auth/view/screens/profile_screen.dart';
 import '../../../auth/view/sign_in_screen.dart';
@@ -1263,7 +1264,62 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
               _buildQuickActionItem(actions[3]),
             ],
           ),
+          const SizedBox(height: 12),
+          _buildConnectTile(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildConnectTile() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ConnectScreen()),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF4A0E8F), Color(0xFF6D28D9), Color(0xFF4F46E5)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.alt_route_rounded, color: Colors.white, size: 20),
+            SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Connect',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Startup hiring • Career jobs • Events • Investors — one feed',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 10.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 14),
+          ],
+        ),
       ),
     );
   }

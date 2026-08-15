@@ -6,11 +6,25 @@ import '../../../../core/di/providers.dart';
 import '../../model/event_model.dart';
 import '../../../community/view/screens/create_event_screen.dart';
 
-class EventsListScreen extends ConsumerWidget {
+class EventsListScreen extends ConsumerStatefulWidget {
   const EventsListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EventsListScreen> createState() => _EventsListScreenState();
+}
+
+class _EventsListScreenState extends ConsumerState<EventsListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(eventViewModelProvider.notifier).loadEvents();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final eventState = ref.watch(eventViewModelProvider);
     final events = eventState.events;
 
@@ -287,18 +301,22 @@ class _EventCard extends StatelessWidget {
           // Meta info row
           Row(
             children: [
-              _MetaChip(
-                icon: Icons.calendar_today_outlined,
-                label: _formatDate(event.startDate),
-                color: const Color(0xFF059669),
+              Flexible(
+                child: _MetaChip(
+                  icon: Icons.calendar_today_outlined,
+                  label: _formatDate(event.startDate),
+                  color: const Color(0xFF059669),
+                ),
               ),
               const SizedBox(width: 10),
-              _MetaChip(
-                icon: event.isOnline
-                    ? Icons.videocam_outlined
-                    : Icons.location_on_outlined,
-                label: event.location,
-                color: const Color(0xFF059669),
+              Flexible(
+                child: _MetaChip(
+                  icon: event.isOnline
+                      ? Icons.videocam_outlined
+                      : Icons.location_on_outlined,
+                  label: event.location,
+                  color: const Color(0xFF059669),
+                ),
               ),
             ],
           ),
@@ -389,12 +407,16 @@ class _MetaChip extends StatelessWidget {
         children: [
           Icon(icon, size: 13, color: color),
           const SizedBox(width: 5),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
-              color: color,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
             ),
           ),
         ],

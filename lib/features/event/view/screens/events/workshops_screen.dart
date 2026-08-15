@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../event_home_screen.dart';
+import 'my_events_screen.dart';
 import 'workshop_registration_screen.dart';
 
 // ─── Color Tokens ───────────────────────────────────────────────
@@ -278,8 +280,12 @@ class _WorkshopsScreenState extends State<WorkshopsScreen> {
             children: [
               Icon(w['modeIcon'] as IconData, color: _textSecondary, size: 13),
               const SizedBox(width: 4),
-              Text('${w['organizer']} • ${w['mode']}',
-                  style: const TextStyle(color: _textSecondary, fontSize: 12)),
+              Expanded(
+                child: Text('${w['organizer']} • ${w['mode']}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: _textSecondary, fontSize: 12)),
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -345,7 +351,12 @@ class _WorkshopsScreenState extends State<WorkshopsScreen> {
   Widget _buildViewAllButton() {
     return Center(
       child: OutlinedButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const EventsListScreen()),
+          );
+        },
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: _accent, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 14),
@@ -376,7 +387,28 @@ class _WorkshopsScreenState extends State<WorkshopsScreen> {
           final isSelected = _bottomNavIndex == i;
           return Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _bottomNavIndex = i),
+              onTap: () {
+                setState(() => _bottomNavIndex = i);
+                if (i == 0) Navigator.pop(context);
+                if (i == 1) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EventsListScreen()),
+                  );
+                }
+                if (i == 2) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MyEventsScreen()),
+                  );
+                }
+                if (i == 3) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MyEventsScreen()),
+                  );
+                }
+              },
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

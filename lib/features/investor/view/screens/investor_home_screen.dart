@@ -1,17 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/view/sign_in_screen.dart';
+import '../../../../core/bridge/bridge_models.dart';
+import '../../../../core/bridge/view/connect_screen.dart';
 import '../../../../core/di/providers.dart';
 import '../../../../shared/widgets/role_switcher_sheet.dart';
 
-class InvestorHomeScreen extends ConsumerWidget {
+class InvestorHomeScreen extends ConsumerStatefulWidget {
   const InvestorHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<InvestorHomeScreen> createState() => _InvestorHomeScreenState();
+}
+
+class _InvestorHomeScreenState extends ConsumerState<InvestorHomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(bridgeViewModelProvider.notifier).loadAll();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
     final session = authState.session;
     final userName = session?.fullName ?? 'Investor';
+    final bridge = ref.watch(bridgeViewModelProvider);
+    final opportunities = bridge.opportunities;
+    final investors = bridge.investors;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F3FF),
@@ -153,9 +172,18 @@ class InvestorHomeScreen extends ConsumerWidget {
                 _buildStatRow(
                   const Color(0xFF0F4C81),
                   [
-                    _StatItem(value: '0', label: 'PORTFOLIO\nCOMPANIES'),
-                    _StatItem(value: '\$0', label: 'TOTAL\nINVESTED'),
-                    _StatItem(value: '0', label: 'PITCH DECKS\nVIEWED'),
+                    _StatItem(
+                      value: '${opportunities.length}',
+                      label: 'LIVE\nOPPORTUNITIES',
+                    ),
+                    _StatItem(
+                      value: '${investors.length}',
+                      label: 'INVESTOR\nCONNECTIONS',
+                    ),
+                    _StatItem(
+                      value: '${bridge.posts.length}',
+                      label: 'UPDATES\nSTREAMED',
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -165,10 +193,52 @@ class InvestorHomeScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 _buildSectionHeader('Recent Opportunities'),
                 const SizedBox(height: 12),
-                _buildEmptyState(
-                  Icons.trending_up_rounded,
-                  'No opportunities yet',
-                  'Startup pitch decks will appear here when available.',
+                if (opportunities.isEmpty && investors.isEmpty)
+                  _buildEmptyState(
+                    Icons.trending_up_rounded,
+                    'No opportunities yet',
+                    'Startup hiring and pitch decks appear here automatically when published.',
+                  )
+                else
+                  ..._buildBridgedSections(opportunities, investors),
+                const SizedBox(height: 18),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ConnectScreen()),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF0F4C81), Color(0xFF1A6FB5)],
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.alt_route_rounded, color: Colors.white, size: 22),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Open Connect Hub — see Startup, Career, Community, Events & Investors in one feed',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                        Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
+                      ],
+                    ),
+                  ),
                 ),
               ]),
             ),
@@ -233,9 +303,50 @@ class InvestorHomeScreen extends ConsumerWidget {
 
   Widget _buildActionGrid(BuildContext context) {
     final actions = [
-      _Action(icon: Icons.search_rounded, label: 'Discover', color: const Color(0xFF0F4C81)),
-      _Action(icon: Icons.dashboard_rounded, label: 'Portfolio', color: const Color(0xFF27AE60)),
-      _Action(icon: Icons.article_rounded, label: 'Pitch Decks', color: const Color(0xFFE67E22)),
+      _Action(
+        icon: Icons.search_rounded,
+        label: 'Discover',
+        color: const Color(0xFF0F4C81),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ConnectScreen()),
+          );
+        },
+      ),
+      _Action(
+        icon: Icons.dashboard_rounded,
+        label: 'Portfolio',
+        color: const Color(0xFF27AE60),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ConnectScreen()),
+          );
+        },
+      ),
+      _Action(
+        icon: Icons.article_rounded,
+        label: 'Pitch Decks',
+        color: const Color(0xFFE67E22),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ConnectScreen()),
+          );
+        },
+      ),
+      _Action(
+        icon: Icons.alt_route_rounded,
+        label: 'Connect',
+        color: const Color(0xFF8B5CF6),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ConnectScreen()),
+          );
+        },
+      ),
     ];
 
     return Container(
@@ -250,31 +361,165 @@ class InvestorHomeScreen extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: actions
-            .map((a) => Column(
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: a.color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(16),
+            .map((a) => GestureDetector(
+                  onTap: a.onTap,
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: a.color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(a.icon, color: a.color, size: 26),
                       ),
-                      child: Icon(a.icon, color: a.color, size: 26),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      a.label,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF374151),
+                      const SizedBox(height: 8),
+                      Text(
+                        a.label,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF374151),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ))
             .toList(),
       ),
     );
+  }
+
+  List<Widget> _buildBridgedSections(
+    List<BridgeOpportunity> opportunities,
+    List<BridgeInvestor> investors,
+  ) {
+    final widgets = <Widget>[];
+
+    for (final opp in opportunities.take(4)) {
+      widgets.add(
+        Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: opp.fromStartup
+                      ? const Color(0xFFF3E8FF)
+                      : const Color(0xFFE0F2FE),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(
+                  opp.fromStartup ? Icons.rocket_launch_rounded : Icons.work_rounded,
+                  color: opp.fromStartup
+                      ? const Color(0xFF6D28D9)
+                      : const Color(0xFF0284C7),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      opp.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF1F2937),
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${opp.company} • ${opp.location}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Color(0xFF6B7280), fontSize: 11.5),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  opp.salary,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF15803D),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (investors.isNotEmpty) {
+      widgets.add(
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Investor connections',
+                style: TextStyle(
+                  color: Color(0xFF1F2937),
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: investors.take(6).map((inv) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${inv.name} • ${inv.fund}',
+                      style: const TextStyle(
+                        color: Color(0xFF1D4ED8),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return widgets;
   }
 
   Widget _buildEmptyState(IconData icon, String title, String subtitle) {
@@ -316,8 +561,14 @@ class _StatItem {
 }
 
 class _Action {
-  const _Action({required this.icon, required this.label, required this.color});
+  const _Action({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
   final IconData icon;
   final String label;
   final Color color;
+  final VoidCallback onTap;
 }

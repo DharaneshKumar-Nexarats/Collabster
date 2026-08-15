@@ -27,6 +27,9 @@ class EventState {
     }).toList();
   }
 
+  bool isRegistered(String eventId) =>
+      myEvents.any((e) => e.id == eventId);
+
   EventState copyWith({
     List<Event>? events,
     List<Event>? myEvents,

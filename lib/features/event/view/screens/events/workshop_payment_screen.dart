@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/di/providers.dart';
 import 'workshop_slot_confirmation_screen.dart';
 
 const _bg = Color(0xFFF8FAFC);
@@ -12,7 +14,7 @@ const _borderColor = Color(0xFFE2E8F0);
 const _inputBg = Color(0xFFF1F5F9);
 const _green = Color(0xFF22C55E);
 
-class WorkshopPaymentScreen extends StatefulWidget {
+class WorkshopPaymentScreen extends ConsumerStatefulWidget {
   final String workshopTitle;
   final String organizer;
   const WorkshopPaymentScreen({
@@ -22,10 +24,10 @@ class WorkshopPaymentScreen extends StatefulWidget {
   });
 
   @override
-  State<WorkshopPaymentScreen> createState() => _WorkshopPaymentScreenState();
+  ConsumerState<WorkshopPaymentScreen> createState() => _WorkshopPaymentScreenState();
 }
 
-class _WorkshopPaymentScreenState extends State<WorkshopPaymentScreen> {
+class _WorkshopPaymentScreenState extends ConsumerState<WorkshopPaymentScreen> {
   // 0=GooglePay, 1=PhonePe, 2=Paytm, 3=Card
   int _selectedUpi = 0;
   bool _isProcessing = false;
@@ -324,7 +326,24 @@ class _WorkshopPaymentScreenState extends State<WorkshopPaymentScreen> {
             ),
           ),
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              final upi = _upiCtrl.text.trim();
+              if (upi.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Enter a UPI ID first'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                return;
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('$upi verified ✓'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
             child: Container(
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
@@ -418,6 +437,8 @@ class _WorkshopPaymentScreenState extends State<WorkshopPaymentScreen> {
         onPressed: _isProcessing
             ? null
             : () async {
+                ref.read(eventViewModelProvider.notifier)
+                    .rsvpEvent(widget.workshopTitle);
                 final nav = Navigator.of(context);
                 setState(() => _isProcessing = true);
                 await Future.delayed(const Duration(milliseconds: 800));

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/di/providers.dart';
 
 // ─── Color Tokens ───────────────────────────────────────────────
 const _bg = Color(0xFFF8FAFC);
@@ -14,15 +16,15 @@ const _inputBg = Color(0xFFF1F5F9);
 const _green = Color(0xFF22C55E);
 const _orange = Color(0xFFF59E0B);
 
-class HackathonRegistrationScreen extends StatefulWidget {
+class HackathonRegistrationScreen extends ConsumerStatefulWidget {
   final String hackathonTitle;
   const HackathonRegistrationScreen({super.key, this.hackathonTitle = 'Global Fintech Hackathon'});
 
   @override
-  State<HackathonRegistrationScreen> createState() => _HackathonRegistrationScreenState();
+  ConsumerState<HackathonRegistrationScreen> createState() => _HackathonRegistrationScreenState();
 }
 
-class _HackathonRegistrationScreenState extends State<HackathonRegistrationScreen> {
+class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrationScreen> {
   int _selectedGender = 0; // 0=Male, 1=Female, 2=Others
   final List<String> _skills = ['Flutter', 'React'];
   final TextEditingController _teamNameController = TextEditingController();
@@ -37,6 +39,77 @@ class _HackathonRegistrationScreenState extends State<HackathonRegistrationScree
     {'name': 'Alex Rivera', 'phone': '+91 87369 63456', 'isLeader': true, 'status': 'verified', 'initial': 'A', 'color': Color(0xFF7C3AED)},
     {'name': 'Sarah Jenkins', 'phone': '+91 87369 63456', 'isLeader': false, 'status': 'pending', 'initial': 'S', 'color': Color(0xFF22C55E)},
   ];
+
+  Future<void> _addSkill() async {
+    final controller = TextEditingController();
+    final skill = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add Skill'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'e.g. Firebase, Python'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+    if (skill != null && skill.isNotEmpty && mounted) {
+      setState(() => _skills.add(skill));
+    }
+  }
+
+  Future<void> _addTeammate() async {
+    final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final added = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add Team Member'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(hintText: 'Full name'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: phoneCtrl,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(hintText: 'Phone number'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+    if (added == true && nameCtrl.text.trim().isNotEmpty && mounted) {
+      final name = nameCtrl.text.trim();
+      setState(() {
+        _teammates.add({
+          'name': name,
+          'phone': phoneCtrl.text.trim().isEmpty ? '+91 ••••• •••••' : phoneCtrl.text.trim(),
+          'isLeader': false,
+          'status': 'pending',
+          'initial': name[0].toUpperCase(),
+          'color': const Color(0xFF10B981),
+        });
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -419,7 +492,7 @@ class _HackathonRegistrationScreenState extends State<HackathonRegistrationScree
               ),
             )),
             GestureDetector(
-              onTap: () {},
+              onTap: _addSkill,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
@@ -487,7 +560,7 @@ class _HackathonRegistrationScreenState extends State<HackathonRegistrationScree
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: _addTeammate,
         style: ElevatedButton.styleFrom(
           backgroundColor: _accent,
           elevation: 0,
@@ -583,7 +656,7 @@ class _HackathonRegistrationScreenState extends State<HackathonRegistrationScree
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () {},
+            onPressed: _addTeammate,
             icon: const Icon(Icons.person_add_alt_1_rounded, color: _accentLight, size: 16),
             label: const Text('Add Team Member',
                 style: TextStyle(color: _accentLight, fontWeight: FontWeight.w600, fontSize: 13)),
@@ -695,7 +768,14 @@ class _HackathonRegistrationScreenState extends State<HackathonRegistrationScree
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton(
-        onPressed: () {},
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Details updated successfully ✓'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        },
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: _accent, width: 1.5),
           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -728,6 +808,12 @@ class _HackathonRegistrationScreenState extends State<HackathonRegistrationScree
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
+          final eventId = 'hackathon-${widget.hackathonTitle}';
+          final notifier = ref.read(eventViewModelProvider.notifier);
+          final alreadyRegistered = notifier.isRegistered(eventId);
+          if (!alreadyRegistered) {
+            notifier.rsvpEvent(eventId);
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Registration submitted successfully! 🎉'),

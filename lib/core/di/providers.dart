@@ -43,6 +43,8 @@ import '../../features/community/viewmodel/activity_viewmodel.dart';
 import '../../features/community/viewmodel/activity_state.dart';
 import '../../features/community/viewmodel/message_viewmodel.dart';
 import '../../features/community/viewmodel/message_state.dart';
+import '../../features/event/repository/event_repository_impl.dart';
+import '../../features/event/repository/i_event_repository.dart';
 import '../../features/event/viewmodel/event_viewmodel.dart';
 import '../../features/event/viewmodel/event_state.dart';
 import '../../features/event/viewmodel/event_create_viewmodel.dart';
@@ -52,6 +54,8 @@ import '../../features/investor/viewmodel/investor_state.dart';
 import '../../features/investor/viewmodel/pitch_deck_viewmodel.dart';
 import '../../features/investor/viewmodel/pitch_deck_state.dart';
 import '../theme/theme_provider.dart';
+import '../bridge/bridge_state.dart';
+import '../bridge/bridge_viewmodel.dart';
 
 final authRepositoryProvider = Provider<IAuthRepository>((ref) {
   return AuthRepositoryImpl();
@@ -191,9 +195,13 @@ final messageViewModelProvider =
 // ---------------------------------------------------------------------------
 // Event Feature ViewModels
 // ---------------------------------------------------------------------------
+final eventRepositoryProvider = Provider<IEventRepository>((ref) {
+  return EventRepositoryImpl();
+});
+
 final eventViewModelProvider =
     StateNotifierProvider<EventViewModel, EventState>((ref) {
-  return EventViewModel();
+  return EventViewModel(ref.read(eventRepositoryProvider));
 });
 
 final eventCreateViewModelProvider =
@@ -212,4 +220,22 @@ final investorViewModelProvider =
 final pitchDeckViewModelProvider =
     StateNotifierProvider<PitchDeckViewModel, PitchDeckState>((ref) {
   return PitchDeckViewModel();
+});
+
+// ---------------------------------------------------------------------------
+// Connection Bridge — aggregates every mode (Startup, Career, Community,
+// Event, Investor) into unified cross-mode feeds.
+// ---------------------------------------------------------------------------
+final bridgeViewModelProvider =
+    StateNotifierProvider<BridgeViewModel, BridgeState>((ref) {
+  return BridgeViewModel(
+    eventViewModel: ref.read(eventViewModelProvider.notifier),
+    careerViewModel: ref.read(careerViewModelProvider.notifier),
+    hiringViewModel: ref.read(hiringViewModelProvider.notifier),
+    postViewModel: ref.read(postViewModelProvider.notifier),
+    investorPipelineViewModel:
+        ref.read(investorPipelineViewModelProvider.notifier),
+    investorViewModel: ref.read(investorViewModelProvider.notifier),
+    authViewModel: ref.read(authViewModelProvider.notifier),
+  );
 });

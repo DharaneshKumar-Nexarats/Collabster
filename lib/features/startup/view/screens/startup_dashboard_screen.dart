@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/di/providers.dart';
+import '../../../../core/bridge/view/connect_screen.dart';
 import '../../../../shared/utils/app_snackbar.dart';
 import '../../../../shared/widgets/role_switcher_sheet.dart';
 import '../../model/startup_models.dart';
@@ -2204,6 +2205,12 @@ class _QuickActionsGrid extends StatelessWidget {
         label: 'Requests',
         color: const Color(0xFF8B5CF6),
         onTap: () => Navigator.push(context, _smoothRoute(StartupRequestsScreen(startupName: startupName))),
+      ),
+      _QuickAction(
+        icon: Icons.alt_route_rounded,
+        label: 'Connect',
+        color: const Color(0xFF4F46E5),
+        onTap: () => Navigator.push(context, _smoothRoute(const ConnectScreen())),
       ),
     ];
 

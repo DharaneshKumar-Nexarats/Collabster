@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/di/providers.dart';
+import '../../../model/event_model.dart';
+import '../event_home_screen.dart';
+import 'event_detail_screen.dart';
+import 'my_events_screen.dart';
 
 // ─── Color Tokens ───────────────────────────────────────────────
 const _bg = Color(0xFFF8FAFC);
@@ -12,18 +18,39 @@ const _textSecondary = Color(0xFF64748B);
 const _borderColor = Color(0xFFE2E8F0);
 const _liveRed = Color(0xFFFF3C5C);
 
-class MeetupsScreen extends StatefulWidget {
+class MeetupsScreen extends ConsumerStatefulWidget {
   const MeetupsScreen({super.key});
 
   @override
-  State<MeetupsScreen> createState() => _MeetupsScreenState();
+  ConsumerState<MeetupsScreen> createState() => _MeetupsScreenState();
 }
 
-class _MeetupsScreenState extends State<MeetupsScreen> {
+class _MeetupsScreenState extends ConsumerState<MeetupsScreen> {
   int _selectedFilterIndex = 0;
   int _bottomNavIndex = 0;
 
   final List<String> _filters = ['All', 'Near Me', 'Informal', 'Startup Pitch'];
+
+  Event _meetupToEvent(Map<String, dynamic> m) {
+    return Event(
+      id: m['title'] as String,
+      title: m['title'] as String,
+      description: '${(m['tags'] as List).join(', ')} — join the community and grow your network.',
+      location: m['location'] as String,
+      startDate: DateTime.now().add(const Duration(days: 2)),
+      endDate: DateTime.now().add(const Duration(days: 2)),
+      organizerName: 'Event Hub',
+      category: 'Meetup',
+      attendeeCount: 90,
+    );
+  }
+
+  void _openDetail(Map<String, dynamic> m) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EventDetailScreen(event: _meetupToEvent(m))),
+    );
+  }
 
   final List<Map<String, dynamic>> _meetups = [
     {
@@ -203,7 +230,9 @@ class _MeetupsScreenState extends State<MeetupsScreen> {
     final gradients = m['gradient'] as List<Color>;
     final isLive = m['isLive'] as bool;
 
-    return Container(
+    return GestureDetector(
+      onTap: () => _openDetail(m),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 18),
       decoration: BoxDecoration(
         color: _card,
@@ -308,8 +337,12 @@ class _MeetupsScreenState extends State<MeetupsScreen> {
                     Icon(m['locationIcon'] as IconData,
                         color: _textSecondary, size: 13),
                     const SizedBox(width: 4),
-                    Text(m['location'] as String,
-                        style: const TextStyle(color: _textSecondary, fontSize: 12)),
+                    Expanded(
+                      child: Text(m['location'] as String,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: _textSecondary, fontSize: 12)),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -344,7 +377,16 @@ class _MeetupsScreenState extends State<MeetupsScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          ref.read(eventViewModelProvider.notifier)
+                              .rsvpEvent(m['title'] as String);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('RSVP confirmed! Added to My Events'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _accent,
                           elevation: 0,
@@ -366,6 +408,7 @@ class _MeetupsScreenState extends State<MeetupsScreen> {
           ),
         ],
       ),
+      ),
     );
   }
 
@@ -373,7 +416,12 @@ class _MeetupsScreenState extends State<MeetupsScreen> {
   Widget _buildViewAllButton() {
     return Center(
       child: OutlinedButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const EventsListScreen()),
+          );
+        },
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: _accent, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 14),
@@ -404,7 +452,28 @@ class _MeetupsScreenState extends State<MeetupsScreen> {
           final isSelected = _bottomNavIndex == i;
           return Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _bottomNavIndex = i),
+              onTap: () {
+                setState(() => _bottomNavIndex = i);
+                if (i == 0) Navigator.pop(context);
+                if (i == 1) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EventsListScreen()),
+                  );
+                }
+                if (i == 2) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MyEventsScreen()),
+                  );
+                }
+                if (i == 3) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MyEventsScreen()),
+                  );
+                }
+              },
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
