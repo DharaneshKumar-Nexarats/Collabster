@@ -7,6 +7,7 @@ class EventCreateState {
     this.category = 'Networking',
     this.startDate,
     this.endDate,
+    this.imageUrl,
   });
 
   final String title;
@@ -16,6 +17,7 @@ class EventCreateState {
   final String category;
   final DateTime? startDate;
   final DateTime? endDate;
+  final String? imageUrl;
 
   bool get isValid => title.isNotEmpty && description.isNotEmpty && location.isNotEmpty;
 
@@ -27,6 +29,7 @@ class EventCreateState {
     String? category,
     DateTime? startDate,
     DateTime? endDate,
+    String? imageUrl,
   }) {
     return EventCreateState(
       title: title ?? this.title,
@@ -36,6 +39,7 @@ class EventCreateState {
       category: category ?? this.category,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 }

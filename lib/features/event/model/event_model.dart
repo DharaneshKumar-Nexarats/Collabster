@@ -1,3 +1,5 @@
+export 'event_attendee_model.dart';
+
 class Event {
   final String id;
   final String title;
@@ -23,21 +25,5 @@ class Event {
     this.attendeeCount = 0,
     this.isOnline = false,
     this.imageUrl,
-  });
-}
-
-class EventAttendee {
-  final String id;
-  final String name;
-  final String role;
-  final String initials;
-  final bool isGoing;
-
-  const EventAttendee({
-    required this.id,
-    required this.name,
-    required this.role,
-    required this.initials,
-    this.isGoing = true,
   });
 }

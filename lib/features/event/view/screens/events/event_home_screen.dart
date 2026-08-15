@@ -1,14 +1,26 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/bridge/bridge_models.dart';
+import '../../../../../core/bridge/view/connect_screen.dart';
 import '../../../../../core/di/providers.dart';
 import '../../../../../shared/widgets/role_switcher_sheet.dart';
 import '../../../../auth/view/screens/profile_screen.dart';
+import '../../../../auth/view/sign_in_screen.dart';
 import '../../../../career/view/screens/notifications_screen.dart';
-import 'hackathons_screen.dart';
-import 'workshops_screen.dart';
-import 'meetups_screen.dart';
+import '../../../../inbox/view/inbox_screen.dart';
+import '../../../model/event_model.dart';
+import '../../../view/widgets/event_card.dart';
+import '../event_home_screen.dart';
 import 'conferences_screen.dart';
+import 'event_create_screen.dart';
+import 'event_detail_screen.dart';
+import 'hackathons_screen.dart';
+import 'meetups_screen.dart';
+import 'my_events_screen.dart';
 import 'webinars_screen.dart';
+import 'workshops_screen.dart';
 
 // ─── Color Tokens ───────────────────────────────────────────────
 const _bg = Color(0xFFF8FAFC);
@@ -33,14 +45,9 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
   int _bottomNavIndex = 0;
   int _selectedDayIndex = 0;
   int _activityTabIndex = 0;
+  final _searchController = TextEditingController();
 
-  final List<Map<String, dynamic>> _days = [
-    {'day': 'MON', 'date': 12},
-    {'day': 'TUE', 'date': 13},
-    {'day': 'WED', 'date': 14},
-    {'day': 'THU', 'date': 15},
-    {'day': 'FRI', 'date': 16},
-  ];
+  late final List<DateTime> _days;
 
   final List<Map<String, dynamic>> _categories = [
     {'icon': Icons.code_rounded, 'label': 'Hackathons'},
@@ -50,33 +57,53 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
     {'icon': Icons.laptop_mac_rounded, 'label': 'Webinars'},
   ];
 
-  final List<Map<String, dynamic>> _activityItems = [
-    {
-      'title': 'Product Strategy 2026',
-      'subtitle': 'Jun 14 • London, UK',
-      'icon': Icons.event_note_rounded,
-    },
-    {
-      'title': 'AI Ethics Summit',
-      'subtitle': 'Jun 18 • Virtual',
-      'icon': Icons.psychology_rounded,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _days = List.generate(5, (i) {
+      final d = DateTime.now().add(Duration(days: i));
+      return DateTime(d.year, d.month, d.day);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(eventViewModelProvider.notifier).loadEvents();
+      ref.read(bridgeViewModelProvider.notifier).loadAll();
+    });
+  }
 
-  final List<Map<String, dynamic>> _topEvents = [
-    {
-      'title': 'Global AI Summit',
-      'date': 'Oct 24 • 09:00 AM',
-      'colorA': Color(0xFF064E3B),
-      'colorB': Color(0xFF047857),
-    },
-    {
-      'title': 'Fintech Innova',
-      'date': 'Oct 25 • 10:00 AM',
-      'colorA': Color(0xFF0F766E),
-      'colorB': Color(0xFF0D9488),
-    },
-  ];
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _openDetail(Event event) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EventDetailScreen(event: event)),
+    );
+  }
+
+  void _openCreate() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const EventCreateScreen()),
+    );
+  }
+
+  void _openAllEvents() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const EventsListScreen()),
+    );
+  }
+
+  void _openMyEvents() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MyEventsScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +111,31 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
     final session = authState.session;
     final userName = session?.fullName ?? 'Sarah';
     final initials = userName.isNotEmpty ? userName[0].toUpperCase() : 'S';
+
+    final eventState = ref.watch(eventViewModelProvider);
+    final allEvents = eventState.events;
+    final myEvents = eventState.myEvents;
+    final bridge = ref.watch(bridgeViewModelProvider);
+    final bridgeOpportunities = bridge.opportunities;
+    final bridgePosts = bridge.posts;
+
+    final selectedDay = _days[_selectedDayIndex];
+    final eventsOnDay = allEvents
+        .where((e) =>
+            e.startDate.year == selectedDay.year &&
+            e.startDate.month == selectedDay.month &&
+            e.startDate.day == selectedDay.day)
+        .toList();
+
+    final upcoming = eventsOnDay.isNotEmpty
+        ? eventsOnDay
+        : allEvents.where((e) => !e.startDate.isBefore(DateTime.now())).take(3).toList();
+
+    final recommended = allEvents.isEmpty
+        ? null
+        : allEvents.reduce((a, b) => a.attendeeCount >= b.attendeeCount ? a : b);
+    final topEvents = [...allEvents]..sort((a, b) => b.attendeeCount.compareTo(a.attendeeCount));
+    final liveNow = allEvents.where((e) => e.isOnline).toList();
 
     return Scaffold(
       backgroundColor: _bg,
@@ -102,29 +154,31 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
                     const SizedBox(height: 16),
                     _buildDateStrip(),
                     const SizedBox(height: 20),
-                    _buildSectionHeader('Your Upcoming', 'View All'),
+                    _buildSectionHeader('Your Upcoming', 'View All', onCta: _openMyEvents),
                     const SizedBox(height: 12),
-                    _buildUpcomingCard(),
+                    _buildUpcomingList(upcoming),
                     const SizedBox(height: 24),
                     _buildSectionHeader('Explore by Category', null),
                     const SizedBox(height: 14),
                     _buildCategoryChips(),
                     const SizedBox(height: 24),
-                    _buildSectionHeader('My Activity', 'View All'),
+                    _buildSectionHeader('My Activity', 'View All', onCta: _openMyEvents),
                     const SizedBox(height: 12),
                     _buildActivityTabs(),
                     const SizedBox(height: 12),
-                    _buildActivityList(),
+                    _buildActivityList(myEvents, allEvents),
                     const SizedBox(height: 24),
                     _buildSectionHeader('Recommended', null),
                     const SizedBox(height: 12),
-                    _buildRecommendedCard(),
+                    if (recommended != null) _buildRecommendedCard(recommended),
                     const SizedBox(height: 24),
-                    _buildSectionHeader('Top Events', 'VIEW ALL'),
+                    _buildSectionHeader('Top Events', 'VIEW ALL', onCta: _openAllEvents),
                     const SizedBox(height: 12),
-                    _buildTopEventsRow(),
+                    _buildTopEventsRow(topEvents.take(4).toList()),
                     const SizedBox(height: 24),
-                    _buildRegisteredLiveSection(),
+                    _buildConnectSection(bridgeOpportunities, bridgePosts),
+                    const SizedBox(height: 24),
+                    if (liveNow.isNotEmpty) _buildRegisteredLiveSection(liveNow.first),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -167,11 +221,16 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
               children: [
                 Row(
                   children: [
-                    Text('Hi $userName ', style: const TextStyle(color: _textPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
+                    Flexible(
+                      child: Text('Hi $userName ',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: _textPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
+                    ),
                     const Text('👋', style: TextStyle(fontSize: 15)),
                   ],
                 ),
-                const Text('Ready for your next move?', style: TextStyle(color: _textSecondary, fontSize: 12)),
+                const Text('Ready for your next event?', style: TextStyle(color: _textSecondary, fontSize: 12)),
               ],
             ),
           ),
@@ -198,45 +257,40 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: _surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: _borderColor),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.search_rounded, color: _textSecondary, size: 18),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text('Search events, workshops...', style: TextStyle(color: _textSecondary, fontSize: 13)),
-                  ),
-                ],
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _borderColor),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.search_rounded, color: _textSecondary, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                onChanged: (q) =>
+                    ref.read(eventViewModelProvider.notifier).setSearchQuery(q),
+                style: const TextStyle(color: _textPrimary, fontSize: 13),
+                decoration: const InputDecoration(
+                  hintText: 'Search events, workshops...',
+                  hintStyle: TextStyle(color: _textSecondary, fontSize: 13),
+                  border: InputBorder.none,
+                  isDense: true,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: _accentBg,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0x30059669)),
-            ),
-            child: const Icon(Icons.tune_rounded, color: _accent, size: 20),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildDateStrip() {
+    const daysAbbr = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: SizedBox(
@@ -244,6 +298,7 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
         child: Row(
           children: List.generate(_days.length, (i) {
             final isSelected = _selectedDayIndex == i;
+            final day = _days[i];
             return Expanded(
               child: GestureDetector(
                 onTap: () => setState(() => _selectedDayIndex = i),
@@ -262,7 +317,7 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _days[i]['day'] as String,
+                        daysAbbr[day.weekday - 1],
                         style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -270,7 +325,7 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${_days[i]['date']}',
+                        '${day.day}',
                         style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -287,105 +342,79 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, String? cta) {
+  Widget _buildSectionHeader(String title, String? cta, {VoidCallback? onCta}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(color: _textPrimary, fontSize: 16, fontWeight: FontWeight.w800)),
-          if (cta != null)
+          Expanded(
+            child: Text(title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: _textPrimary, fontSize: 16, fontWeight: FontWeight.w800)),
+          ),
+          if (cta != null) ...[
+            const SizedBox(width: 8),
             GestureDetector(
-              onTap: () {},
+              onTap: onCta,
               child: Text(cta, style: const TextStyle(color: _accentLight, fontSize: 12, fontWeight: FontWeight.w600)),
             ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildUpcomingCard() {
+  Widget _buildUpcomingList(List<Event> events) {
+    if (events.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: _card,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _borderColor),
+          ),
+          child: Column(
+            children: [
+              const Icon(Icons.event_outlined, color: _textSecondary, size: 34),
+              const SizedBox(height: 8),
+              const Text('No events on this day', style: TextStyle(color: _textSecondary, fontSize: 13)),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: _openCreate,
+                child: const Text('Create one →', style: TextStyle(color: _accent, fontWeight: FontWeight.w700, fontSize: 13)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
-      child: Container(
-        decoration: BoxDecoration(
-          color: _card,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: _borderColor),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                Container(
-                  height: 160,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-                    gradient: LinearGradient(
-                      colors: [Color(0xFFD1FAE5), Color(0xFFA7F3D0)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+      child: Column(
+        children: events.take(2).map((e) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: EventCard(
+              event: e,
+              isRegistered: ref.watch(eventViewModelProvider).isRegistered(e.id),
+              onTap: () => _openDetail(e),
+              onRegister: () {
+                ref.read(eventViewModelProvider.notifier).rsvpEvent(e.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Registered for the event!'),
+                    behavior: SnackBarBehavior.floating,
                   ),
-                  child: const Center(
-                    child: Icon(Icons.play_circle_outline_rounded, size: 48, color: _accent),
-                  ),
-                ),
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: _live, borderRadius: BorderRadius.circular(6)),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.circle, color: Colors.white, size: 6),
-                        SizedBox(width: 4),
-                        Text('LIVE \u2022 46m 11s', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                );
+              },
             ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Creative UI Design Mastery',
-                            style: TextStyle(color: _textPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
-                        SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Icon(Icons.location_on_outlined, color: _textSecondary, size: 13),
-                            SizedBox(width: 3),
-                            Text('Virtual Workspace', style: TextStyle(color: _textSecondary, fontSize: 12)),
-                            SizedBox(width: 12),
-                            Icon(Icons.access_time_rounded, color: _textSecondary, size: 13),
-                            SizedBox(width: 3),
-                            Text('14:30 PM', style: TextStyle(color: _textSecondary, fontSize: 12)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
-                    decoration: BoxDecoration(color: _accent, borderRadius: BorderRadius.circular(10)),
-                    child: const Text('Open', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -400,32 +429,14 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
           return Expanded(
             child: GestureDetector(
               onTap: () {
-                if (cat['label'] == 'Hackathons') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HackathonsScreen()),
-                  );
-                } else if (cat['label'] == 'Workshops') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const WorkshopsScreen()),
-                  );
-                } else if (cat['label'] == 'Meetups') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const MeetupsScreen()),
-                  );
-                } else if (cat['label'] == 'Conferences') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ConferencesScreen()),
-                  );
-                } else if (cat['label'] == 'Webinars') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const WebinarsScreen()),
-                  );
-                }
+                final screen = switch (cat['label'] as String) {
+                  'Hackathons' => const HackathonsScreen(),
+                  'Workshops' => const WorkshopsScreen(),
+                  'Meetups' => const MeetupsScreen(),
+                  'Conferences' => const ConferencesScreen(),
+                  _ => const WebinarsScreen(),
+                };
+                Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
               },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -445,7 +456,6 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
                     cat['label'] as String,
                     textAlign: TextAlign.center,
                     maxLines: 1,
-                    overflow: TextOverflow.visible,
                     style: const TextStyle(
                       color: _textSecondary,
                       fontSize: 10,
@@ -463,7 +473,8 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
 
   Widget _buildActivityTabs() {
     final tabs = ['Registrations', 'Watchlist', 'Recent'];
-    return Padding(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Row(
         children: List.generate(tabs.length, (i) {
@@ -492,41 +503,75 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
     );
   }
 
-  Widget _buildActivityList() {
+  Widget _buildActivityList(List<Event> myEvents, List<Event> allEvents) {
+    final items = switch (_activityTabIndex) {
+      0 => myEvents,
+      1 => allEvents.where((e) => e.startDate.isAfter(DateTime.now())).toList(),
+      _ => allEvents.take(4).toList(),
+    };
+    if (items.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: _card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: _borderColor),
+          ),
+          child: const Text(
+            'Nothing here yet — register for an event to see it.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: _textSecondary, fontSize: 12.5),
+          ),
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Column(
-        children: _activityItems.map((item) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: _card,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _borderColor),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(color: _accentBg, borderRadius: BorderRadius.circular(10)),
-                  child: Icon(item['icon'] as IconData, color: _accentLight, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item['title'] as String,
-                          style: const TextStyle(color: _textPrimary, fontWeight: FontWeight.w600, fontSize: 13)),
-                      const SizedBox(height: 3),
-                      Text(item['subtitle'] as String, style: const TextStyle(color: _textSecondary, fontSize: 12)),
-                    ],
+        children: items.map((e) {
+          return GestureDetector(
+            onTap: () => _openDetail(e),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _card,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: _borderColor),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(color: _accentBg, borderRadius: BorderRadius.circular(10)),
+                    child: Icon(e.isOnline ? Icons.videocam_rounded : Icons.event_note_rounded, color: _accentLight, size: 20),
                   ),
-                ),
-                const Icon(Icons.chevron_right_rounded, color: _textSecondary, size: 20),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(e.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: _textPrimary, fontWeight: FontWeight.w600, fontSize: 13)),
+                        const SizedBox(height: 3),
+                        Text(
+                          '${e.location} • ${e.category}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: _textSecondary, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, color: _textSecondary, size: 20),
+                ],
+              ),
             ),
           );
         }).toList(),
@@ -534,7 +579,7 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
     );
   }
 
-  Widget _buildRecommendedCard() {
+  Widget _buildRecommendedCard(Event event) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Container(
@@ -567,18 +612,11 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     decoration: BoxDecoration(color: _accent, borderRadius: BorderRadius.circular(8)),
-                    child: const Text('JUL\n22', textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, height: 1.2)),
-                  ),
-                ),
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(color: Colors.black38, shape: BoxShape.circle),
-                    child: const Icon(Icons.bookmark_border_rounded, color: Colors.white, size: 16),
+                    child: Text(
+                      '${event.startDate.month}\n${event.startDate.day}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, height: 1.2),
+                    ),
                   ),
                 ),
                 Positioned(
@@ -586,9 +624,9 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
                   left: 12,
                   child: Row(
                     children: [
-                      _tagChip('Conference'),
+                      _tagChip(event.category),
                       const SizedBox(width: 6),
-                      _tagChip('AI & ML'),
+                      _tagChip(event.isOnline ? 'Online' : event.location),
                     ],
                   ),
                 ),
@@ -599,18 +637,20 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Future of Generative Intelligence',
-                      style: TextStyle(color: _textPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
+                  Text(event.title,
+                      style: const TextStyle(color: _textPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Explore the boundaries of neural networks in a curated 2-day event with industry leaders.',
-                    style: TextStyle(color: _textSecondary, fontSize: 12, height: 1.4),
+                  Text(
+                    event.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: _textSecondary, fontSize: 12, height: 1.4),
                   ),
                   const SizedBox(height: 14),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () => _openDetail(event),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _accent,
                         elevation: 0,
@@ -630,44 +670,275 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
     );
   }
 
+  Widget _buildConnectSection(List<BridgeOpportunity> opportunities,
+      List<BridgePost> posts) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text('Connected Across Modes',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: _textPrimary, fontSize: 16, fontWeight: FontWeight.w800)),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEDE9FE),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${opportunities.length + posts.length} items',
+                  style: const TextStyle(
+                    color: Color(0xFF6D28D9),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (opportunities.isEmpty && posts.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: _borderColor),
+              ),
+              child: const Text(
+                'Connect to see hiring from Startup, Career jobs and posts from Community — all in one place.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: _textSecondary, fontSize: 12.5, height: 1.4),
+              ),
+            )
+          else ...[
+            ...opportunities.take(2).map((opp) {
+              final isStartup = opp.fromStartup;
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ConnectScreen(),
+                    ),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _card,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: _borderColor),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: isStartup
+                              ? const Color(0xFFF3E8FF)
+                              : const Color(0xFFE0F2FE),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          isStartup ? Icons.rocket_launch_rounded : Icons.work_rounded,
+                          color: isStartup ? const Color(0xFF6D28D9) : const Color(0xFF0284C7),
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              opp.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: _textPrimary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${opp.company} • ${opp.location}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: _textSecondary, fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: isStartup ? const Color(0xFFEDE9FE) : const Color(0xFFE0F2FE),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          isStartup ? 'STARTUP' : 'CAREER',
+                          style: const TextStyle(
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            if (posts.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _card,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: _borderColor),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF4E6),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.forum_rounded,
+                          color: Color(0xFFEA580C), size: 18),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            posts.first.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: _textPrimary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${posts.first.sourceLabel} • ${posts.first.authorName}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: _textSecondary, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF4E6),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        posts.first.source == 'startup' ? 'STARTUP' : 'COMMUNITY',
+                        style: const TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ConnectScreen()),
+                );
+              },
+              icon: const Icon(Icons.alt_route_rounded, size: 17, color: Color(0xFF6D28D9)),
+              label: const Text('Open Connect Hub',
+                  style: TextStyle(
+                    color: Color(0xFF6D28D9),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13.5,
+                  )),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF6D28D9), width: 1.3),
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _tagChip(String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(6)),
-      child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+      child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 10)),
     );
   }
 
-  Widget _buildTopEventsRow() {
+  Widget _buildTopEventsRow(List<Event> events) {
     return SizedBox(
       height: 110,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 18),
-        itemCount: _topEvents.length,
+        itemCount: events.length,
         itemBuilder: (ctx, i) {
-          final ev = _topEvents[i];
-          return Container(
-            width: 160,
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              gradient: LinearGradient(
-                colors: [ev['colorA'] as Color, ev['colorB'] as Color],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          final ev = events[i];
+          return GestureDetector(
+            onTap: () => _openDetail(ev),
+            child: Container(
+              width: 160,
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                gradient: LinearGradient(
+                  colors: [const Color(0xFF064E3B), const Color(0xFF0F766E)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
-            ),
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(ev['title'] as String,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                const SizedBox(height: 4),
-                Text(ev['date'] as String, style: const TextStyle(color: Colors.white70, fontSize: 10)),
-              ],
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(ev.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                  const SizedBox(height: 4),
+                  Text('${ev.attendeeCount} going • ${ev.category}',
+                      style: const TextStyle(color: Colors.white70, fontSize: 10)),
+                ],
+              ),
             ),
           );
         },
@@ -675,7 +946,7 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
     );
   }
 
-  Widget _buildRegisteredLiveSection() {
+  Widget _buildRegisteredLiveSection(Event event) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Column(
@@ -729,20 +1000,14 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
                       ),
                     ),
                     Positioned(
-                      top: 10,
-                      right: 12,
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: const BoxDecoration(color: Colors.black38, shape: BoxShape.circle),
-                        child: const Icon(Icons.favorite_border_rounded, color: Colors.white, size: 14),
-                      ),
-                    ),
-                    const Positioned(
                       bottom: 10,
                       left: 12,
-                      child: Text('Advanced Web3...',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      child: Text(
+                        event.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
                     ),
                   ],
                 ),
@@ -751,7 +1016,7 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () => _openDetail(event),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _accent,
                         elevation: 0,
@@ -767,6 +1032,186 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showProfileSheet() {
+    final session = ref.read(authViewModelProvider).session;
+    final userName = session?.fullName ?? 'Member';
+    final email = session?.email ?? '';
+    final roleLabel = session?.activeUserRole.label ?? 'Member';
+    final photoPath = session?.profilePhotoPath ?? '';
+    final hasPhoto = photoPath.isNotEmpty && File(photoPath).existsSync();
+
+    String getInitials(String name) {
+      final parts = name.split(' ').where((p) => p.isNotEmpty).toList();
+      if (parts.length >= 2) {
+        return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+      }
+      if (parts.isNotEmpty) return parts[0][0].toUpperCase();
+      return '?';
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+          ),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE5E7EB),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: _accentBg,
+                    backgroundImage: hasPhoto ? FileImage(File(photoPath)) : null,
+                    child: hasPhoto
+                        ? null
+                        : Text(
+                            getInitials(userName),
+                            style: const TextStyle(
+                              color: _accent,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    userName,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF12233D),
+                    ),
+                  ),
+                  if (email.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      email,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF6B7280),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 2),
+                  Text(
+                    roleLabel,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  _sheetAction(
+                    Icons.person_outline_rounded,
+                    'View Profile',
+                    _accent,
+                    () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _sheetAction(
+                    Icons.swap_horiz_rounded,
+                    'Switch Role',
+                    _accent,
+                    () {
+                      Navigator.pop(ctx);
+                      RoleSwitcherSheet.show(context);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _sheetAction(
+                    Icons.logout_rounded,
+                    'Logout',
+                    const Color(0xFFEF4444),
+                    () async {
+                      Navigator.pop(ctx);
+                      await ref.read(authViewModelProvider.notifier).logout();
+                      if (!mounted) return;
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SignInScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sheetAction(
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF9FAFB),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: color, size: 22),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF12233D),
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Colors.grey.shade400,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -796,7 +1241,7 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
             return Expanded(
               child: Center(
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: _openCreate,
                   child: Container(
                     width: 46,
                     height: 46,
@@ -818,11 +1263,35 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
 
           return Expanded(
             child: GestureDetector(
-              onTap: () {
-                if (i == 4) {
-                  RoleSwitcherSheet.show(context);
-                } else {
-                  setState(() => _bottomNavIndex = i);
+              onTap: () async {
+                switch (i) {
+                  case 0:
+                    // Home — already here, just keep index at 0
+                    setState(() => _bottomNavIndex = 0);
+                  case 1:
+                    // Explore
+                    setState(() => _bottomNavIndex = 1);
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const EventsListScreen()),
+                    );
+                    if (mounted) setState(() => _bottomNavIndex = 0);
+                  case 3:
+                    // Messages
+                    setState(() => _bottomNavIndex = 3);
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const InboxScreen()),
+                    );
+                    if (mounted) setState(() => _bottomNavIndex = 0);
+                  case 4:
+                    // Profile
+                    setState(() => _bottomNavIndex = 4);
+                    _showProfileSheet();
+                    // Reset after sheet closes via a post-frame callback
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) setState(() => _bottomNavIndex = 0);
+                    });
                 }
               },
               child: Column(
