@@ -4,7 +4,26 @@ import 'application_details_screen.dart';
 
 
 class InternshipDetailsScreen extends StatefulWidget {
-  const InternshipDetailsScreen({super.key});
+  final String title;
+  final String company;
+  final String location;
+  final String stipend;
+  final String type;
+  final List<String> tags;
+  final String? about;
+  final List<String>? requirements;
+
+  const InternshipDetailsScreen({
+    super.key,
+    this.title = 'Frontend Developer Intern',
+    this.company = 'Google',
+    this.location = 'Mountain View, CA',
+    this.stipend = '₹500+',
+    this.type = 'Full-time • 3 Months',
+    this.tags = const ['Frontend', 'React', 'Tailwind', 'JavaScript'],
+    this.about,
+    this.requirements,
+  });
 
   @override
   State<InternshipDetailsScreen> createState() => _InternshipDetailsScreenState();
@@ -13,7 +32,7 @@ class InternshipDetailsScreen extends StatefulWidget {
 typedef JobDetailScreen = InternshipDetailsScreen;
 
 class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
-  int _selectedTab = 0; // 0 = ABOUT, 1 = REQUIREMENTS, 2 = PERKS
+  int _selectedTab = 0; // 0 = ABOUT, 1 = REQUIREMENTS, 2 = PERKS, 3 = SIMILAR
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +56,31 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                     const SizedBox(height: 20),
                     _buildTabsHeader(),
                     const SizedBox(height: 20),
-                    _buildAboutSection(),
-                    const SizedBox(height: 24),
-                    _buildPerksSection(),
-                    const SizedBox(height: 24),
-                    _buildRequirementsSection(),
+                    if (_selectedTab == 0) ...[
+                      _buildAboutSection(),
+                      const SizedBox(height: 24),
+                      _buildPerksSection(),
+                      const SizedBox(height: 24),
+                      _buildRequirementsSection(),
+                    ] else if (_selectedTab == 1) ...[
+                      _buildRequirementsSection(),
+                      const SizedBox(height: 24),
+                      _buildAboutSection(),
+                      const SizedBox(height: 24),
+                      _buildPerksSection(),
+                    ] else if (_selectedTab == 2) ...[
+                      _buildPerksSection(),
+                      const SizedBox(height: 24),
+                      _buildAboutSection(),
+                      const SizedBox(height: 24),
+                      _buildRequirementsSection(),
+                    ] else ...[
+                      _buildAboutSection(),
+                      const SizedBox(height: 24),
+                      _buildRequirementsSection(),
+                      const SizedBox(height: 24),
+                      _buildPerksSection(),
+                    ],
                     const SizedBox(height: 24),
                     _buildSimilarInternshipsSection(),
                     const SizedBox(height: 30),
@@ -103,12 +142,12 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.85),
+                    color: Colors.white.withOpacity(0.9),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.arrow_back_rounded,
-                    color: AppColors.primary,
+                    color: Color(0xFF4F46E5),
                     size: 20,
                   ),
                 ),
@@ -119,16 +158,30 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.85),
+                  color: Colors.white.withOpacity(0.9),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.share_outlined,
-                  color: AppColors.primary,
+                  color: Color(0xFF4F46E5),
                   size: 20,
                 ),
               ),
               const SizedBox(width: 10),
+              // Bookmark Button
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.bookmark_border_rounded,
+                  color: Color(0xFF4F46E5),
+                  size: 20,
+                ),
+              ),
             ],
           ),
         ),
@@ -158,90 +211,80 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
-                            'Product Design',
-                            style: TextStyle(
-                              fontSize: 24,
+                            widget.title,
+                            style: const TextStyle(
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF111827),
-                              letterSpacing: -0.4,
-                              height: 1.1,
+                              letterSpacing: -0.3,
+                              height: 1.15,
                             ),
                           ),
+                          const SizedBox(height: 6),
                           Text(
-                            'Intern',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF111827),
-                              letterSpacing: -0.4,
-                              height: 1.1,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Nexus Systems',
-                            style: TextStyle(
+                            widget.company,
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
+                              color: Color(0xFF4F46E5),
                             ),
                           ),
                         ],
                       ),
                     ),
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 42,
+                      height: 42,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE0F2FE),
+                        color: const Color(0xFFEEF2FF),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
-                        Icons.apartment_rounded,
-                        color: AppColors.primary,
+                        Icons.bookmark_border_rounded,
+                        color: Color(0xFF4F46E5),
                         size: 22,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 Row(
-                  children: const [
-                    Icon(
+                  children: [
+                    const Icon(
                       Icons.location_on_outlined,
-                      size: 15,
+                      size: 16,
                       color: Color(0xFF6B7280),
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
-                      'SAN FRANCISCO, CA',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      widget.location,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
                         color: Color(0xFF6B7280),
-                        letterSpacing: 0.3,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Row(
-                  children: const [
+                  children: [
                     Icon(
-                      Icons.account_balance_wallet_outlined,
-                      size: 15,
-                      color: Color(0xFF6B7280),
+                      widget.title.contains('UI/UX')
+                          ? Icons.calendar_today_outlined
+                          : Icons.work_outline_rounded,
+                      size: 16,
+                      color: const Color(0xFF6B7280),
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
-                      '\$5,000 - \$7,500/MO',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      widget.type,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
                         color: Color(0xFF6B7280),
-                        letterSpacing: 0.3,
                       ),
                     ),
                   ],
@@ -261,15 +304,28 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: [
-            _buildTagPill('3 MONTHS', const Color(0xFFF3E8FF), const Color(0xFF9333EA)),
-            const SizedBox(width: 8),
-            _buildTagPill('REMOTE', const Color(0xFFE0F2FE), const Color(0xFF0284C7)),
-            const SizedBox(width: 8),
-            _buildTagPill('STIPEND', const Color(0xFFF3E8FF), const Color(0xFF9333EA)),
-            const SizedBox(width: 8),
-            _buildTagPill('FULL-TIME', const Color(0xFFF3F4F6), const Color(0xFF4B5563)),
-          ],
+          children: widget.tags.map((tag) {
+            Color bg;
+            Color fg;
+            final t = tag.toLowerCase();
+            if (t.contains('figma') || t.contains('front')) {
+              bg = const Color(0xFFF3E8FF);
+              fg = const Color(0xFF9333EA);
+            } else if (t.contains('design system') || t.contains('react')) {
+              bg = const Color(0xFFE0F2FE);
+              fg = const Color(0xFF0284C7);
+            } else if (t.contains('research') || t.contains('tail')) {
+              bg = const Color(0xFFDCFCE7);
+              fg = const Color(0xFF15803D);
+            } else {
+              bg = const Color(0xFFF3F4F6);
+              fg = const Color(0xFF4B5563);
+            }
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: _buildTagPill(tag, bg, fg),
+            );
+          }).toList(),
         ),
       ),
     );
@@ -285,10 +341,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
           color: fg,
-          letterSpacing: 0.3,
         ),
       ),
     );
@@ -300,9 +355,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          Expanded(child: _buildStatCard('Applied', '120+')),
+          Expanded(child: _buildStatCard('Applicants', '120+')),
           const SizedBox(width: 12),
-          Expanded(child: _buildStatCard('Size', '500+')),
+          Expanded(child: _buildStatCard('Stipend', widget.stipend)),
           const SizedBox(width: 12),
           Expanded(child: _buildStatCard('Views', '1.2k')),
         ],
@@ -316,7 +371,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
       ),
       child: Column(
         children: [
@@ -332,9 +387,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
           Text(
             value,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppColors.primary,
+              color: Color(0xFF4F46E5),
             ),
           ),
         ],
@@ -344,40 +399,43 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
 
   // 4. Tabs Header
   Widget _buildTabsHeader() {
-    final tabs = ['ABOUT', 'REQUIREMENTS', 'PERKS'];
+    final tabs = ['ABOUT', 'REQUIREMENTS', 'PERKS', 'SIMILAR'];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          Row(
-            children: List.generate(tabs.length, (i) {
-              final isSelected = _selectedTab == i;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedTab = i),
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 24),
-                  child: Column(
-                    children: [
-                      Text(
-                        tabs[i],
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected ? AppColors.primary : const Color(0xFF6B7280),
-                          letterSpacing: 0.4,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.generate(tabs.length, (i) {
+                final isSelected = _selectedTab == i;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedTab = i),
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 24),
+                    child: Column(
+                      children: [
+                        Text(
+                          tabs[i],
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFF6B7280),
+                            letterSpacing: 0.4,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        height: 2.5,
-                        width: 40,
-                        color: isSelected ? AppColors.primary : Colors.transparent,
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Container(
+                          height: 2.5,
+                          width: 40,
+                          color: isSelected ? const Color(0xFF4F46E5) : Colors.transparent,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
+            ),
           ),
           Container(
             height: 1,
@@ -390,12 +448,17 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
 
   // 5. About Section
   Widget _buildAboutSection() {
+    final aboutText = widget.about ??
+        (widget.title.contains('UI/UX')
+            ? 'Join our design team and create delightful, accessible, and meaningful experiences for millions of users. You’ll collaborate with cross-functional teams to tackle real-world problems through user-centered design.'
+            : 'Join our world-class engineering team and build fast, accessible, and beautiful user experiences. You\'ll work on real-world projects, collaborate with designers and engineers, and make an impact used by millions of people around the world.');
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
+        children: [
+          const Text(
             'About this Internship',
             style: TextStyle(
               fontSize: 18,
@@ -404,10 +467,10 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
               letterSpacing: -0.2,
             ),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Text(
-            'Join our world-class design team at Nexus Systems to help build the future of collaborative productivity. As a Product Design Intern, you will work directly with senior designers and engineers to conceptualize, prototype, and ship features used by millions of developers worldwide. We value creativity, pixel perfection, and a user-first mindset.',
-            style: TextStyle(
+            aboutText,
+            style: const TextStyle(
               fontSize: 14,
               height: 1.55,
               color: Color(0xFF4B5563),
@@ -464,7 +527,14 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF0D9488), size: 20),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE0F2FE),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: const Color(0xFF0284C7), size: 18),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -483,12 +553,20 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
 
   // 7. Requirements Section
   Widget _buildRequirementsSection() {
-    const reqs = [
-      'Strong portfolio demonstrating product design principles and user empathy.',
-      'Proficiency in Figma, Prototyping tools, and design systems.',
-      'Experience with user research and usability testing methodologies.',
-      'Currently enrolled in or recently graduated from a relevant degree.',
-    ];
+    final reqs = widget.requirements ??
+        (widget.title.contains('UI/UX')
+            ? [
+                'Proficiency in Figma, Adobe XD, or Sketch.',
+                'Strong understanding of UI/UX principles and design systems.',
+                'Experience with user research and usability testing.',
+                'A strong portfolio showcasing end-to-end design projects.',
+              ]
+            : [
+                'Strong portfolio demonstrating frontend projects and user empathy',
+                'Proficiency in React, JavaScript, and modern CSS frameworks',
+                'Experience with state management libraries (e.g., Redux, Zustand, Context API)',
+                'Understanding of responsive design and cross-browser compatibility',
+              ]);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -505,15 +583,31 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          ...reqs.map((req) => Padding(
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+            ),
+            child: Column(
+              children: reqs.map((req) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
-                      Icons.check_circle_rounded,
-                      color: Color(0xFF0284C7),
-                      size: 20,
+                    Container(
+                      margin: const EdgeInsets.only(top: 2),
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF4F46E5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 12,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -528,7 +622,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                     ),
                   ],
                 ),
-              )),
+              )).toList(),
+            ),
+          ),
         ],
       ),
     );
@@ -536,6 +632,8 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
 
   // 8. Similar Internships Section
   Widget _buildSimilarInternshipsSection() {
+    final isUiUx = widget.title.contains('UI/UX');
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -553,12 +651,11 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                 ),
               ),
               Text(
-                'VIEW ALL',
+                'View all',
                 style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                  letterSpacing: 0.4,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF4F46E5),
                 ),
               ),
             ],
@@ -568,23 +665,25 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
             children: [
               Expanded(
                 child: _buildSimilarCard(
-                  icon: Icons.design_services_outlined,
-                  title: 'UX Research Intern',
-                  company: 'Velocity AI',
-                  salary: '\$4k/mo',
-                  badge: 'Remote',
-                  showHot: true,
+                  icon: isUiUx ? Icons.grid_view_rounded : Icons.all_inclusive_rounded,
+                  title: isUiUx ? 'Product Design Intern' : 'UI Engineer Intern',
+                  company: isUiUx ? 'Microsoft' : 'Meta • Full-time',
+                  salary: '₹45k/mo',
+                  badge: isUiUx ? 'HOT' : '95%',
+                  accent: isUiUx ? const Color(0xFF9333EA) : const Color(0xFF0284C7),
+                  isHot: isUiUx,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildSimilarCard(
-                  icon: Icons.cloud_outlined,
-                  title: 'Frontend Intern',
-                  company: 'CloudStream',
-                  salary: '\$6k/mo',
-                  badge: '',
-                  showHot: false,
+                  icon: isUiUx ? Icons.cloud_outlined : Icons.note_alt_outlined,
+                  title: 'UX Research Intern',
+                  company: isUiUx ? 'Amazon' : 'Notion • Part-time',
+                  salary: '₹40k/mo',
+                  badge: isUiUx ? '95% Match' : '93%',
+                  accent: const Color(0xFF0284C7),
+                  isHot: false,
                 ),
               ),
             ],
@@ -600,14 +699,15 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
     required String company,
     required String salary,
     required String badge,
-    required bool showHot,
+    required Color accent,
+    bool isHot = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDE9FF), width: 1.2),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -618,28 +718,27 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEDE9FF),
+                  color: accent.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: AppColors.primary, size: 18),
+                child: Icon(icon, color: accent, size: 18),
               ),
               const Spacer(),
-              if (showHot)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEE2E2),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    'HOT',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFEF4444),
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isHot ? const Color(0xFFFEE2E2) : const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  badge,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: isHot ? const Color(0xFFEF4444) : const Color(0xFF15803D),
                   ),
                 ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -662,26 +761,13 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Text(
-                salary,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
-              ),
-              const Spacer(),
-              if (badge.isNotEmpty)
-                Text(
-                  badge,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
-            ],
+          Text(
+            salary,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: accent,
+            ),
           ),
         ],
       ),
@@ -694,9 +780,10 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
+        border: const Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -708,28 +795,20 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFF0F9FF),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
             ),
             child: const Icon(
               Icons.chat_bubble_outline_rounded,
-              color: AppColors.primary,
+              color: Color(0xFF64748B),
               size: 20,
             ),
           ),
           const SizedBox(width: 14),
           Expanded(
-            child: Container(
+            child: SizedBox(
               height: 48,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0284C7), Color(0xFF0EA5E9)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(14),
-              ),
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -740,8 +819,8 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
+                  backgroundColor: const Color(0xFF4F46E5),
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -757,7 +836,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(width: 6),
+                    SizedBox(width: 8),
                     Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
                   ],
                 ),
