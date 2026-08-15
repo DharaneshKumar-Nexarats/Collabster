@@ -22,7 +22,9 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
   @override
   void initState() {
     super.initState();
-    ref.read(careerViewModelProvider.notifier).loadInitialData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(careerViewModelProvider.notifier).loadInitialData();
+    });
   }
 
   @override
