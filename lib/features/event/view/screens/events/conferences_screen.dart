@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/di/providers.dart';
+import '../../../model/event_model.dart';
+import '../event_home_screen.dart';
+import 'event_detail_screen.dart';
+import 'my_events_screen.dart';
 
 // ─── Color Tokens ───────────────────────────────────────────────
 const _bg = Color(0xFFF8FAFC);
@@ -12,41 +18,99 @@ const _textSecondary = Color(0xFF64748B);
 const _borderColor = Color(0xFFE2E8F0);
 
 
-class ConferencesScreen extends StatefulWidget {
+class ConferencesScreen extends ConsumerStatefulWidget {
   const ConferencesScreen({super.key});
 
   @override
-  State<ConferencesScreen> createState() => _ConferencesScreenState();
+  ConsumerState<ConferencesScreen> createState() => _ConferencesScreenState();
 }
 
-class _ConferencesScreenState extends State<ConferencesScreen> {
+class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
   int _selectedFilterIndex = 0;
   int _bottomNavIndex = 0;
+  final _searchController = TextEditingController();
 
   final List<String> _filters = ['All', 'Tech', 'Entrepreneurship', 'Research'];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<Map<String, dynamic>> get _visibleConferences {
+    final query = _searchController.text.trim().toLowerCase();
+    return _conferences.where((c) {
+      if (query.isNotEmpty) {
+        final title = (c['title'] as String).toLowerCase();
+        final location = (c['location'] as String).toLowerCase();
+        if (!title.contains(query) && !location.contains(query)) return false;
+      }
+      if (_selectedFilterIndex == 1) { // Tech
+        final tags = (c['tags'] as List<String>).map((t) => t.toLowerCase()).toList();
+        if (!tags.any((t) => t.contains('ai') || t.contains('tech') || t.contains('ieee') || t.contains('paper'))) return false;
+      } else if (_selectedFilterIndex == 2) { // Entrepreneurship
+        final tags = (c['tags'] as List<String>).map((t) => t.toLowerCase()).toList();
+        if (!tags.any((t) => t.contains('startup') || t.contains('pitch') || t.contains('saas') || t.contains('free'))) return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  Event _conferenceToEvent(Map<String, dynamic> c) {
+    return Event(
+      id: c['title'] as String,
+      title: c['title'] as String,
+      description: 'Premium ${c['tags'].first} conference with industry leaders.',
+      location: c['location'] as String,
+      startDate: DateTime.now().add(const Duration(days: 30)),
+      endDate: DateTime.now().add(const Duration(days: 31)),
+      organizerName: 'Conference Team',
+      category: 'Conference',
+      attendeeCount: 640,
+    );
+  }
+
+  void _openDetail(Map<String, dynamic> c) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EventDetailScreen(event: _conferenceToEvent(c))),
+    );
+  }
+
+  void _register(Map<String, dynamic> c) {
+    final event = _conferenceToEvent(c);
+    ref.read(eventViewModelProvider.notifier).rsvpEvent(event.id);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Ticket reserved! Added to My Events'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   final List<Map<String, dynamic>> _conferences = [
     {
       'title': 'Future of AI 2024',
       'location': 'Stanford University • San Francisco',
-      'tags': ['₹1,500 onwards', 'IEEE Track', 'Paper Presentation', 'GenAI'],
-      'tagColors': [null, null, null, null],
+      'tags': <String>['₹1,500 onwards', 'IEEE Track', 'Paper Presentation', 'GenAI'],
+      'tagColors': <Color?>[null, null, null, null],
       'badge': 'NEW',
-      'badgeColor': Color(0xFFFF3C5C),
-      'gradient': [Color(0xFF0A1628), Color(0xFF1B3A6B), Color(0xFF2D5F9E)],
+      'badgeColor': const Color(0xFFFF3C5C),
+      'gradient': <Color>[const Color(0xFF0A1628), const Color(0xFF1B3A6B), const Color(0xFF2D5F9E)],
       'icon': Icons.auto_awesome_rounded,
-      'iconColor': Color(0xFF93C5FD),
+      'iconColor': const Color(0xFF93C5FD),
       'ctaLabel': 'Get Ticket',
     },
     {
       'title': 'Global Startup Summit',
       'location': 'IIT Bombay • Mumbai',
-      'tags': ['Free Entry', 'Pitch Competition', 'Networking', 'SaaS'],
-      'tagColors': [Color(0xFF22C55E), null, null, null],
+      'tags': <String>['Free Entry', 'Pitch Competition', 'Networking', 'SaaS'],
+      'tagColors': <Color?>[const Color(0xFF22C55E), null, null, null],
       'badge': null,
-      'gradient': [Color(0xFF1A2A0A), Color(0xFF2E4A10), Color(0xFF3D6B1A)],
+      'gradient': <Color>[const Color(0xFF1A2A0A), const Color(0xFF2E4A10), const Color(0xFF3D6B1A)],
       'icon': Icons.rocket_launch_rounded,
-      'iconColor': Color(0xFF86EFAC),
+      'iconColor': const Color(0xFF86EFAC),
       'ctaLabel': 'Get Ticket',
     },
   ];
@@ -71,7 +135,7 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
                     const SizedBox(height: 14),
                     _buildFilterChips(),
                     const SizedBox(height: 18),
-                    ..._conferences.map((c) => _buildConferenceCard(context, c)),
+                    ..._visibleConferences.map((c) => _buildConferenceCard(context, c)),
                     const SizedBox(height: 4),
                     _buildFlashSaleCard(),
                     const SizedBox(height: 20),
@@ -148,11 +212,23 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: _borderColor),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.search_rounded, color: _textSecondary, size: 18),
-          SizedBox(width: 8),
-          Text('Search conferences...', style: TextStyle(color: _textSecondary, fontSize: 13)),
+          const Icon(Icons.search_rounded, color: _textSecondary, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              onChanged: (_) => setState(() {}),
+              style: const TextStyle(color: _textPrimary, fontSize: 13),
+              decoration: const InputDecoration(
+                hintText: 'Search conferences...',
+                hintStyle: TextStyle(color: _textSecondary, fontSize: 13),
+                border: InputBorder.none,
+                isDense: true,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -194,12 +270,14 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
 
   // ─── Conference Card ─────────────────────────────────────────
   Widget _buildConferenceCard(BuildContext context, Map<String, dynamic> c) {
-    final tags = c['tags'] as List<String>;
-    final tagColors = c['tagColors'] as List<Color?>;
-    final gradients = c['gradient'] as List<Color>;
+    final tags = (c['tags'] as List).cast<String>();
+    final tagColors = (c['tagColors'] as List).cast<Color?>();
+    final gradients = (c['gradient'] as List).cast<Color>();
     final hasBadge = c['badge'] != null;
 
-    return Container(
+    return GestureDetector(
+      onTap: () => _openDetail(c),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 18),
       decoration: BoxDecoration(
         color: _card,
@@ -318,8 +396,12 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
                   children: [
                     const Icon(Icons.location_on_outlined, color: _textSecondary, size: 13),
                     const SizedBox(width: 4),
-                    Text(c['location'] as String,
-                        style: const TextStyle(color: _textSecondary, fontSize: 12)),
+                    Expanded(
+                      child: Text(c['location'] as String,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: _textSecondary, fontSize: 12)),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -363,7 +445,7 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => _register(c),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _accent,
                           elevation: 0,
@@ -385,6 +467,7 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
           ),
         ],
       ),
+      ),
     );
   }
 
@@ -400,7 +483,7 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _accent.withValues(alpha: 0.35)),
+        border: Border.all(color: _accent.withOpacity(0.35)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,27 +492,27 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: _accent.withOpacity(0.3),
+              color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(6),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.bolt_rounded, color: _accentLight, size: 12),
+                Icon(Icons.bolt_rounded, color: Colors.white, size: 12),
                 SizedBox(width: 4),
                 Text('Flash Sale',
                     style: TextStyle(
-                        color: _accentLight, fontSize: 10, fontWeight: FontWeight.bold)),
+                        color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
           const SizedBox(height: 10),
           const Text('UX Design\nConference 2024',
               style: TextStyle(
-                  color: _textPrimary, fontSize: 16, fontWeight: FontWeight.w900, height: 1.25)),
+                  color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, height: 1.25)),
           const SizedBox(height: 6),
           const Text('Early bird ends in 2 days',
-              style: TextStyle(color: _textSecondary, fontSize: 12)),
+              style: TextStyle(color: Colors.white70, fontSize: 12)),
           const SizedBox(height: 14),
           Row(
             children: [
@@ -439,23 +522,29 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
                 children: [
                   const Text('₹999',
                       style: TextStyle(
-                          color: _textPrimary, fontSize: 20, fontWeight: FontWeight.w900)),
+                          color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
                   Text('₹1999',
                       style: TextStyle(
-                          color: _textSecondary.withOpacity(0.7),
+                          color: Colors.white.withOpacity(0.7),
                           fontSize: 13,
                           decoration: TextDecoration.lineThrough,
-                          decorationColor: _textSecondary.withOpacity(0.7))),
+                          decorationColor: Colors.white.withOpacity(0.7))),
                 ],
               ),
               const Spacer(),
               // Reserve Now button
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () => _register({
+                  'title': 'UX Design Conference',
+                  'location': 'Virtual + On-site',
+                  'tags': ['Design'],
+                  'ctaLabel': 'Get Ticket',
+                }),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                  minimumSize: const Size(64, 36),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 child: const Text('Reserve Now',
@@ -473,7 +562,12 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
   Widget _buildViewAllButton() {
     return Center(
       child: OutlinedButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const EventsListScreen()),
+          );
+        },
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: _accent, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 14),
@@ -504,7 +598,27 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
           final isSelected = _bottomNavIndex == i;
           return Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _bottomNavIndex = i),
+              onTap: () async {
+                switch (i) {
+                  case 0:
+                    Navigator.pop(context);
+                  case 1:
+                    setState(() => _bottomNavIndex = 1);
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const EventsListScreen()),
+                    );
+                    if (mounted) setState(() => _bottomNavIndex = 0);
+                  case 2:
+                  case 3:
+                    setState(() => _bottomNavIndex = i);
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MyEventsScreen()),
+                    );
+                    if (mounted) setState(() => _bottomNavIndex = 0);
+                }
+              },
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

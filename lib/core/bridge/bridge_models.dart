@@ -1,5 +1,7 @@
 import '../../features/career/model/job_model.dart';
 import '../../features/community/model/post_model.dart';
+import '../../features/event/model/event_model.dart';
+import '../../features/investor/model/investor_model.dart';
 import '../../features/startup/model/startup_models.dart';
 
 /// Unified cross-mode opportunity (job or internship) surfaced across
@@ -131,4 +133,109 @@ BridgePost careerPostToBridge(CareerPost post) {
     likes: post.likes,
     comments: post.comments,
   );
+}
+
+/// Unified cross-mode event surfaced across Event → Startup → Community hubs.
+class BridgeEvent {
+  final String id;
+  final String title;
+  final String description;
+  final String location;
+  final DateTime startDate;
+  final String category;
+  final bool isOnline;
+  final int attendeeCount;
+  final String source; // 'event' | 'startup' | 'community'
+  final String sourceLabel;
+
+  const BridgeEvent({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.location,
+    required this.startDate,
+    required this.category,
+    required this.source,
+    required this.sourceLabel,
+    this.isOnline = false,
+    this.attendeeCount = 0,
+  });
+}
+
+/// Event hub event → unified event.
+BridgeEvent eventToBridge(Event event) {
+  return BridgeEvent(
+    id: 'event-${event.id}',
+    title: event.title,
+    description: event.description,
+    location: event.location,
+    startDate: event.startDate,
+    category: event.category,
+    isOnline: event.isOnline,
+    attendeeCount: event.attendeeCount,
+    source: 'event',
+    sourceLabel: 'Event Hub',
+  );
+}
+
+/// Unified investor / funding connection across Startup → Investor modes.
+class BridgeInvestor {
+  final String id;
+  final String name;
+  final String fund;
+  final String amount;
+  final String status;
+  final String initials;
+  final String source; // 'startup-pipeline' | 'investor'
+  final String sourceLabel;
+
+  const BridgeInvestor({
+    required this.id,
+    required this.name,
+    required this.fund,
+    required this.amount,
+    required this.status,
+    required this.initials,
+    required this.source,
+    required this.sourceLabel,
+  });
+}
+
+/// Startup pipeline investors → unified investors.
+List<BridgeInvestor> startupPipelineToBridge(
+  List<InvestorEntry> entries, {
+  required String sourceLabel,
+}) {
+  return entries
+      .map(
+        (e) => BridgeInvestor(
+          id: 'pipeline-${e.name}',
+          name: e.name,
+          fund: e.fund,
+          amount: e.amount,
+          status: e.status,
+          initials: e.initials,
+          source: 'startup-pipeline',
+          sourceLabel: sourceLabel,
+        ),
+      )
+      .toList();
+}
+
+/// Investor mode investors → unified investors.
+List<BridgeInvestor> investorModeToBridge(List<Investor> investors) {
+  return investors
+      .map(
+        (i) => BridgeInvestor(
+          id: 'investor-${i.id}',
+          name: i.name,
+          fund: i.focus,
+          amount: '\$${(i.investmentRange / 1000).round()}K',
+          status: i.isFollowing ? 'Following' : 'Discover',
+          initials: i.initials,
+          source: 'investor',
+          sourceLabel: i.firm,
+        ),
+      )
+      .toList();
 }

@@ -1,17 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/di/providers.dart';
+import '../../../model/event_model.dart';
+import '../event_home_screen.dart';
+import 'event_detail_screen.dart';
+import 'my_events_screen.dart';
 
-class WebinarsScreen extends StatefulWidget {
+void _ignoreImageError(Object exception, StackTrace? stackTrace) {}
+
+class WebinarsScreen extends ConsumerStatefulWidget {
   const WebinarsScreen({super.key});
 
   @override
-  State<WebinarsScreen> createState() => _WebinarsScreenState();
+  ConsumerState<WebinarsScreen> createState() => _WebinarsScreenState();
 }
 
-class _WebinarsScreenState extends State<WebinarsScreen> {
+class _WebinarsScreenState extends ConsumerState<WebinarsScreen> {
   int _selectedFilterIndex = 0;
   int _bottomNavIndex = 0;
 
   final List<String> _filters = ['All', 'Live', 'Upcoming', 'On-Demand'];
+
+  Event _webinarToEvent(Map<String, dynamic> w) {
+    return Event(
+      id: w['title'] as String,
+      title: w['title'] as String,
+      description: '${w['tags'].join(', ')} — join the webinar from anywhere.',
+      location: 'Online',
+      startDate: DateTime.now().add(const Duration(days: 1)),
+      endDate: DateTime.now().add(const Duration(days: 1)),
+      organizerName: w['organizer'] as String,
+      category: 'Webinar',
+      attendeeCount: 430,
+      isOnline: true,
+    );
+  }
+
+  void _openDetail(Map<String, dynamic> w) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EventDetailScreen(event: _webinarToEvent(w))),
+    );
+  }
 
   final List<Map<String, dynamic>> _webinars = [
     {
@@ -110,6 +140,7 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
                       const CircleAvatar(
                         radius: 16,
                         backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=34'),
+                        onBackgroundImageError: _ignoreImageError,
                       ),
                     ],
                   ),
@@ -137,28 +168,29 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               child: Container(
-                height: 46,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFECFDF5), // Light green bg
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: const Row(
                   children: [
                     Icon(
                       Icons.search_rounded,
-                      color: Color(0xFF6B7280),
-                      size: 20,
+                      color: Color(0xFF64748B),
+                      size: 18,
                     ),
-                    SizedBox(width: 10),
+                    SizedBox(width: 8),
                     Expanded(
                       child: TextField(
-                        style: TextStyle(fontSize: 14, color: Color(0xFF111827)),
+                        style: TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
                         decoration: InputDecoration(
-                          hintText: 'Search Webinars...',
+                          hintText: 'Search webinars...',
                           hintStyle: TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF9CA3AF),
+                            fontSize: 13,
+                            color: Color(0xFF64748B),
                           ),
                           border: InputBorder.none,
                           isDense: true,
@@ -213,16 +245,25 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Recommended for You',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF111827),
+                  const Expanded(
+                    child: Text(
+                      'Recommended for You',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF111827),
+                      ),
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const EventsListScreen()),
+                      );
+                    },
                     child: const Text(
                       'View All',
                       style: TextStyle(
@@ -266,6 +307,17 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
                                 height: 160,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  height: 160,
+                                  color: const Color(0xFFE5E7EB),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.ondemand_video_rounded,
+                                      color: Color(0xFF9CA3AF),
+                                      size: 36,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                             // Status Badge
@@ -423,7 +475,11 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
                                     child: SizedBox(
                                       height: 42,
                                       child: ElevatedButton(
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          ref.read(eventViewModelProvider.notifier)
+                                              .rsvpEvent(webinar['title'] as String);
+                                          _openDetail(webinar);
+                                        },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: isPrimary
                                               ? const Color(0xFF059669)
@@ -486,7 +542,28 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
     final isSelected = _bottomNavIndex == index;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _bottomNavIndex = index),
+        onTap: () {
+          setState(() => _bottomNavIndex = index);
+          if (index == 0) Navigator.pop(context);
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const EventsListScreen()),
+            );
+          }
+          if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MyEventsScreen()),
+            );
+          }
+          if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MyEventsScreen()),
+            );
+          }
+        },
         child: Container(
           color: Colors.transparent,
           child: Column(

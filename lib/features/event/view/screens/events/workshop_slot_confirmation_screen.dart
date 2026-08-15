@@ -41,7 +41,7 @@ class WorkshopSlotConfirmationScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     _buildTicketCard(),
                     const SizedBox(height: 20),
-                    _buildActionButtons(),
+                    _buildActionButtons(context),
                     const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
@@ -282,12 +282,19 @@ class WorkshopSlotConfirmationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Ticket downloaded to your device ✓'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
             icon: const Icon(Icons.download_rounded, size: 16, color: _accentLight),
             label: const Text('Download', style: TextStyle(color: _accentLight, fontSize: 13, fontWeight: FontWeight.w600)),
             style: OutlinedButton.styleFrom(
@@ -300,7 +307,14 @@ class WorkshopSlotConfirmationScreen extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Ticket link copied — share it with friends!'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
             icon: const Icon(Icons.share_rounded, size: 16, color: _accentLight),
             label: const Text('Share', style: TextStyle(color: _accentLight, fontSize: 13, fontWeight: FontWeight.w600)),
             style: OutlinedButton.styleFrom(

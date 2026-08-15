@@ -1,38 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/event_model.dart';
+import '../repository/i_event_repository.dart';
 import 'event_state.dart';
 
 class EventViewModel extends StateNotifier<EventState> {
-  EventViewModel() : super(const EventState());
+  final IEventRepository _repository;
+
+  EventViewModel(this._repository) : super(const EventState());
 
   void loadEvents() {
     if (state.events.isNotEmpty) return;
     state = state.copyWith(
-      events: [
-        Event(
-          id: '1',
-          title: 'Tech Startup Meetup',
-          description: 'Network with founders and investors',
-          location: 'Bangalore',
-          startDate: DateTime(2024, 8, 15),
-          endDate: DateTime(2024, 8, 15),
-          organizerName: 'Tech Community',
-          category: 'Networking',
-          attendeeCount: 120,
-        ),
-        Event(
-          id: '2',
-          title: 'Flutter Workshop',
-          description: 'Learn advanced Flutter techniques',
-          location: 'Online',
-          startDate: DateTime(2024, 8, 20),
-          endDate: DateTime(2024, 8, 20),
-          organizerName: 'Flutter Community',
-          category: 'Workshop',
-          attendeeCount: 250,
-          isOnline: true,
-        ),
-      ],
+      events: _repository.fetchEvents(),
       unreadCount: 2,
     );
   }
@@ -46,13 +25,35 @@ class EventViewModel extends StateNotifier<EventState> {
   }
 
   void rsvpEvent(String eventId) {
-    final event = state.events.firstWhere((e) => e.id == eventId);
-    if (!state.myEvents.any((e) => e.id == eventId)) {
-      state = state.copyWith(myEvents: [...state.myEvents, event]);
-    }
+    final event = state.events.firstWhere(
+      (e) => e.id == eventId,
+      orElse: () => Event(
+        id: eventId,
+        title: '',
+        description: '',
+        location: '',
+        startDate: DateTime.now(),
+        endDate: DateTime.now(),
+        organizerName: '',
+        category: '',
+      ),
+    );
+    if (state.myEvents.any((e) => e.id == eventId)) return;
+    _repository.saveRsvp(eventId);
+    state = state.copyWith(myEvents: [...state.myEvents, event]);
   }
 
+  void cancelRsvp(String eventId) {
+    state = state.copyWith(
+      myEvents: state.myEvents.where((e) => e.id != eventId).toList(),
+    );
+  }
+
+  bool isRegistered(String eventId) =>
+      state.myEvents.any((e) => e.id == eventId);
+
   void addEvent(Event event) {
+    _repository.saveEvent(event);
     state = state.copyWith(events: [event, ...state.events]);
   }
 

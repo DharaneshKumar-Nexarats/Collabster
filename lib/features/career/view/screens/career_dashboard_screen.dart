@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/role_switcher_sheet.dart';
 import '../../../../core/di/providers.dart';
+import '../../../../core/bridge/view/connect_screen.dart';
 import '../../../auth/view/screens/profile_screen.dart';
 import '../../../auth/view/sign_in_screen.dart';
 import 'internships_screen.dart';
@@ -544,6 +545,9 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
       _QuickAction(Icons.bookmark_outline_rounded, 'Saved Jobs', const Color(0xFF0284C7), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => SavedJobsScreen(onBack: () => Navigator.pop(context))));
       }),
+      _QuickAction(Icons.alt_route_rounded, 'Connect', const Color(0xFF6D28D9), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectScreen()));
+      }),
     ];
 
     return Container(
@@ -576,6 +580,12 @@ class _CareerDashboardScreenState extends ConsumerState<CareerDashboardScreen> {
               _buildQuickActionItem(actions[4]),
               const SizedBox(width: 10),
               _buildQuickActionItem(actions[5]),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _buildQuickActionItem(actions[6]),
             ],
           ),
         ],

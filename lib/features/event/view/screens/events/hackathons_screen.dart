@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../event_home_screen.dart';
 import 'hackathon_registration_screen.dart';
+import 'my_events_screen.dart';
 
 // ─── Color Tokens (same as event theme) ────────────────────────
 const _bg = Color(0xFFF8FAFC);
@@ -23,6 +25,8 @@ class HackathonsScreen extends StatefulWidget {
 class _HackathonsScreenState extends State<HackathonsScreen> {
   int _selectedFilterIndex = 0;
   int _bottomNavIndex = 0;
+  final _searchController = TextEditingController();
+  final Set<String> _saved = {};
 
   final List<String> _filters = ['All', 'Online', 'Offline', '24-Hour'];
 
@@ -54,6 +58,36 @@ class _HackathonsScreenState extends State<HackathonsScreen> {
   ];
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<Map<String, dynamic>> get _visibleHackathons {
+    final query = _searchController.text.toLowerCase();
+    return _hackathons.where((h) {
+      if (query.isNotEmpty &&
+          !(h['title'] as String).toLowerCase().contains(query) &&
+          !(h['organizer'] as String).toLowerCase().contains(query)) {
+        return false;
+      }
+      final online = (h['location'] as String).contains('Hybrid');
+      if (_selectedFilterIndex == 1 && !online) return false;
+      if (_selectedFilterIndex == 2 && online) return false;
+      return true;
+    }).toList();
+  }
+
+  void _openRegistration(Map<String, dynamic> h) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => HackathonRegistrationScreen(hackathonTitle: h['title'] as String),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bg,
@@ -81,7 +115,7 @@ class _HackathonsScreenState extends State<HackathonsScreen> {
                     _buildClosingBanner(),
                     const SizedBox(height: 16),
                     // Hackathon cards
-                    ..._hackathons.map((h) => _buildHackathonCard(context, h)),
+                    ..._visibleHackathons.map((h) => _buildHackathonCard(context, h)),
                     const SizedBox(height: 20),
                     // View All button
                     _buildViewAllButton(),
@@ -168,11 +202,23 @@ class _HackathonsScreenState extends State<HackathonsScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: _borderColor),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.search_rounded, color: _textSecondary, size: 18),
-          SizedBox(width: 8),
-          Text('Search hackathons...', style: TextStyle(color: _textSecondary, fontSize: 13)),
+          const Icon(Icons.search_rounded, color: _textSecondary, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              onChanged: (_) => setState(() {}),
+              style: const TextStyle(color: _textPrimary, fontSize: 13),
+              decoration: const InputDecoration(
+                hintText: 'Search hackathons...',
+                hintStyle: TextStyle(color: _textSecondary, fontSize: 13),
+                border: InputBorder.none,
+                isDense: true,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -216,46 +262,50 @@ class _HackathonsScreenState extends State<HackathonsScreen> {
 
   // ─── Registration Closing Banner ─────────────────────────────
   Widget _buildClosingBanner() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF3C5C), Color(0xFFFF7B5C)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return GestureDetector(
+      onTap: () => _openRegistration(_hackathons.first),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFF3C5C), Color(0xFFFF7B5C)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
         ),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
             ),
-            child: const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Registration Closing Soon!',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-                SizedBox(height: 3),
-                Text(
-                  '3 top-tier hackathons are ending applications in less than 24 hours. Tap to view.',
-                  style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.3),
-                ),
-              ],
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Registration Closing Soon!',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  SizedBox(height: 3),
+                  Text(
+                    '3 top-tier hackathons are ending applications in less than 24 hours. Tap to view.',
+                    style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.3),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 20),
+          ],
+        ),
       ),
     );
   }
@@ -351,27 +401,37 @@ class _HackathonsScreenState extends State<HackathonsScreen> {
               Text(h['postedAgo'] as String, style: const TextStyle(color: _textSecondary, fontSize: 11)),
               const Spacer(),
               // Bookmark icon
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: _surface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: _borderColor),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    if (_saved.contains(h['title'])) {
+                      _saved.remove(h['title']);
+                    } else {
+                      _saved.add(h['title'] as String);
+                    }
+                  });
+                },
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: _surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: _borderColor),
+                  ),
+                  child: Icon(
+                    _saved.contains(h['title'])
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_border_rounded,
+                    color: _saved.contains(h['title']) ? _accent : _textSecondary,
+                    size: 16,
+                  ),
                 ),
-                child: const Icon(Icons.bookmark_border_rounded, color: _textSecondary, size: 16),
               ),
               const SizedBox(width: 8),
               // Register button
               ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => HackathonRegistrationScreen(hackathonTitle: h['title'] as String),
-                    ),
-                  );
-                },
+                onPressed: () => _openRegistration(h),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _accent,
                   elevation: 0,
@@ -393,7 +453,12 @@ class _HackathonsScreenState extends State<HackathonsScreen> {
   Widget _buildViewAllButton() {
     return Center(
       child: OutlinedButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const EventsListScreen()),
+          );
+        },
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: _accent, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 14),
@@ -424,7 +489,28 @@ class _HackathonsScreenState extends State<HackathonsScreen> {
           final isSelected = _bottomNavIndex == i;
           return Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _bottomNavIndex = i),
+              onTap: () {
+                setState(() => _bottomNavIndex = i);
+                if (i == 0) Navigator.pop(context);
+                if (i == 1) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EventsListScreen()),
+                  );
+                }
+                if (i == 2) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MyEventsScreen()),
+                  );
+                }
+                if (i == 3) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MyEventsScreen()),
+                  );
+                }
+              },
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

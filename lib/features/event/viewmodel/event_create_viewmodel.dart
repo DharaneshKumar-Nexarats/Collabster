@@ -33,6 +33,10 @@ class EventCreateViewModel extends StateNotifier<EventCreateState> {
     state = state.copyWith(endDate: date);
   }
 
+  void setImageUrl(String? imageUrl) {
+    state = state.copyWith(imageUrl: imageUrl);
+  }
+
   Event? createEvent() {
     if (!state.isValid || state.startDate == null || state.endDate == null) {
       return null;
@@ -48,6 +52,11 @@ class EventCreateViewModel extends StateNotifier<EventCreateState> {
       organizerName: 'You',
       category: state.category,
       isOnline: state.isOnline,
+      imageUrl: state.imageUrl,
     );
+  }
+
+  void reset() {
+    state = const EventCreateState();
   }
 }

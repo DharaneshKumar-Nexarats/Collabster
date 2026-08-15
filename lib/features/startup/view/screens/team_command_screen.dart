@@ -27,6 +27,7 @@ class _TeamCommandScreenState extends ConsumerState<TeamCommandScreen>
   @override
   void initState() {
     super.initState();
+    ref.read(teamViewModelProvider.notifier).loadInitialData();
     _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
