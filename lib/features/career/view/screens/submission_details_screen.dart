@@ -98,35 +98,45 @@ class SubmissionDetailsScreen extends StatelessWidget {
                             const SizedBox(height: 16),
 
                             // Status Info Box
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE0F2FE),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text(
-                                    'APPLICATION STATUS',
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF0284C7),
-                                      letterSpacing: 0.5,
-                                    ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ApplicationTrackingScreen(),
                                   ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Applied on: Oct 12, 2026 at 02:30 PM',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
+                                );
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE0F2FE),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const [
+                                    Text(
+                                      'APPLICATION STATUS',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0284C7),
+                                        letterSpacing: 0.5,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    SizedBox(height: 4),
+                                    Text(
+                                      'Applied on: Oct 12, 2026 at 02:30 PM',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],

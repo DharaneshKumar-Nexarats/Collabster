@@ -9,6 +9,7 @@ import '../../features/community/view/screens/community_home_screen.dart';
 import '../../features/career/view/screens/career_dashboard_screen.dart';
 import '../../features/startup/view/screens/startup_dashboard_screen.dart';
 import '../../features/startup/view/screens/startup_landing_screen.dart';
+import '../../features/event/view/screens/events/event_home_screen.dart';
 
 Widget buildDashboardForRole(AuthSession session) {
   final activeRole = session.activeUserRole;
@@ -31,7 +32,7 @@ Widget buildDashboardForRole(AuthSession session) {
     case UserRole.influencer:
       return const CommunityHomeScreen();
     case UserRole.serviceProvider:
-      return const CareerDashboardScreen();
+      return const EventHomeScreen();
     case UserRole.other:
       return const HomeDashboardScreen();
     default:

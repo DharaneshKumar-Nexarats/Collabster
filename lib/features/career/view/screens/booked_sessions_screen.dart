@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../providers/career_providers.dart';
 import 'interview_details_screen.dart';
 import 'peer_booking_screen.dart';
 
-class BookedSessionsScreen extends StatefulWidget {
+class BookedSessionsScreen extends ConsumerStatefulWidget {
   const BookedSessionsScreen({super.key});
 
   @override
-  State<BookedSessionsScreen> createState() => _BookedSessionsScreenState();
+  ConsumerState<BookedSessionsScreen> createState() => _BookedSessionsScreenState();
 }
 
-class _BookedSessionsScreenState extends State<BookedSessionsScreen> {
+class _BookedSessionsScreenState extends ConsumerState<BookedSessionsScreen> {
   @override
   Widget build(BuildContext context) {
+    final careerState = ref.watch(careerStateProvider);
+    final completedList = careerState.completedInterviews;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -94,24 +99,20 @@ class _BookedSessionsScreenState extends State<BookedSessionsScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Section 2: History Header
+                      // Section 2: History Header (Completed Mock Interviews)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            'History',
+                            'Completed Mock Interviews',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF1E293B),
                             ),
                           ),
-                      TextButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Showing full session history')),
-                          );
-                        },
+                          TextButton(
+                            onPressed: () {},
                             child: const Text(
                               'View All',
                               style: TextStyle(
@@ -125,27 +126,24 @@ class _BookedSessionsScreenState extends State<BookedSessionsScreen> {
                       ),
                       const SizedBox(height: 4),
 
-                      // History Item 1: Marcus Thorne
-                      _buildHistoryRow(
-                        avatarUrl: 'https://i.pravatar.cc/150?img=33',
-                        name: 'Marcus Thorne',
-                        status: 'COMPLETED',
-                        statusColor: const Color(0xFF047857),
-                        statusBg: const Color(0xFFD1FAE5),
-                        date: 'July 12',
-                        hasPlayIcon: true,
-                      ),
-                      const SizedBox(height: 12),
-
-                      // History Item 2: Leila Chen
-                      _buildHistoryRow(
-                        avatarUrl: 'https://i.pravatar.cc/150?img=26',
-                        name: 'Leila Chen',
-                        status: 'CANCELLED',
-                        statusColor: Colors.grey.shade600,
-                        statusBg: const Color(0xFFF1F5F9),
-                        date: 'June 28',
-                        hasPlayIcon: false,
+                      // Dynamic Completed Interviews List
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: completedList.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final item = completedList[index];
+                          return _buildHistoryRow(
+                            avatarUrl: 'https://i.pravatar.cc/150?img=${30 + index}',
+                            name: '${item.interviewer} • ${item.company}',
+                            status: '${item.status} (${item.score})',
+                            statusColor: const Color(0xFF047857),
+                            statusBg: const Color(0xFFD1FAE5),
+                            date: item.date,
+                            hasPlayIcon: true,
+                          );
+                        },
                       ),
                       const SizedBox(height: 24),
 

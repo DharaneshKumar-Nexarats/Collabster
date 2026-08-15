@@ -1,570 +1,395 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
-import '../../../../core/theme/app_colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/di/providers.dart';
 import 'resume_upgrade_screen.dart';
 
-
-class ATSScoreScreen extends StatelessWidget {
+class ATSScoreScreen extends ConsumerStatefulWidget {
   const ATSScoreScreen({super.key});
 
   @override
+  ConsumerState<ATSScoreScreen> createState() => _ATSScoreScreenState();
+}
+
+class _ATSScoreScreenState extends ConsumerState<ATSScoreScreen> {
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authViewModelProvider);
+    final session = authState.session;
+    final userName = session?.fullName ?? 'Alex Rivera';
+    final userInitials = userName.isNotEmpty ? userName.split(' ').map((e) => e.isEmpty ? '' : e[0]).take(2).join() : 'AR';
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top Bar & Content (Scrollable)
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header row
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: const Icon(
-                              Icons.arrow_back_rounded,
-                              color: AppColors.primary,
-                              size: 22,
-                            ),
-                          ),
-                          const Spacer(),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Title
-                      const Text(
-                        'ATS Score',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF111827),
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Profile Card
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                              color: const Color(0xFFE0F2FE), width: 1.2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.02),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Alex Rivera',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF0369A1),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'SENIOR PRODUCT DESIGNER',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey.shade500,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const CircleAvatar(
-                                  radius: 24,
-                                  backgroundImage: NetworkImage(
-                                      'https://i.pravatar.cc/150?img=33'),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            const Divider(color: Color(0xFFF0F9FF), height: 1, thickness: 1.2),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                const Icon(Icons.email_outlined,
-                                    color: Color(0xFF0284C7), size: 16),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'alex.riv@sphere.io',
-                                  style: TextStyle(
-                                      fontSize: 13, color: Colors.grey.shade700),
-                                ),
-                                const SizedBox(width: 16),
-                                const Icon(Icons.location_on_outlined,
-                                    color: Color(0xFF0284C7), size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'San Francisco, CA',
-                                  style: TextStyle(
-                                      fontSize: 13, color: Colors.grey.shade700),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 18),
-                            // Core Expertise Indicator
-                            Row(
-                              children: [
-                                Container(
-                                  width: 3,
-                                  height: 14,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF0284C7),
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'CORE EXPERTISE',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0284C7),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: const [
-                                _ExpertiseTag(label: 'UI/UX Strategy'),
-                                _ExpertiseTag(label: 'Design Systems'),
-                                _ExpertiseTag(label: 'React Framework'),
-                                _ExpertiseTag(label: 'Prototyping'),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Download & Edit Buttons Row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Downloading ATS-scored resume PDF...')),
-                                );
-                              },
-                              icon: const Icon(Icons.file_download_outlined,
-                                  color: Colors.white, size: 18),
-                              label: const Text(
-                                'Download PDF',
-                                style: TextStyle(
-                                    fontSize: 14, fontWeight: FontWeight.bold),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0284C7),
-                                minimumSize: const Size(0, 48),
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF0F9FF),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(
-                              Icons.edit_outlined,
-                              color: Color(0xFF0284C7),
-                              size: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 28),
-
-                      // ATS Optimization Title with AI badge
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'ATS Optimization',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF111827),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE0F2FE),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                Icon(Icons.auto_awesome,
-                                    color: Color(0xFF0284C7), size: 12),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Powered by AI',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0284C7),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Gauge in center
-                      Center(
-                        child: SizedBox(
-                          width: 140,
-                          height: 140,
-                          child: CustomPaint(
-                            painter: _GaugePainter(percentage: 0.85),
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    '85%',
-                                    style: TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF0369A1),
-                                    ),
-                                  ),
-                                  Text(
-                                    'GOOD SCORE',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey.shade500,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-
-                      // Suggestion cards
-                      const _SuggestionCard(
-                        icon: Icons.check_circle_outline_rounded,
-                        title: 'Add more achievements',
-                        desc:
-                            "Mention specific numbers (e.g. \"Increased sales by 20%\").",
-                      ),
-                      const SizedBox(height: 12),
-                      const _SuggestionCard(
-                        icon: Icons.add_circle_outline_rounded,
-                        title: 'Include keywords',
-                        desc:
-                            "Add \"Cloud Architecture\" and \"DevOps\" to your skills.",
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Review & Enhance Pro card
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ResumeUpgradeScreen(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF0F9FF),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                                color: const Color(0xFF0284C7), width: 1.5),
-                          ),
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 14, horizontal: 16),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.lock_open_rounded,
-                                        color: Color(0xFF0284C7), size: 18),
-                                    const SizedBox(width: 8),
-                                    const Text(
-                                      'Review & Enhance',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0284C7),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF0369A1),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: const Text(
-                                        'PRO',
-                                        style: TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                               ),
-                              const Divider(
-                                  color: Color(0xFF0284C7), height: 1, thickness: 1),
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Row(
-                                  children: [
-                                    const Text(
-                                      '\$9.99/mo',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0369A1),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '\$19.99',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.grey.shade400,
-                                        decoration: TextDecoration.lineThrough,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFFEE2E2),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: const Text(
-                                        '50% OFF',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFFEF4444),
-                                        ),
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    const Text(
-                                      'Upgrade to Pro',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0284C7),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Bottom Navigation Bar
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                    top: BorderSide(color: Colors.grey.shade200, width: 1)),
-              ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildNavItem(true, Icons.home_rounded, 'Home'),
-                      _buildNavItem(false, Icons.explore_outlined, 'Explore'),
-                      _buildCenterAddButton(context),
-                      _buildNavItem(false, Icons.work_outline, 'Applied'),
-                      _buildNavItem(false, Icons.bookmark_border, 'Saved'),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF0284C7)),
+          onPressed: () => Navigator.pop(context),
         ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(bool isSelected, IconData icon, String label) {
-    return GestureDetector(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
-        padding: isSelected
-            ? const EdgeInsets.symmetric(horizontal: 14, vertical: 6)
-            : const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: isSelected
-            ? BoxDecoration(
-                color: const Color(0xFFE5DFFF),
-                borderRadius: BorderRadius.circular(20),
-              )
-            : null,
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.primary : Colors.grey.shade500,
-              size: 22,
+        title: const Text(
+          'ATS Score',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF0F172A),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF0284C7)),
+            onPressed: () {},
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: const Color(0xFF0284C7),
+              child: Text(
+                userInitials,
+                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+              ),
             ),
-            if (isSelected) ...[
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. User Candidate Profile Card
+              _buildProfileCard(userName, userInitials),
+              const SizedBox(height: 20),
+
+              // 2. Download PDF & Edit Buttons Row
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Downloading ATS Optimized Resume PDF...'),
+                            backgroundColor: Color(0xFF0284C7),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.download_rounded, size: 18),
+                      label: const Text('Download PDF'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0284C7),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0F2FE),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.edit_outlined, color: Color(0xFF0284C7), size: 20),
+                      onPressed: () {},
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+
+              // 3. ATS Optimization Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'ATS Optimization',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  Row(
+                    children: const [
+                      Icon(Icons.auto_awesome_rounded, color: Color(0xFF0284C7), size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        'Powered by AI',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0284C7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // ATS Optimization Card with Big Circular Gauge
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0xFFE0F2FE), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0284C7).withOpacity(0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Score Ring Gauge
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          width: 110,
+                          height: 110,
+                          child: CircularProgressIndicator(
+                            value: 0.85,
+                            strokeWidth: 8,
+                            backgroundColor: const Color(0xFFE0F2FE),
+                            color: const Color(0xFF0284C7),
+                          ),
+                        ),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Text(
+                              '85%',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF0284C7),
+                              ),
+                            ),
+                            Text(
+                              'GOOD SCORE',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF64748B),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Recommendation Items
+                    _buildRecommendationTile(
+                      icon: Icons.check_circle_outline_rounded,
+                      title: 'Add more achievements',
+                      subtitle: 'Mention specific numbers (e.g. "Increased sales by 20%").',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildRecommendationTile(
+                      icon: Icons.add_circle_outline_rounded,
+                      title: 'Include keywords',
+                      subtitle: 'Add "Cloud Architecture" and "DevOps" to your skills.',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // 4. Upgrade Pro Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ResumeUpgradeScreen()),
+                        );
+                      },
+                      icon: const Icon(Icons.lock_outline_rounded, size: 16, color: Color(0xFF0284C7)),
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('Review & Enhance', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0284C7))),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: const BoxDecoration(color: Color(0xFF0284C7), borderRadius: BorderRadius.all(Radius.circular(6))),
+                            child: const Text('PRO', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
+                          ),
+                        ],
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF0284C7), width: 1.5),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('\$9.99/mo', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+                        const SizedBox(width: 6),
+                        Text('\$19.99', style: TextStyle(fontSize: 11, color: Colors.grey.shade400, decoration: TextDecoration.lineThrough)),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(4)),
+                          child: const Text('50% OFF', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFEF4444))),
+                        ),
+                        const SizedBox(width: 12),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const ResumeUpgradeScreen()),
+                            );
+                          },
+                          child: const Text(
+                            'Upgrade to Pro >',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCenterAddButton(BuildContext context) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x400284C7),
-            blurRadius: 10,
-            offset: Offset(0, 4),
           ),
-        ],
-      ),
-      child: const Icon(Icons.add, color: Colors.white, size: 26),
-    );
-  }
-}
-
-class _ExpertiseTag extends StatelessWidget {
-  final String label;
-  const _ExpertiseTag({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F9FF),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF0284C7),
         ),
       ),
     );
   }
-}
 
-class _SuggestionCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String desc;
-
-  const _SuggestionCard({
-    required this.icon,
-    required this.title,
-    required this.desc,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildProfileCard(String name, String initials) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.01),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: const Color(0xFF0284C7).withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF0284C7),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'SENIOR PRODUCT DESIGNER',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF64748B),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: const Color(0xFF0284C7),
+                child: Text(
+                  initials,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: const [
+              Icon(Icons.email_outlined, size: 14, color: Color(0xFF64748B)),
+              SizedBox(width: 4),
+              Text('alex.riv@sphere.io', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+              SizedBox(width: 12),
+              Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF64748B)),
+              SizedBox(width: 4),
+              Text('San Francisco, CA', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+            ],
+          ),
+          const SizedBox(height: 18),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          const SizedBox(height: 14),
+
+          const Text(
+            'CORE EXPERTISE',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF0284C7),
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: const [
+              _SkillTag('UI/UX Strategy'),
+              _SkillTag('Design Systems'),
+              _SkillTag('React Framework'),
+              _SkillTag('Prototyping'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecommendationTile({required IconData icon, required String title, required String subtitle}) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -577,20 +402,12 @@ class _SuggestionCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF111827),
-                  ),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
-                  desc,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
-                    height: 1.4,
-                  ),
+                  subtitle,
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), height: 1.3),
                 ),
               ],
             ),
@@ -601,41 +418,22 @@ class _SuggestionCard extends StatelessWidget {
   }
 }
 
-class _GaugePainter extends CustomPainter {
-  final double percentage;
-  const _GaugePainter({required this.percentage});
+class _SkillTag extends StatelessWidget {
+  final String label;
+  const _SkillTag(this.label);
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final strokeWidth = 9.0;
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-
-    // Background track
-    final bgPaint = Paint()
-      ..color = const Color(0xFFE0F2FE)
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawCircle(center, radius, bgPaint);
-
-    // Progress arc (gauge)
-    final fgPaint = Paint()
-      ..color = const Color(0xFF0284C7)
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi / 2,
-      2 * math.pi * percentage,
-      false,
-      fgPaint,
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE0F2FE),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF0284C7)),
+      ),
     );
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../providers/career_providers.dart';
 import 'application_success_screen.dart';
 
 
 class ApplicationDetailsScreen extends StatefulWidget {
-  const ApplicationDetailsScreen({super.key});
+  final String jobType; // 'Job', 'Internship', 'Freelance'
+  final String? jobTitle;
+  final String? companyName;
+
+  const ApplicationDetailsScreen({
+    super.key,
+    this.jobType = 'Job',
+    this.jobTitle,
+    this.companyName,
+  });
 
   @override
   State<ApplicationDetailsScreen> createState() => _ApplicationDetailsScreenState();
@@ -484,6 +495,15 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                       height: 48,
                       child: ElevatedButton(
                         onPressed: () {
+                          try {
+                            final container = ProviderScope.containerOf(context, listen: false);
+                            container.read(careerStateProvider.notifier).addApplication(
+                              title: widget.jobTitle ?? (widget.jobType == 'Internship' ? 'UI/UX Design Intern' : (widget.jobType == 'Freelance' ? 'Full-Stack Developer (Freelance)' : 'Senior Product Designer')),
+                              company: widget.companyName ?? (widget.jobType == 'Internship' ? 'Canva Design Studio' : (widget.jobType == 'Freelance' ? 'TechFlow Global' : 'Nexus Systems')),
+                              logoUrl: widget.jobType == 'Internship' ? 'https://img.icons8.com/color/48/canva.png' : (widget.jobType == 'Freelance' ? 'https://img.icons8.com/color/48/code.png' : 'https://img.icons8.com/color/48/adobe-illustrator.png'),
+                              type: widget.jobType,
+                            );
+                          } catch (_) {}
                           Navigator.push(
                             context,
                             MaterialPageRoute(

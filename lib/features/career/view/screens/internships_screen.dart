@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../widgets/career_search_bar.dart';
 import 'job_detail_screen.dart';
-import 'submission_details_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InternshipsScreen — opened when user taps "Internships" chip on Dashboard.
@@ -26,24 +25,35 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
     _Internship(
       logo: Icons.code_rounded,
       title: 'Frontend Developer',
-      salary: '\$4,500 - \$6,000/mo',
+      salary: '₹ 500 - 5,000/mo',
       company: 'Google',
-      location: 'California',
+      location: 'Full-time',
       tags: ['React', 'Tailwind'],
-      badge: 'ON-SITE',
+      badge: '95% Match',
       badgeFg: Color(0xFF15803D),
       badgeBg: Color(0xFFDCFCE7),
     ),
     _Internship(
       logo: Icons.design_services_outlined,
       title: 'UI/UX Designer',
-      salary: '\$3,500 - \$5,000/mo',
-      company: 'Stripe',
-      location: 'Remote',
+      salary: '₹ 300 - 800/mo',
+      company: 'Figma',
+      location: 'Design',
       tags: ['Figma', 'Design Systems'],
-      badge: 'REMOTE',
+      badge: '90% Match',
       badgeFg: Color(0xFF0369A1),
       badgeBg: Color(0xFFE0F2FE),
+    ),
+    _Internship(
+      logo: Icons.analytics_outlined,
+      title: 'Data Analyst Intern',
+      salary: '₹ 400 - 800/mo',
+      company: 'Microsoft',
+      location: 'Full-time',
+      tags: ['SQL', 'Excel'],
+      badge: '92% Match',
+      badgeFg: Color(0xFF15803D),
+      badgeBg: Color(0xFFDCFCE7),
     ),
   ];
 
@@ -173,7 +183,7 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'All internships',
+                'All Internships',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -290,21 +300,16 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '✦ 95% Match',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0284C7),
-                      ),
-                    ),
-                  ],
+                child: const Text(
+                  '• 93.5% Match',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -338,26 +343,26 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
           // Salary + Duration
           Row(
             children: [
-              const Icon(Icons.account_balance_wallet_outlined,
+              const Icon(Icons.location_on_outlined,
                   color: Colors.white70, size: 16),
               const SizedBox(width: 5),
               Text(
-                '\$4,500/mo',
+                'San Francisco, CA',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(width: 16),
-              const Icon(Icons.access_time_rounded,
+              const SizedBox(width: 14),
+              const Icon(Icons.group_outlined,
                   color: Colors.white70, size: 16),
               const SizedBox(width: 5),
               Text(
-                '6 Months',
+                '4 Members',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -368,21 +373,28 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
           // Apply Now button
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton(
+            child: ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   SmoothRightToLeftPageRoute(
-                    builder: (context) => const InternshipDetailsScreen(),
+                    builder: (context) => const InternshipDetailsScreen(
+                      title: 'Product Design Intern',
+                      company: 'Stripe',
+                      location: 'San Francisco, CA',
+                      stipend: '\$4,500/mo',
+                      type: 'Full-time • 6 Months',
+                      tags: ['Figma', 'UI/UX', 'Design Systems'],
+                    ),
                   ),
                 );
               },
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.white, width: 1.5),
+              style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 backgroundColor: Colors.white,
+                elevation: 0,
               ),
               child: const Text(
                 'Apply Now',
@@ -401,167 +413,226 @@ class _InternshipsScreenState extends State<InternshipsScreen> {
 
   // ── Internship Card ───────────────────────────────────────────────────────
   Widget _buildInternshipCard(_Internship item) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+    void openDetails() {
+      final isUiUx = item.title.contains('UI/UX') || (item.title.contains('Designer') && !item.title.contains('Frontend'));
+      final isData = item.title.contains('Data') || item.title.contains('Analyst');
+
+      String title = item.title.contains('Intern') ? item.title : '${item.title} Intern';
+      String company = item.company;
+      String location = item.company == 'Google' ? 'Mountain View, CA' : 'San Francisco, CA';
+      String stipend = '₹500+';
+      List<String> tags = item.company == 'Google'
+          ? const ['Frontend', 'React', 'Tailwind', 'JavaScript']
+          : const ['Design', 'Figma', 'UI/UX'];
+      String? about;
+      List<String>? requirements;
+
+      if (isUiUx) {
+        title = 'UI/UX Designer Intern';
+        company = 'Google';
+        location = 'Bangalore, KA';
+        stipend = '₹500+';
+        tags = const ['Figma', 'Design Systems', 'User Research', 'Prototyping'];
+        about = 'Join our design team and create delightful, accessible, and meaningful experiences for millions of users. You’ll collaborate with cross-functional teams to tackle real-world problems through user-centered design.';
+        requirements = const [
+          'Proficiency in Figma, Adobe XD, or Sketch.',
+          'Strong understanding of UI/UX principles and design systems.',
+          'Experience with user research and usability testing.',
+          'A strong portfolio showcasing end-to-end design projects.',
+        ];
+      } else if (isData) {
+        title = 'Data Analyst Intern';
+        company = 'Microsoft';
+        location = 'Bangalore, KA';
+        stipend = '₹400+';
+        tags = const ['SQL', 'Excel', 'Python', 'Power BI', 'Statistics'];
+        about = 'Work with our data team to collect, clean, analyze, and visualize data that drives business decisions. You’ll build dashboards, uncover insights, and help solve real-world problems using data.';
+        requirements = const [
+          'Proficiency in SQL and Excel.',
+          'Knowledge of Python, Power BI, or Tableau is a plus.',
+          'Strong analytical and problem-solving skills.',
+          'Good understanding of statistics and data visualization.',
+        ];
+      }
+
+      Navigator.push(
+        context,
+        SmoothRightToLeftPageRoute(
+          builder: (context) => InternshipDetailsScreen(
+            title: title,
+            company: company,
+            location: location,
+            stipend: stipend,
+            type: 'Full-time • 3 Months',
+            tags: tags,
+            about: about,
+            requirements: requirements,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Logo + title + badge
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0F9FF),
-                  borderRadius: BorderRadius.circular(11),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: openDetails,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE0F2FE), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Logo + title + badge
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F9FF),
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: Icon(item.logo, color: AppColors.primary, size: 20),
                 ),
-                child: Icon(item.logo,
-                    color: AppColors.primary, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title row
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF111827),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title row
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF111827),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 9, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: item.badgeBg,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            item.badge,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: item.badgeFg,
-                              letterSpacing: 0.2,
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 9, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: item.badgeBg,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              item.badge,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: item.badgeFg,
+                                letterSpacing: 0.2,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    // Salary
-                    Text(
-                      item.salary,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
+                        ],
                       ),
+                      const SizedBox(height: 3),
+                      // Salary
+                      Text(
+                        item.salary,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      // Company · Location
+                      Text(
+                        '${item.company} • ${item.location}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Tags
+            Row(
+              children: item.tags.map((tag) {
+                return Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F9FF),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    tag,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
                     ),
-                    const SizedBox(height: 2),
-                    // Company · Location
-                    Text(
-                      '${item.company} • ${item.location}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 14),
+
+            // Apply + Bookmark
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: openDetails,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0284C7),
+                      minimumSize: const Size(0, 42),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text(
+                      'Apply',
                       style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
-                      ),
+                          fontSize: 14, fontWeight: FontWeight.bold),
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Tags
-          Row(
-            children: item.tags.map((tag) {
-              return Container(
-                margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0F9FF),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  tag,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
                   ),
                 ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 14),
-
-          // Apply + Bookmark
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SubmissionDetailsScreen()));
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    minimumSize: const Size(0, 42),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                const SizedBox(width: 10),
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFFBAE6FD)),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    'Apply',
-                    style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
+                  child: const Icon(Icons.bookmark_border_rounded,
+                      size: 18, color: AppColors.primary),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFBAE6FD)),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.bookmark_border_rounded,
-                    size: 18, color: AppColors.primary),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
