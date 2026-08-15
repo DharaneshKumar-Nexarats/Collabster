@@ -16,8 +16,15 @@ class WebinarsScreen extends ConsumerStatefulWidget {
 }
 
 class _WebinarsScreenState extends ConsumerState<WebinarsScreen> {
+  final _searchController = TextEditingController();
   int _selectedFilterIndex = 0;
   int _bottomNavIndex = 0;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   final List<String> _filters = ['All', 'Live', 'Upcoming', 'On-Demand'];
 
@@ -93,6 +100,12 @@ class _WebinarsScreenState extends ConsumerState<WebinarsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final query = _searchController.text.toLowerCase();
+    final filteredWebinars = _webinars.where((w) {
+      final title = (w['title'] as String).toLowerCase();
+      return title.contains(query);
+    }).toList();
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -175,18 +188,20 @@ class _WebinarsScreenState extends ConsumerState<WebinarsScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.search_rounded,
                       color: Color(0xFF64748B),
                       size: 18,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
-                        style: TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
-                        decoration: InputDecoration(
+                        controller: _searchController,
+                        onChanged: (_) => setState(() {}),
+                        style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
+                        decoration: const InputDecoration(
                           hintText: 'Search webinars...',
                           hintStyle: TextStyle(
                             fontSize: 13,
@@ -282,9 +297,9 @@ class _WebinarsScreenState extends ConsumerState<WebinarsScreen> {
               child: ListView.builder(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 18),
-                itemCount: _webinars.length,
+                itemCount: filteredWebinars.length,
                 itemBuilder: (context, index) {
-                  final webinar = _webinars[index];
+                  final webinar = filteredWebinars[index];
                   final isPrimary = webinar['isPrimaryCta'] as bool;
 
                   return Container(

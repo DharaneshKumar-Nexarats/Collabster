@@ -22,8 +22,15 @@ class WorkshopsScreen extends StatefulWidget {
 }
 
 class _WorkshopsScreenState extends State<WorkshopsScreen> {
+  final _searchController = TextEditingController();
   int _selectedFilterIndex = 0;
   int _bottomNavIndex = 0;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   final List<String> _filters = ['All', 'Hands-on', 'Bootcamps', 'Certified'];
 
@@ -71,6 +78,12 @@ class _WorkshopsScreenState extends State<WorkshopsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final query = _searchController.text.toLowerCase();
+    final filteredWorkshops = _workshops.where((w) {
+      final title = (w['title'] as String).toLowerCase();
+      return title.contains(query);
+    }).toList();
+
     return Scaffold(
       backgroundColor: _bg,
       body: SafeArea(
@@ -89,7 +102,7 @@ class _WorkshopsScreenState extends State<WorkshopsScreen> {
                     const SizedBox(height: 14),
                     _buildFilterChips(),
                     const SizedBox(height: 18),
-                    ..._workshops.map((w) => _buildWorkshopCard(context, w)),
+                    ...filteredWorkshops.map((w) => _buildWorkshopCard(context, w)),
                     const SizedBox(height: 20),
                     _buildViewAllButton(),
                     const SizedBox(height: 20),
@@ -170,11 +183,23 @@ class _WorkshopsScreenState extends State<WorkshopsScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: _borderColor),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.search_rounded, color: _textSecondary, size: 18),
-          SizedBox(width: 8),
-          Text('Search workshops...', style: TextStyle(color: _textSecondary, fontSize: 13)),
+          const Icon(Icons.search_rounded, color: _textSecondary, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              onChanged: (_) => setState(() {}),
+              style: const TextStyle(color: _textPrimary, fontSize: 13),
+              decoration: const InputDecoration(
+                hintText: 'Search workshops...',
+                hintStyle: TextStyle(color: _textSecondary, fontSize: 13),
+                border: InputBorder.none,
+                isDense: true,
+              ),
+            ),
+          ),
         ],
       ),
     );

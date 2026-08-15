@@ -26,8 +26,15 @@ class MeetupsScreen extends ConsumerStatefulWidget {
 }
 
 class _MeetupsScreenState extends ConsumerState<MeetupsScreen> {
+  final _searchController = TextEditingController();
   int _selectedFilterIndex = 0;
   int _bottomNavIndex = 0;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   final List<String> _filters = ['All', 'Near Me', 'Informal', 'Startup Pitch'];
 
@@ -87,6 +94,12 @@ class _MeetupsScreenState extends ConsumerState<MeetupsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final query = _searchController.text.toLowerCase();
+    final filteredMeetups = _meetups.where((m) {
+      final title = (m['title'] as String).toLowerCase();
+      return title.contains(query);
+    }).toList();
+
     return Scaffold(
       backgroundColor: _bg,
       body: SafeArea(
@@ -105,7 +118,7 @@ class _MeetupsScreenState extends ConsumerState<MeetupsScreen> {
                     const SizedBox(height: 14),
                     _buildFilterChips(),
                     const SizedBox(height: 18),
-                    ..._meetups.map((m) => _buildMeetupCard(context, m)),
+                    ...filteredMeetups.map((m) => _buildMeetupCard(context, m)),
                     const SizedBox(height: 20),
                     _buildViewAllButton(),
                     const SizedBox(height: 20),
@@ -180,11 +193,23 @@ class _MeetupsScreenState extends ConsumerState<MeetupsScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: _borderColor),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.search_rounded, color: _textSecondary, size: 18),
-          SizedBox(width: 8),
-          Text('Search Meetups...', style: TextStyle(color: _textSecondary, fontSize: 13)),
+          const Icon(Icons.search_rounded, color: _textSecondary, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              onChanged: (_) => setState(() {}),
+              style: const TextStyle(color: _textPrimary, fontSize: 13),
+              decoration: const InputDecoration(
+                hintText: 'Search Meetups...',
+                hintStyle: TextStyle(color: _textSecondary, fontSize: 13),
+                border: InputBorder.none,
+                isDense: true,
+              ),
+            ),
+          ),
         ],
       ),
     );

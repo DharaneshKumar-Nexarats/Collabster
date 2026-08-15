@@ -5,7 +5,6 @@ const _bg = Color(0xFFF8FAFC);
 const _surface = Colors.white;
 const _card = Colors.white;
 const _accent = Color(0xFF3B22B2);
-const _accentBg = Color(0xFFF5F3FF);
 const _textPrimary = Color(0xFF111827);
 const _textSecondary = Color(0xFF6B7280);
 const _borderColor = Color(0xFFE5E7EB);
@@ -18,8 +17,15 @@ class ConferencesScreen extends StatefulWidget {
 }
 
 class _ConferencesScreenState extends State<ConferencesScreen> {
+  final _searchController = TextEditingController();
   int _selectedFilterIndex = 0;
   int _bottomNavIndex = 0;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   final List<String> _filters = ['All', 'Tech', 'Entrepreneurship', 'Research'];
 
@@ -59,6 +65,12 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final query = _searchController.text.toLowerCase();
+    final filteredConferences = _conferences.where((c) {
+      final title = (c['title'] as String).toLowerCase();
+      return title.contains(query);
+    }).toList();
+
     return Scaffold(
       backgroundColor: _bg,
       body: SafeArea(
@@ -77,7 +89,7 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
                     const SizedBox(height: 14),
                     _buildFilterChips(),
                     const SizedBox(height: 18),
-                    ..._conferences.map((c) => _buildConferenceCard(context, c)),
+                    ...filteredConferences.map((c) => _buildConferenceCard(context, c)),
                     const SizedBox(height: 4),
                     _buildFlashSaleCard(),
                     const SizedBox(height: 20),
@@ -160,27 +172,30 @@ class _ConferencesScreenState extends State<ConferencesScreen> {
         ),
         const SizedBox(height: 12),
         Container(
-          height: 46,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
-            color: _accentBg,
+            color: _surface,
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _borderColor),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.search_rounded,
                 color: _textSecondary,
-                size: 20,
+                size: 18,
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: TextField(
-                  style: TextStyle(fontSize: 14, color: _textPrimary),
-                  decoration: InputDecoration(
+                  controller: _searchController,
+                  onChanged: (_) => setState(() {}),
+                  style: const TextStyle(fontSize: 13, color: _textPrimary),
+                  decoration: const InputDecoration(
                     hintText: 'Search conferences...',
                     hintStyle: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: _textSecondary,
                     ),
                     border: InputBorder.none,
