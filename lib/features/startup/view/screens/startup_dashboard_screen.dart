@@ -54,6 +54,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
   }
 
   Future<void> _loadSessionData() async {
+    await Future.delayed(Duration.zero);
     if (!mounted) return;
     final session = ref.read(authViewModelProvider).session;
     if (session != null && mounted) {

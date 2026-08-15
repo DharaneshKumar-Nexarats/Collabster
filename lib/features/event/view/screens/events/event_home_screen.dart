@@ -11,16 +11,16 @@ import 'conferences_screen.dart';
 import 'webinars_screen.dart';
 
 // ─── Color Tokens ───────────────────────────────────────────────
-const _bg = Color(0xFF0F0E1A);
-const _surface = Color(0xFF1A1830);
-const _card = Color(0xFF221F38);
-const _accent = Color(0xFF7C3AED);
-const _accentLight = Color(0xFF9D5CFF);
-const _accentBg = Color(0xFF2A1F4A);
+const _bg = Color(0xFFF8FAFC);
+const _surface = Colors.white;
+const _card = Colors.white;
+const _accent = Color(0xFF059669);
+const _accentLight = Color(0xFF10B981);
+const _accentBg = Color(0xFFECFDF5);
 const _live = Color(0xFFFF3C5C);
-const _textPrimary = Colors.white;
-const _textSecondary = Color(0xFFAAAAAA);
-const _borderColor = Color(0xFF2E2B45);
+const _textPrimary = Color(0xFF0F172A);
+const _textSecondary = Color(0xFF64748B);
+const _borderColor = Color(0xFFE2E8F0);
 
 class EventHomeScreen extends ConsumerStatefulWidget {
   const EventHomeScreen({super.key});
@@ -67,14 +67,14 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
     {
       'title': 'Global AI Summit',
       'date': 'Oct 24 • 09:00 AM',
-      'colorA': Color(0xFF1A0533),
-      'colorB': Color(0xFF3D1578),
+      'colorA': Color(0xFF064E3B),
+      'colorB': Color(0xFF047857),
     },
     {
       'title': 'Fintech Innova',
       'date': 'Oct 25 • 10:00 AM',
-      'colorA': Color(0xFF033045),
-      'colorB': Color(0xFF0B5878),
+      'colorA': Color(0xFF0F766E),
+      'colorB': Color(0xFF0D9488),
     },
   ];
 
@@ -227,9 +227,9 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
             decoration: BoxDecoration(
               color: _accentBg,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Color(0x607C3AED)),
+              border: Border.all(color: const Color(0x30059669)),
             ),
-            child: const Icon(Icons.tune_rounded, color: _accentLight, size: 20),
+            child: const Icon(Icons.tune_rounded, color: _accent, size: 20),
           ),
         ],
       ),
@@ -237,38 +237,52 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
   }
 
   Widget _buildDateStrip() {
-    return SizedBox(
-      height: 60,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        itemCount: _days.length,
-        itemBuilder: (ctx, i) {
-          final isSelected = _selectedDayIndex == i;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedDayIndex = i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              margin: const EdgeInsets.only(right: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? _accent : _surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isSelected ? _accent : _borderColor, width: isSelected ? 1.5 : 1),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      child: SizedBox(
+        height: 60,
+        child: Row(
+          children: List.generate(_days.length, (i) {
+            final isSelected = _selectedDayIndex == i;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedDayIndex = i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  margin: EdgeInsets.only(right: i == _days.length - 1 ? 0 : 8),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? _accent : _surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: isSelected ? _accent : _borderColor,
+                        width: isSelected ? 1.5 : 1),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _days[i]['day'] as String,
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: isSelected ? Colors.white70 : _textSecondary),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${_days[i]['date']}',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected ? Colors.white : _textPrimary),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(_days[i]['day'] as String,
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: isSelected ? Colors.white70 : _textSecondary)),
-                  const SizedBox(height: 2),
-                  Text('${_days[i]['date']}',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : _textPrimary)),
-                ],
-              ),
-            ),
-          );
-        },
+            );
+          }),
+        ),
       ),
     );
   }
@@ -310,13 +324,13 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
                   decoration: const BoxDecoration(
                     borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
                     gradient: LinearGradient(
-                      colors: [Color(0xFF1A0A2E), Color(0xFF3B1F6A)],
+                      colors: [Color(0xFFD1FAE5), Color(0xFFA7F3D0)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                   ),
                   child: const Center(
-                    child: Icon(Icons.play_circle_outline_rounded, size: 48, color: Colors.white54),
+                    child: Icon(Icons.play_circle_outline_rounded, size: 48, color: _accent),
                   ),
                 ),
                 Positioned(
@@ -377,64 +391,72 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
   }
 
   Widget _buildCategoryChips() {
-    return SizedBox(
-      height: 68,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        itemCount: _categories.length,
-        itemBuilder: (ctx, i) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(_categories.length, (i) {
           final cat = _categories[i];
-          return GestureDetector(
-            onTap: () {
-              if (cat['label'] == 'Hackathons') {
-                Navigator.push(
-                  ctx,
-                  MaterialPageRoute(builder: (_) => const HackathonsScreen()),
-                );
-              } else if (cat['label'] == 'Workshops') {
-                Navigator.push(
-                  ctx,
-                  MaterialPageRoute(builder: (_) => const WorkshopsScreen()),
-                );
-              } else if (cat['label'] == 'Meetups') {
-                Navigator.push(
-                  ctx,
-                  MaterialPageRoute(builder: (_) => const MeetupsScreen()),
-                );
-              } else if (cat['label'] == 'Conferences') {
-                Navigator.push(
-                  ctx,
-                  MaterialPageRoute(builder: (_) => const ConferencesScreen()),
-                );
-              } else if (cat['label'] == 'Webinars') {
-                Navigator.push(
-                  ctx,
-                  MaterialPageRoute(builder: (_) => const WebinarsScreen()),
-                );
-              }
-            },
-            child: Container(
-              margin: const EdgeInsets.only(right: 12),
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                if (cat['label'] == 'Hackathons') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HackathonsScreen()),
+                  );
+                } else if (cat['label'] == 'Workshops') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const WorkshopsScreen()),
+                  );
+                } else if (cat['label'] == 'Meetups') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MeetupsScreen()),
+                  );
+                } else if (cat['label'] == 'Conferences') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ConferencesScreen()),
+                  );
+                } else if (cat['label'] == 'Webinars') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const WebinarsScreen()),
+                  );
+                }
+              },
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 46,
-                    height: 46,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: _card,
                       shape: BoxShape.circle,
                       border: Border.all(color: _borderColor),
                     ),
-                    child: Icon(cat['icon'] as IconData, color: _accentLight, size: 20),
+                    child: Icon(cat['icon'] as IconData, color: _accent, size: 20),
                   ),
-                  const SizedBox(height: 4),
-                  Text(cat['label'] as String, style: const TextStyle(color: _textSecondary, fontSize: 10)),
+                  const SizedBox(height: 6),
+                  Text(
+                    cat['label'] as String,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.visible,
+                    style: const TextStyle(
+                      color: _textSecondary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ),
           );
-        },
+        }),
       ),
     );
   }
@@ -532,12 +554,12 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
                   decoration: const BoxDecoration(
                     borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
                     gradient: LinearGradient(
-                      colors: [Color(0xFF050515), Color(0xFF1A0845)],
+                      colors: [Color(0xFFECFDF5), Color(0xFFD1FAE5)],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     ),
                   ),
-                  child: const Center(child: Icon(Icons.event_rounded, size: 48, color: Colors.white24)),
+                  child: const Center(child: Icon(Icons.event_rounded, size: 48, color: _accent)),
                 ),
                 Positioned(
                   top: 12,
@@ -684,12 +706,12 @@ class _EventHomeScreenState extends ConsumerState<EventHomeScreen> {
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
                         gradient: LinearGradient(
-                          colors: [Color(0xFF0D0833), Color(0xFF3B1F6A)],
+                          colors: [Color(0xFF065F46), Color(0xFF0F766E)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                       ),
-                      child: const Center(child: Icon(Icons.ondemand_video_rounded, size: 40, color: Colors.white38)),
+                      child: const Center(child: Icon(Icons.ondemand_video_rounded, size: 40, color: Colors.white70)),
                     ),
                     Positioned(
                       top: 10,

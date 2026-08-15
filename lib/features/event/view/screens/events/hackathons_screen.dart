@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'hackathon_registration_screen.dart';
 
 // ─── Color Tokens (same as event theme) ────────────────────────
-const _bg = Color(0xFF0F0E1A);
-const _surface = Color(0xFF1A1830);
-const _card = Color(0xFF221F38);
-const _accent = Color(0xFF7C3AED);
-const _accentLight = Color(0xFF9D5CFF);
-const _accentBg = Color(0xFF2A1F4A);
-const _textPrimary = Colors.white;
-const _textSecondary = Color(0xFFAAAAAA);
-const _borderColor = Color(0xFF2E2B45);
+const _bg = Color(0xFFF8FAFC);
+const _surface = Colors.white;
+const _card = Colors.white;
+const _accent = Color(0xFF059669);
+const _accentLight = Color(0xFF10B981);
+const _accentBg = Color(0xFFECFDF5);
+const _textPrimary = Color(0xFF0F172A);
+const _textSecondary = Color(0xFF64748B);
+const _borderColor = Color(0xFFE2E8F0);
 const _closingRed = Color(0xFFFF3C5C);
 
 class HackathonsScreen extends StatefulWidget {

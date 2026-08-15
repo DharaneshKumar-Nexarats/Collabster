@@ -29,7 +29,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.delayed(Duration.zero, () {
+      if (!mounted) return;
       ref.read(notificationsViewModelProvider.notifier)
           .loadNotifications(startupName: widget.startupName);
     });

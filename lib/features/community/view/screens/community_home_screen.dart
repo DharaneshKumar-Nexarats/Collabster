@@ -46,7 +46,8 @@ class _CommunityHomeScreenState extends ConsumerState<CommunityHomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.delayed(Duration.zero, () {
+      if (!mounted) return;
       ref.read(communityViewModelProvider.notifier).loadInitialData();
       ref.read(postViewModelProvider.notifier).loadPosts();
       ref.read(eventViewModelProvider.notifier).loadEvents();

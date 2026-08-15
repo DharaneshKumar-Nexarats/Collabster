@@ -21,7 +21,10 @@ class _JoinStartupScreenState extends ConsumerState<JoinStartupScreen> {
   @override
   void initState() {
     super.initState();
-    ref.read(joinStartupViewModelProvider.notifier).loadInitialData();
+    Future.delayed(Duration.zero, () {
+      if (!mounted) return;
+      ref.read(joinStartupViewModelProvider.notifier).loadInitialData();
+    });
   }
 
   @override

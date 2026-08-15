@@ -78,7 +78,7 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
                     onTap: () => Navigator.pop(context),
                     child: const Icon(
                       Icons.arrow_back_rounded,
-                      color: Color(0xFF3B22B2),
+                      color: Color(0xFF059669),
                       size: 24,
                     ),
                   ),
@@ -89,7 +89,7 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
                         children: [
                           const Icon(
                             Icons.notifications_none_rounded,
-                            color: Color(0xFF3B22B2),
+                            color: Color(0xFF059669),
                             size: 24,
                           ),
                           Positioned(
@@ -99,7 +99,7 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
                               width: 8,
                               height: 8,
                               decoration: const BoxDecoration(
-                                color: Color(0xFF3B22B2),
+                                color: Color(0xFF059669),
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -140,7 +140,7 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
                 height: 46,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF5F3FF), // Light purple bg
+                  color: const Color(0xFFECFDF5), // Light green bg
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Row(
@@ -188,7 +188,7 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
                         margin: const EdgeInsets.only(right: 10),
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF3B22B2) : const Color(0xFFF3F4F6),
+                          color: isSelected ? const Color(0xFF059669) : const Color(0xFFF3F4F6),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         alignment: Alignment.center,
@@ -228,7 +228,7 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF3B22B2),
+                        color: Color(0xFF059669),
                       ),
                     ),
                   ),
@@ -426,8 +426,8 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
                                         onPressed: () {},
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: isPrimary
-                                              ? const Color(0xFF3B22B2)
-                                              : const Color(0xFFDBEAFE),
+                                              ? const Color(0xFF059669)
+                                              : const Color(0xFFECFDF5),
                                           elevation: 0,
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(10),
@@ -440,7 +440,7 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
                                             fontWeight: FontWeight.bold,
                                             color: isPrimary
                                                 ? Colors.white
-                                                : const Color(0xFF2563EB),
+                                                : const Color(0xFF059669),
                                           ),
                                         ),
                                       ),
@@ -495,12 +495,12 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFEEEBFF) : Colors.transparent,
+                  color: isSelected ? const Color(0xFFECFDF5) : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   icon,
-                  color: isSelected ? const Color(0xFF3B22B2) : const Color(0xFF9CA3AF),
+                  color: isSelected ? const Color(0xFF059669) : const Color(0xFF9CA3AF),
                   size: 20,
                 ),
               ),
@@ -510,7 +510,7 @@ class _WebinarsScreenState extends State<WebinarsScreen> {
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                  color: isSelected ? const Color(0xFF3B22B2) : const Color(0xFF9CA3AF),
+                  color: isSelected ? const Color(0xFF059669) : const Color(0xFF9CA3AF),
                 ),
               ),
             ],
