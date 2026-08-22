@@ -17,6 +17,9 @@ class StartupDashboardViewModel extends StateNotifier<StartupDashboardState> {
     required String fullName,
     required String email,
     required String startupName,
+    VerificationStatus? verificationStatus,
+    String? verificationRejectionReason,
+    DateTime? verificationSubmittedAt,
   }) {
     final tagline = startupTagline ?? '';
     state = state.copyWith(
@@ -28,6 +31,9 @@ class StartupDashboardViewModel extends StateNotifier<StartupDashboardState> {
       ownerName: fullName,
       email: email,
       profilePhotoPath: profilePhotoPath ?? '',
+      verificationStatus: verificationStatus ?? VerificationStatus.unverified,
+      verificationRejectionReason: verificationRejectionReason,
+      verificationSubmittedAt: verificationSubmittedAt,
       recentActivity: [
         ActivityItem(
           iconKey: tagline.startsWith('Member of') ? 'group' : 'rocket',
@@ -59,5 +65,20 @@ class StartupDashboardViewModel extends StateNotifier<StartupDashboardState> {
     final updated = List<ConnectionRequest>.from(state.connectionRequests);
     updated.removeAt(index);
     state = state.copyWith(connectionRequests: updated);
+  }
+
+  void submitVerification({String? rejectionReason}) {
+    state = state.copyWith(
+      verificationStatus: VerificationStatus.pending,
+      verificationRejectionReason: null,
+      verificationSubmittedAt: DateTime.now(),
+    );
+  }
+
+  void updateVerificationStatus(VerificationStatus status, {String? rejectionReason}) {
+    state = state.copyWith(
+      verificationStatus: status,
+      verificationRejectionReason: rejectionReason,
+    );
   }
 }

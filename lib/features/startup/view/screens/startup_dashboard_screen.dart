@@ -24,6 +24,7 @@ import 'startup_post_update_screen.dart';
 import 'startup_posts_feed_screen.dart';
 import 'startup_products_screen.dart';
 import 'startup_requests_screen.dart';
+import 'startup_verification_screen.dart';
 import 'notifications_screen.dart';
 import 'team_command_screen.dart';
 
@@ -1696,15 +1697,40 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
                     icon: Icons.work_rounded,
                     label: 'Create Job',
                     color: const Color(0xFFD97706),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => HiringCommandScreen(
-                          startupName: widget.startupName,
-                          autoOpenCreateSheet: true,
-                        ),
-                      ),
-                    ),
+                    onTap: () {
+                      final startupState = ref.read(startupDashboardViewModelProvider);
+                      final isVerified = startupState.isVerified;
+                      final isPending = startupState.isVerificationPending;
+
+                      if (!isVerified) {
+                        Navigator.pop(ctx);
+                        if (isPending) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Your verification is under review. Please wait for approval.'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const StartupVerificationScreen(),
+                            ),
+                          );
+                        }
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => HiringCommandScreen(
+                              startupName: widget.startupName,
+                              autoOpenCreateSheet: true,
+                            ),
+                          ),
+                        );
+                      }
+                    },
                   ),
                   _simpleActionItem(
                     ctx,
@@ -2088,7 +2114,7 @@ class _SectionHeader extends StatelessWidget {
 }
 
 // ── Quick Actions Grid ──
-class _QuickActionsGrid extends StatelessWidget {
+class _QuickActionsGrid extends ConsumerWidget {
   const _QuickActionsGrid({required this.startupName, this.startupHubOnTap, this.routeBuilder});
   final String startupName;
   final VoidCallback? startupHubOnTap;
@@ -2099,8 +2125,35 @@ class _QuickActionsGrid extends StatelessWidget {
     return MaterialPageRoute<T>(builder: (_) => page);
   }
 
+  void _handleJobsTap(BuildContext context, WidgetRef ref) {
+    final status = ref.read(startupDashboardViewModelProvider).verificationStatus;
+    
+    switch (status) {
+      case VerificationStatus.unverified:
+      case VerificationStatus.rejected:
+        Navigator.push(context, _smoothRoute(const StartupVerificationScreen()));
+        break;
+      case VerificationStatus.pending:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Your verification is under review. Please wait for approval.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        break;
+      case VerificationStatus.verified:
+        Navigator.push(context, _smoothRoute(HiringCommandScreen(startupName: startupName)));
+        break;
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(startupDashboardViewModelProvider);
+    final isVerified = state.isVerified;
+    final isPending = state.isVerificationPending;
+    final isRejected = state.isVerificationRejected;
+
     final actions = [
       _QuickAction(
         icon: Icons.info_outline_rounded,
@@ -2127,10 +2180,13 @@ class _QuickActionsGrid extends StatelessWidget {
         onTap: () => Navigator.push(context, _smoothRoute(FundraisingDashboardScreen(startupName: startupName))),
       ),
       _QuickAction(
-        icon: Icons.work_outline,
-        label: 'Jobs',
+        icon: Icons.work_outline_rounded,
+        label: isVerified ? 'Jobs' : (isPending ? 'Jobs (Review)' : 'Jobs'),
         color: const Color(0xFFD97706),
-        onTap: () => Navigator.push(context, _smoothRoute(HiringCommandScreen(startupName: startupName))),
+        onTap: () => _handleJobsTap(context, ref),
+        isLocked: !isVerified,
+        isPending: isPending,
+        isRejected: isRejected,
       ),
       _QuickAction(
         icon: Icons.inventory_2_outlined,
@@ -2182,19 +2238,16 @@ class _QuickActionsGrid extends StatelessWidget {
       ),
     ];
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF1A1D35) : Colors.white;
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardBg,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: (isDark ? Colors.black : const Color(0xFF000000)).withValues(alpha: isDark ? 0.3 : 0.03),
+            color: Color(0x0A000000),
             blurRadius: 16,
-            offset: const Offset(0, 6),
+            offset: Offset(0, 6),
           ),
         ],
       ),
@@ -2226,14 +2279,61 @@ class _QuickActionCell extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: action.color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(action.icon, color: action.color, size: 24),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: action.color.withValues(alpha: action.isLocked ? 0.08 : 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  action.icon,
+                  color: action.isLocked
+                      ? action.color.withValues(alpha: 0.45)
+                      : action.color,
+                  size: 24,
+                ),
+              ),
+              if (action.isLocked)
+                Positioned(
+                  top: -2,
+                  right: -2,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: action.isPending
+                          ? const Color(0xFFF59E0B)
+                          : (action.isRejected
+                              ? const Color(0xFFEF4444)
+                              : const Color(0xFF64748B)),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x20000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Icon(
+                        action.isPending
+                            ? Icons.hourglass_top_rounded
+                            : (action.isRejected
+                                ? Icons.priority_high_rounded
+                                : Icons.lock_rounded),
+                        color: Colors.white,
+                        size: 10,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 6),
           Text(
@@ -2244,7 +2344,11 @@ class _QuickActionCell extends StatelessWidget {
             style: TextStyle(
               fontSize: 10.5,
               fontWeight: FontWeight.w700,
-              color: labelColor,
+              color: action.isLocked
+                  ? (action.isPending
+                      ? const Color(0xFFF59E0B)
+                      : labelColor.withValues(alpha: 0.6))
+                  : labelColor,
               height: 1.15,
             ),
           ),
@@ -2260,11 +2364,17 @@ class _QuickAction {
     required this.label,
     required this.color,
     required this.onTap,
+    this.isLocked = false,
+    this.isPending = false,
+    this.isRejected = false,
   });
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
+  final bool isLocked;
+  final bool isPending;
+  final bool isRejected;
 }
 
 // ── Bottom Navigation Bar ──

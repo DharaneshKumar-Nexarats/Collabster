@@ -1,5 +1,12 @@
 import '../model/startup_models.dart';
 
+enum VerificationStatus {
+  unverified,
+  pending,
+  verified,
+  rejected,
+}
+
 class StartupDashboardState {
   const StartupDashboardState({
     this.selectedNavIndex = 0,
@@ -13,6 +20,9 @@ class StartupDashboardState {
     this.profilePhotoPath = '',
     this.connectionRequests = const [],
     this.recentActivity = const [],
+    this.verificationStatus = VerificationStatus.unverified,
+    this.verificationRejectionReason,
+    this.verificationSubmittedAt,
   });
 
   final int selectedNavIndex;
@@ -26,6 +36,9 @@ class StartupDashboardState {
   final String profilePhotoPath;
   final List<ConnectionRequest> connectionRequests;
   final List<ActivityItem> recentActivity;
+  final VerificationStatus verificationStatus;
+  final String? verificationRejectionReason;
+  final DateTime? verificationSubmittedAt;
 
   String get locationLabel {
     final parts = <String>[];
@@ -33,6 +46,11 @@ class StartupDashboardState {
     if (country.isNotEmpty) parts.add(country);
     return parts.join(', ');
   }
+
+  bool get isVerified => verificationStatus == VerificationStatus.verified;
+  bool get isVerificationPending => verificationStatus == VerificationStatus.pending;
+  bool get isVerificationRejected => verificationStatus == VerificationStatus.rejected;
+  bool get canAccessHiring => verificationStatus == VerificationStatus.verified;
 
   StartupDashboardState copyWith({
     int? selectedNavIndex,
@@ -46,6 +64,9 @@ class StartupDashboardState {
     String? profilePhotoPath,
     List<ConnectionRequest>? connectionRequests,
     List<ActivityItem>? recentActivity,
+    VerificationStatus? verificationStatus,
+    String? verificationRejectionReason,
+    DateTime? verificationSubmittedAt,
   }) {
     return StartupDashboardState(
       selectedNavIndex: selectedNavIndex ?? this.selectedNavIndex,
@@ -59,6 +80,9 @@ class StartupDashboardState {
       profilePhotoPath: profilePhotoPath ?? this.profilePhotoPath,
       connectionRequests: connectionRequests ?? this.connectionRequests,
       recentActivity: recentActivity ?? this.recentActivity,
+      verificationStatus: verificationStatus ?? this.verificationStatus,
+      verificationRejectionReason: verificationRejectionReason ?? this.verificationRejectionReason,
+      verificationSubmittedAt: verificationSubmittedAt ?? this.verificationSubmittedAt,
     );
   }
 }

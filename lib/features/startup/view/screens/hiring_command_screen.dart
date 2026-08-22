@@ -5,6 +5,7 @@ import '../../model/startup_models.dart';
 import '../../viewmodel/hiring_state.dart';
 import '../../../../core/di/providers.dart';
 import '../widgets/startup_color_helper.dart';
+import 'startup_verification_screen.dart';
 
 class HiringCommandScreen extends ConsumerStatefulWidget {
   const HiringCommandScreen({
@@ -28,7 +29,8 @@ class _HiringCommandScreenState extends ConsumerState<HiringCommandScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(hiringViewModelProvider.notifier).loadInitialData();
-      if (widget.autoOpenCreateSheet) {
+      final isVerified = ref.read(startupDashboardViewModelProvider).isVerified;
+      if (widget.autoOpenCreateSheet && isVerified) {
         showCreateJobSheet(context);
       }
     });
@@ -782,6 +784,14 @@ class _HiringCommandScreenState extends ConsumerState<HiringCommandScreen> {
   Widget build(BuildContext context) {
     final hiringState = ref.watch(hiringViewModelProvider);
     final filtered = _filteredRoles(hiringState);
+    final startupState = ref.watch(startupDashboardViewModelProvider);
+    final isVerified = startupState.isVerified;
+    final isPending = startupState.isVerificationPending;
+    final isRejected = startupState.isVerificationRejected;
+
+    if (!isVerified) {
+      return _buildVerificationRequiredScreen(context, isPending, isRejected, startupState.verificationRejectionReason);
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F3FF),
@@ -1086,6 +1096,132 @@ class _HiringCommandScreenState extends ConsumerState<HiringCommandScreen> {
       ),
     );
   }
+  Widget _buildVerificationRequiredScreen(
+    BuildContext context,
+    bool isPending,
+    bool isRejected,
+    String? rejectionReason,
+  ) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F3FF),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF6F3FF),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF5B21B6)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Hiring',
+          style: TextStyle(
+            color: Color(0xFF12233D),
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: isPending
+                      ? const Color(0xFFFEF3C7)
+                      : isRejected
+                          ? const Color(0xFFFEF2F2)
+                          : const Color(0xFFEDE9FE),
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                child: Icon(
+                  isPending
+                      ? Icons.hourglass_top_rounded
+                      : isRejected
+                          ? Icons.error_outline_rounded
+                          : Icons.lock_rounded,
+                  color: isPending
+                      ? const Color(0xFFF59E0B)
+                      : isRejected
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFF5B21B6),
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                isPending
+                    ? 'Verification Under Review'
+                    : isRejected
+                        ? 'Verification Rejected'
+                        : 'Verification Required',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF12233D),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isPending
+                    ? 'Your startup verification is being reviewed by our team. You\'ll be notified once approved.'
+                    : isRejected
+                        ? 'Your verification was rejected: $rejectionReason\nPlease fix the issues and resubmit.'
+                        : 'To post jobs and access hiring features, your startup must be verified.\nComplete the verification process to unlock.',
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Color(0xFF6B7280),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const StartupVerificationScreen(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF5B21B6),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  icon: Icon(
+                    isPending || isRejected ? Icons.refresh_rounded : Icons.verified_rounded,
+                    size: 20,
+                  ),
+                  label: Text(
+                    isPending
+                        ? 'Check Status'
+                        : isRejected
+                            ? 'Resubmit Verification'
+                            : 'Complete Verification',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _RoleCard extends StatelessWidget {
@@ -1230,9 +1366,9 @@ class _RoleCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              _stat('${role.applicants}', 'Applicants'),
+              _roleStat('${role.applicants}', 'Applicants'),
               const SizedBox(width: 20),
-              _stat('${role.shortlisted}', 'Shortlisted'),
+              _roleStat('${role.shortlisted}', 'Shortlisted'),
             ],
           ),
           const SizedBox(height: 12),
@@ -1256,17 +1392,25 @@ class _RoleCard extends StatelessWidget {
     );
   }
 
-  Widget _stat(String value, String label) {
+  Widget _roleStat(String value, String label) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(value,
-            style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF12233D))),
-        Text(label,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF12233D),
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Color(0xFF6B7280),
+          ),
+        ),
       ],
     );
   }
